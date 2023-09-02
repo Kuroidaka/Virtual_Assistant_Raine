@@ -1,12 +1,19 @@
 const openai = require("../../config/openAI")
+const redisService = require("../redis/redis.service")
 
 const GptService = {
-  ask: async (promptContent, maxTokenEachScript) => {
+  ask: async (promptContent, originalPrompt, maxTokenEachScript) => {
     try {
       console.log("prompt", promptContent);
+
+      const role = "assistant"
+      const content = promptContent
+
+      redisService.addToConversation(role, originalPrompt)
+
       const completion = await openai.chat.completions.create({
         // model: 'text-davinci-003',
-        messages: [{ role: "assistant", content: `${promptContent}` }],
+        messages: [{ role: role, content: content }],
         model: "gpt-3.5-turbo",
         temperature: 0.6,
         max_tokens: maxTokenEachScript

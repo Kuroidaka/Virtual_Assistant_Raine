@@ -59,7 +59,9 @@ client.on('messageCreate', async message => {
         ) {
             message.channel.sendTyping()
 
-            message.content.toLowerCase().includes(botName.toLowerCase()) && message.content.toLowerCase().includes(substringToCheck.toLowerCase()) ? message.content = message.content.replace(botName, "") : message.content = message.content.replace(substringToCheck, "")
+            message.content.toLowerCase().includes(botName.toLowerCase()) || message.content.toLowerCase().includes(substringToCheck.toLowerCase()) ? message.content = message.content.replace(botName + " ", "") : message.content = message.content.replace(substringToCheck, "")
+
+            console.log(message.content)
 
             const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
             axios.post(`${originURL}/api/v1/chatgpt/ask`, {
