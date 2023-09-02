@@ -8,19 +8,21 @@ const chatGpt = {
         try{            
             const { data, maxTokenEachScript, curUser } = req.body;
 
-            const conversation = await redisService.followUpWithOlderResponse()
-            console.log("conversation after getting ", conversation)
-            const prompt = `
-            script: (
-                ${process.env.RAINE_PROMPT}
-                ${curUser.id == process.env.OWNER_ID && process.env.RAINE_PROMPT_LOYAL}
-            )
-            ${conversation.length > 0 ? "- This is the old conversation:" +  conversation[0][0] : ""}
-            - Please response to this user: ${curUser.globalName}
-            - This is the prompt: ${data.content}
-            `
+            const guildID = data.guildId
 
-            const result = await GptService.ask(prompt, data.content, maxTokenEachScript)
+            const conversation = await redisService.followUpWithOlderResponse(guildID)
+            
+            let ConversationPrompt = []
+            if(Array.isArray(conversation)) {
+                conversation.forEach((conv) => {
+                    const msgObj = JSON.parse(conv[0])
+                    ConversationPrompt.push(msgObj)
+                })
+
+            }
+            const prompt = data.content
+            redisService.addToConversation("user", prompt, data.guildId)
+            const result = await GptService.ask(prompt, data, maxTokenEachScript, curUser, ConversationPrompt)
 
             return res.status(200).json({data: result.data})
             

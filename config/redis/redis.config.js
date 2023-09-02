@@ -1,4 +1,6 @@
 const redis = require('redis');
+const { log } = require('../log/log.config');
+const chalk = require('chalk');
 
 const redisConfig = {
     host: "127.0.0.1", // Redis server host
@@ -8,7 +10,7 @@ const redisConfig = {
 const redisClient = redis.createClient(redisConfig);
 
 redisClient.connect().then(() => {
-    console.log("Redis connected");
+    log(chalk.red("Redis"),chalk.green("connected"));
 })
 
 redisClient.on("error", (error) => {

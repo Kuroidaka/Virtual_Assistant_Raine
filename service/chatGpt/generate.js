@@ -1,21 +1,35 @@
+const chalk = require("chalk");
 const openai = require("../../config/openAI")
-const redisService = require("../redis/redis.service")
+const redisService = require("../redis/redis.service");
+const { log } = require("../../config/log/log.config");
 
 const GptService = {
-  ask: async (promptContent, originalPrompt, maxTokenEachScript) => {
+  ask: async (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt) => {
     try {
-      console.log("prompt", promptContent);
+      log(chalk.blue.bold("prompt:"), promptContent);
 
-      const role = "assistant"
-      const content = promptContent
+      let promptMessage = [
+        { role: "system", content: process.env.RAINE_PROMPT},
+        { role: "system", content: `Please response to this user: ${curUser.globalName}`}
+      ]
 
-      redisService.addToConversation(role, originalPrompt)
+      const newMsg = { role: "user", content: promptContent }
+      const loyalSystem = { role: "system", content: process.env.RAINE_PROMPT_LOYAL }
+
+      curUser.id == process.env.OWNER_ID && promptMessage.push(loyalSystem)
+      promptMessage.push(newMsg)
+    
+      if(ConversationPrompt.length > 0) {
+        promptMessage = [...promptMessage, ...ConversationPrompt]
+      }
+
+      log(chalk.blue.bold("ConversationPrompt"), promptMessage);
 
       const completion = await openai.chat.completions.create({
         // model: 'text-davinci-003',
-        messages: [{ role: role, content: content }],
+        messages: promptMessage,
         model: "gpt-3.5-turbo",
-        temperature: 0.6,
+        temperature: 1,
         max_tokens: maxTokenEachScript
       });
   

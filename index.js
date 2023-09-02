@@ -7,7 +7,8 @@ const morgan = require('morgan')
 const axios = require("axios")
 
 const app = express()
-const route = require("./api/v1/route/index")
+const route = require("./api/v1/route/index");
+const chalk = require("chalk");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -23,24 +24,25 @@ const port = process.env.SERVER_PORT || 8000;
 
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log("Server :", chalk.blue(port), chalk.green("connected"));
 })
 
 // const { Events, Collection } = require('discord.js');
 const client = require("./config/discord/bot.config")
-const userCommand = require("./service/discord/command/user")
-const { sliceString } = require("./service/discord/format/length") 
+const { sliceString } = require("./service/discord/format/length"); 
+const { log } = require("./config/log/log.config");
+
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 
 client.once('ready', async () => {
-    console.log('Bot is online!', client.user.tag );
+    log(`✨ ${client.user.tag} is ${chalk.green("online")}! ✨ `);
 });
 
  
 
 client.on('messageCreate', async message => {
-    console.log("catch event")
+    log(chalk.cyan("catch event"))
     if (message.author.bot || !message.guild) return;
     try {
 
@@ -59,9 +61,7 @@ client.on('messageCreate', async message => {
         ) {
             message.channel.sendTyping()
 
-            message.content.toLowerCase().includes(botName.toLowerCase()) || message.content.toLowerCase().includes(substringToCheck.toLowerCase()) ? message.content = message.content.replace(botName + " ", "") : message.content = message.content.replace(substringToCheck, "")
-
-            console.log(message.content)
+            message.content.toLowerCase().includes(botName.toLowerCase()) || message.content.toLowerCase().includes(substringToCheck.toLowerCase()) ? message.content = message.content.replace(botName, "") : message.content = message.content.replace(substringToCheck, "")
 
             const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
             axios.post(`${originURL}/api/v1/chatgpt/ask`, {
