@@ -30,58 +30,53 @@ app.listen(port, () => {
 const client = require("./config/discord/bot.config")
 const userCommand = require("./service/discord/command/user")
 const { sliceString } = require("./service/discord/format/length") 
-// const fs = require('fs');
 
-// Your bot token (get this from the Discord Developer Portal)
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
-
-
-// client.commands = new Collection();
-// // const commandFiles = fs.readdirSync('./service/discord/command').filter(file => file.endsWith('.js'));
-
-// // for (const file of commandFiles) {
-// // 	const command = require(`./service/discord/command/${file}`);
-// // 	client.commands.set(command.data.name, command);
-// // }
-
 
 client.once('ready', async () => {
     console.log('Bot is online!', client.user.tag );
-    // for (const guild of client.guilds.cache.values()) {
-    //     await guild.commands.set([...client.commands.values()].map(command => command.data));
-    // }
 });
 
  
 
-client.on('messageCreate', message => {
+client.on('messageCreate', async message => {
     console.log("catch event")
     if (message.author.bot || !message.guild) return;
     try {
+
+        const { guildId } = message
+
+        const guild = client.guilds.cache.get(guildId);
+        const member = guild.members.cache.get(message.author.id);
+        const user = member.user;
+        const maxTokenEachScript = 1000 
+        let substringToCheck = "hey raine";
+        let botName = "raine"
             // Check the content of the message
-        if (message.content[0] === "+") {
+        if (message.mentions?.users?.first()?.id === process.env.RAINE_ID 
+        || message.content.toLowerCase().includes(substringToCheck.toLowerCase())
+        || message.content.toLowerCase().includes(botName.toLowerCase())
+        ) {
             message.channel.sendTyping()
+
+            message.content.toLowerCase().includes(botName.toLowerCase()) && message.content.toLowerCase().includes(substringToCheck.toLowerCase()) ? message.content = message.content.replace(botName, "") : message.content = message.content.replace(substringToCheck, "")
+
             const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
             axios.post(`${originURL}/api/v1/chatgpt/ask`, {
-                prompt: message.content
+                data: message,
+                maxTokenEachScript: maxTokenEachScript,
+                curUser: user
             })
             .then(res => {
                 console.log(res.data.data.length)
-                const newData = sliceString(res.data.data, 400)
+                const newData = sliceString(res.data.data, maxTokenEachScript)
+                message.channel.sendTyping()
                 newData.map(msg => {
                     message.channel.send(msg)
                 })
             })
 
-        }
-        else if(message.content[0] === "!") {
-            // const [CMD_NAME, ...args] = message.content
-            //     .trim()
-            //     .substring(1)
-            //     .split(/\s+/);
-            // console.log(CMD_NAME, args)
-            userCommand.execute(message)
-        }
+        } 
     } catch (error) {
         console.log(error)
     }
