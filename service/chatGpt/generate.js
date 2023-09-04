@@ -29,7 +29,7 @@ const GptService = {
         // model: 'text-davinci-003',
         messages: promptMessage,
         model: "gpt-3.5-turbo",
-        temperature: 1,
+        temperature: .6,
         max_tokens: maxTokenEachScript
       });
   
