@@ -3,7 +3,8 @@ const { log } = require('../log/log.config');
 const chalk = require('chalk');
 
 const redisConfig = {
-    host: "127.0.0.1", // Redis server host
+    host: process.env.REDIS_HOST || "127.0.0.1", // Redis server host
+    // url: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,       // Redis server port
   };
 
