@@ -51,7 +51,7 @@ client.on('messageCreate', async message => {
         const guild = client.guilds.cache.get(guildId);
         const member = guild.members.cache.get(message.author.id);
         const user = member.user;
-        const maxTokenEachScript = 1000 
+        const maxTokenEachScript = 2000 
         let substringToCheck = "hey raine";
         let botName = "raine"
             // Check the content of the message
@@ -61,6 +61,10 @@ client.on('messageCreate', async message => {
         ) {
             message.channel.sendTyping()
 
+            if(message.mentions?.users?.first() && message.mentions?.users?.first()?.id !== process.env.RAINE_ID) {
+
+                message.content = message.content.replace(`<@${message.mentions?.users?.first()?.id}>`, message.mentions?.users?.first()?.username)
+            }
             message.content.toLowerCase().includes(botName.toLowerCase()) || message.content.toLowerCase().includes(substringToCheck.toLowerCase()) ? message.content = message.content.replace(botName, "") : message.content = message.content.replace(substringToCheck, "")
 
             const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
@@ -76,9 +80,10 @@ client.on('messageCreate', async message => {
                 newData.map(msg => {
                     message.channel.send(msg)
                 })
-            })
-
+            })    
         } 
+        
+        // else if()
     } catch (error) {
         console.log(error)
     }

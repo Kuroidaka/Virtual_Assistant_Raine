@@ -23,6 +23,8 @@ const chatGpt = {
             const prompt = data.content
             redisService.addToConversation("user", prompt, data.guildId)
             const result = await GptService.ask(prompt, data, maxTokenEachScript, curUser, ConversationPrompt)
+            redisService.addToConversation("assistant", result.data, data.guildId)
+
 
             return res.status(200).json({data: result.data})
             

@@ -14,13 +14,7 @@ const redisService = {
                 console.log('Redis - Message added to conversation:', result);
             }
 
-            redisClient.expire(conversationKey, expirationInSeconds, (expireError, expireResult) => {
-                if (expireError) {
-                    console.error('Redis - addToConversation - expired Error setting expiration for conversation key:', expireError);
-                } else {
-                    console.log('Redis - Expiration set for conversation key:', expireResult);
-                }
-            });
+            redisClient.expire(conversationKey, expirationInSeconds);
         })
     },
     followUpWithOlderResponse: async (guildId) => {
@@ -34,7 +28,7 @@ const redisService = {
             conversationList.push(conversation)
         }
 
-        return conversationList
+        return conversationList.reverse()
       }
     
 }

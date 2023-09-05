@@ -17,11 +17,14 @@ const GptService = {
       const loyalSystem = { role: "system", content: process.env.RAINE_PROMPT_LOYAL }
 
       curUser.id == process.env.OWNER_ID && promptMessage.push(loyalSystem)
-      promptMessage.push(newMsg)
-    
+      
+      // ConversationPrompt = ConversationPrompt.reverse()
+
       if(ConversationPrompt.length > 0) {
         promptMessage = [...promptMessage, ...ConversationPrompt]
       }
+
+      promptMessage.push(newMsg)
 
       log(chalk.blue.bold("ConversationPrompt"), promptMessage);
 
