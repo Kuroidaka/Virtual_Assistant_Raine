@@ -10,20 +10,15 @@ const chatGpt = {
 
             const guildID = data.guildId
 
-            const conversation = await redisService.followUpWithOlderResponse(guildID)
+            const ConversationPrompt = await redisService.followUpWithOlderResponse(guildID)
             
-            let ConversationPrompt = []
-            if(Array.isArray(conversation)) {
-                conversation.forEach((conv) => {
-                    const msgObj = JSON.parse(conv[0])
-                    ConversationPrompt.push(msgObj)
-                })
-
-            }
             const prompt = data.content
             redisService.addToConversation("user", prompt, data.guildId)
             const result = await GptService.ask(prompt, data, maxTokenEachScript, curUser, ConversationPrompt)
-            redisService.addToConversation("assistant", result.data, data.guildId)
+            const sumary = await GptService.ask(`
+            Please provide a brief summary of the main points in the following text
+            ${result.data}`, data, maxTokenEachScript, curUser, ConversationPrompt)
+            redisService.addToConversation("assistant", sumary.data, data.guildId)
 
 
             return res.status(200).json({data: result.data})

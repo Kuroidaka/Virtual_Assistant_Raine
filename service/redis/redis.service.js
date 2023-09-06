@@ -1,5 +1,6 @@
+const { log } = require('../../config/log/log.config');
 const redisClient = require('../../config/redis/redis.config');
-
+const chalk = require("chalk");
 
 const redisService = {
     addToConversation:  (role, content, guildId) => {
@@ -13,9 +14,9 @@ const redisService = {
             } else {
                 console.log('Redis - Message added to conversation:', result);
             }
-
-            redisClient.expire(conversationKey, expirationInSeconds);
         })
+
+        redisClient.expire(conversationKey, expirationInSeconds);
     },
     followUpWithOlderResponse: async (guildId) => {
 
@@ -25,10 +26,14 @@ const redisService = {
 
         for(let i = 0; i < conversationKeys.length; i++) {
             const conversation = await redisClient.lRange(conversationKeys[i], 0, -1);
-            conversationList.push(conversation)
+
+            if(conversation) {
+                const msgObj = JSON.parse(conversation[0])
+                conversationList.push(msgObj)
+            }
         }
 
-        return conversationList.reverse()
+        return conversationList
       }
     
 }

@@ -24,7 +24,7 @@ const port = process.env.SERVER_PORT || 8000;
 
 
 app.listen(port, () => {
-    console.log("Server :", chalk.blue(port), chalk.green("connected"));
+    log("Server :", chalk.blue(port), chalk.green("connected"));
 })
 
 // const { Events, Collection } = require('discord.js');
