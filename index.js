@@ -93,3 +93,17 @@ client.on('messageCreate', async message => {
 
 // Login to Discord with the bot's token
 client.login(TOKEN);
+
+
+
+
+
+
+
+
+
+
+
+
+
+

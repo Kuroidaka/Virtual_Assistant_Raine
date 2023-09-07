@@ -18,7 +18,6 @@ const GptService = {
 
       curUser.id == process.env.OWNER_ID && promptMessage.push(loyalSystem)
       
-      // ConversationPrompt = ConversationPrompt.reverse()
 
       if(ConversationPrompt.length > 0) {
         promptMessage = [...promptMessage, ...ConversationPrompt]
@@ -42,24 +41,6 @@ const GptService = {
     } catch(error) {
       console.log(error)
       return ({status: 500, error: error})
-      // Consider adjusting the error handling logic for your use case
-      // if (error.response) {
-      //   console.error(
-      //     // error.response.status,
-      //      error.response.data);
-      //   return ({
-      //     // status: error.response.status,
-      //     error: error.response.data,
-      //   })
-      // } else {
-      //   console.error(`Error with OpenAI API request: ${error.message}`);
-      //   return ({
-      //     status: 500,
-      //     error: {
-      //       message: 'An error occurred during your request.',
-      //     }
-      //   })
-      // }
     }
 
   }  
