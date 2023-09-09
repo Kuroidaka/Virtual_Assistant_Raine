@@ -5,18 +5,21 @@ const chalk = require("chalk");
 const redisService = {
     addToConversation:  (role, content, guildId) => {
         const message = { role, content };
-        const conversationKey = `${guildId}:conversation:${Date.now()}`;
-        const expirationInSeconds = 180; // 3 minutes
-        
-        redisClient.lPush(conversationKey, JSON.stringify(message), (error, result) => {
-            if (error) {
-                console.error('Redis - addToConversation - lPush - Error adding message to conversation:', error);
-            } else {
-                console.log('Redis - Message added to conversation:', result);
-            }
-        })
 
-        redisClient.expire(conversationKey, expirationInSeconds);
+        if(role && content ) {
+            const conversationKey = `${guildId}:conversation:${Date.now()}`;
+            const expirationInSeconds = 180; // 3 minutes
+            
+            redisClient.lPush(conversationKey, JSON.stringify(message), (error, result) => {
+                if (error) {
+                    console.error('Redis - addToConversation - lPush - Error adding message to conversation:', error);
+                } else {
+                    console.log('Redis - Message added to conversation:', result);
+                }
+            })
+    
+            redisClient.expire(conversationKey, expirationInSeconds);
+        }
     },
     followUpWithOlderResponse: async (guildId) => {
 
