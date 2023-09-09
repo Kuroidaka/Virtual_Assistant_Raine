@@ -18,10 +18,10 @@ const chatGpt = {
             // const summary = await GptService.ask(`
             // Please provide a brief summary of the main points in the following text
             // ${result.data}`, data, maxTokenEachScript, curUser, ConversationPrompt)
-            redisService.addToConversation("assistant", result.data, data.guildId)
+            redisService.addToConversation("assistant", result.data.choices[0].message.content, data.guildId)
 
 
-            return res.status(200).json({data: result.data})
+            return res.status(200).json({data: result.data.choices[0].message.content})
             
         } catch (err) {
             console.error(err);

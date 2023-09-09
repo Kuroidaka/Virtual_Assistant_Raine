@@ -13,11 +13,10 @@ const GptService = {
         { role: "system", content: `Please response to this user: ${curUser.globalName}`}
       ]
 
-      const newMsg = { role: "user", content: promptContent }
       const loyalSystem = { role: "system", content: process.env.RAINE_PROMPT_LOYAL }
-
       curUser.id == process.env.OWNER_ID && promptMessage.push(loyalSystem)
-      
+
+      const newMsg = { role: "user", content: promptContent }
 
       if(ConversationPrompt.length > 0) {
         promptMessage = [...promptMessage, ...ConversationPrompt]
@@ -35,7 +34,7 @@ const GptService = {
         max_tokens: maxTokenEachScript
       });
   
-      const generatedResponse = completion.choices[0].message.content
+      const generatedResponse = completion
   
       return ({ status: 200, data: generatedResponse })
     } catch(error) {
@@ -43,7 +42,7 @@ const GptService = {
       return ({status: 500, error: error})
     }
 
-  }  
+  } 
 }
 
 
