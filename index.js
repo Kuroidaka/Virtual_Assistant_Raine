@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser');
 const morgan = require('morgan')
 const axios = require("axios")
+const DB = require("./config/database/config.js")
 
 const app = express()
 const route = require("./api/v1/route/index");
@@ -22,81 +23,116 @@ route(app)
 const port = process.env.SERVER_PORT || 8000; 
 
 
-
 app.listen(port, () => {
     log("Server :", chalk.blue(port), chalk.green("connected"));
 })
 
+
+
+// DB
+
+DB.on('connection', function (connection) {
+log('DB Connection established');
+
+connection.on('error', function (err) {
+    console.error(new Date(), 'MySQL error', err.code);
+});
+connection.on('close', function (err) {
+    console.error(new Date(), 'MySQL close', err);
+});
+
+});
+// BOT
+
 // const { Events, Collection } = require('discord.js');
-const client = require("./config/discord/bot.config")
+const { client, Collection, Events } = require("./config/discord/bot.config")
 const { sliceString } = require("./service/discord/format/length"); 
 const { log } = require("./config/log/log.config");
+const sendCronMessage = require("./service/cron/vocab.js");
 
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 
-client.once('ready', async () => {
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+client.commands = new Collection();
+
+const commandsPath = path.join(__dirname, './service/discord/command');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	// Set a new item in the Collection with the key as the command name and the value as the exported module
+	if ('data' in command && 'execute' in command) {
+		client.commands.set(command.data.name, command);
+	} else {
+		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+	}
+}
+
+client.on("ready", () => {
+    // if (!interaction.isChatInputCommand()) return;
     log(`✨ ${client.user.tag} is ${chalk.green("online")}! ✨ `);
+    // const channelCron = interaction.channels.cache.get(process.env.CHANNEL_CRON_ID);
+
 });
+
+client.on('messageCreate', async interaction => {
+
+	if (interaction.author.bot || !interaction.guild) return;
+	let command
+	interaction.channel.sendTyping()
+
+	// console.log(client.commands.get("raine").data.check(interaction))
+	client.commands.each((cmd) => {
+		if(cmd.data.check(interaction)) {
+			command = client.commands.get(cmd.data.name);
+		}
+	})
+	
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
+
+	try {
+
+		const { guildId } = interaction
+	
+		const guild = client.guilds.cache.get(guildId);
+		const member = guild.members.cache.get(interaction.author.id);
+		const user = member.user;
+
+		await command.execute(interaction, user);
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+		} else {
+			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		}
+	}
+});
+
+// client.once('ready', async (message) => {
+   
+//     sendCronMessage(message, channelCron)
+// });
 
  
-
-client.on('messageCreate', async message => {
-    log(chalk.cyan("catch event"))
-    if (message.author.bot || !message.guild) return;
-    try {
-
-        const { guildId } = message
-
-        const guild = client.guilds.cache.get(guildId);
-        const member = guild.members.cache.get(message.author.id);
-        const user = member.user;
-        const maxTokenEachScript = 2000 
-        let substringToCheck = "hey raine";
-        let botName = "raine"
-            // Check the content of the message
-        if (message.mentions?.users?.first()?.id === process.env.RAINE_ID 
-        || message.content.toLowerCase().includes(substringToCheck.toLowerCase())
-        || message.content.toLowerCase().includes(botName.toLowerCase())
-        ) {
-            message.channel.sendTyping()
-
-            if(message.mentions?.users?.first() && message.mentions?.users?.first()?.id !== process.env.RAINE_ID) {
-
-                message.content = message.content.replace(`<@${message.mentions?.users?.first()?.id}>`, message.mentions?.users?.first()?.username)
-            }
-            message.content.toLowerCase().includes(botName.toLowerCase()) || message.content.toLowerCase().includes(substringToCheck.toLowerCase()) ? message.content = message.content.replace(botName, "") : message.content = message.content.replace(substringToCheck, "")
-
-            const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
-            axios.post(`${originURL}/api/v1/chatgpt/ask`, {
-                data: message,
-                maxTokenEachScript: maxTokenEachScript,
-                curUser: user
-            })
-            .then(res => {
-                console.log(res.data.data.length)
-                const newData = sliceString(res.data.data, maxTokenEachScript)
-                message.channel.sendTyping()
-                newData.map(msg => {
-                    message.channel.send(msg)
-                })
-            })    
-        } 
-        
-        // else if()
-    } catch (error) {
-        console.log(error)
-    }
+// client.on('messageCreate', async message => {
+//     log(chalk.cyan("catch event"))
+//     if (message.author.bot || !message.guild) return;
+  
    
 
-});
+// });
 
 // Login to Discord with the bot's token
 client.login(TOKEN);
-
-
-
-
 
 
 
