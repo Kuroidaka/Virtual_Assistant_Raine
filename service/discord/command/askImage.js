@@ -7,7 +7,7 @@ module.exports = {
 	data: {
 		name: 'raine-image',
 		check: (interaction) => {
-			let substringToCheck = "+";
+			let substringToCheck = "-img";
 			if(interaction.content.toLowerCase().includes(substringToCheck.toLowerCase())){
 				log(chalk.red("raine-image"))
 				return true 

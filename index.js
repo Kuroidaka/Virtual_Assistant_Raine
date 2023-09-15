@@ -107,6 +107,9 @@ client.on('messageCreate', async interaction => {
 		const user = member.user;
 
 		await command.execute(interaction, user);
+		setTimeout(() => {
+			interaction.channel.sendTyping()
+		}, 5000)
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {

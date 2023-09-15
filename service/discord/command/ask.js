@@ -1,4 +1,5 @@
-const axios = require("axios")
+const axios = require("axios");
+const { sliceString } = require("../format/length");
 
 
 module.exports = {
@@ -37,7 +38,6 @@ module.exports = {
 			.then(res => {
 				console.log(res.data.data.length)
 				const newData = sliceString(res.data.data, maxTokenEachScript)
-				interaction.channel.sendTyping()
 				newData.map(msg => {
 					interaction.channel.send(msg)
 				})

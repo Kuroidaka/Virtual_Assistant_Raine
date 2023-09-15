@@ -45,6 +45,36 @@ const chatGpt = {
             log(error)
             return res.status(500).json({ error: error });
         }
+    },
+    editImage: async (req, res) => {
+        const GPT = new GptService
+        const { prompt, guildId } = req.body;
+
+        try {
+            const result = await GPT.editImage(prompt)
+            
+            // redisService.addToConversation("user", prompt, guildId)
+            return res.status(200).json({data: result.data})
+        } catch (error) {
+            log(error)
+            return res.status(500).json({ error: error });
+        }
+    },
+    translate: async (req, res) => {
+
+        const { prompt, maxTokenEachScript } = req.body
+            
+        try {
+            const GPT = new GptService
+            
+            const result = await GPT.translate(prompt, maxTokenEachScript)
+
+            return res.status(200).json({ data: result.data.choices[0].message.content })
+
+        } catch (error) {
+            return res.status(500).json({ error: error });
+        }
+
     }
 
 }
