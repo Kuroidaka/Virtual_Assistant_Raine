@@ -55,7 +55,21 @@ const redisService = {
 
         return conversationList
     },
+    mergeNewConversation: async(guildID, lan = "", newConversation) => {
+        const conversationKey = `${lan && lan + ":"}${guildID}:conversation`
+        try {
 
+            await redisClient.del(conversationKey);
+
+            for (let index = 0; index < newConversation.length; index++) {
+                const convMessage = newConversation[index];
+                await redisClient.zAdd(conversationKey, { score: index, value: `${Date.now()}|${JSON.stringify(convMessage)}` });
+            }
+            
+        } catch (error) {
+            console.log('Redis - Message merger conversation:', error);
+        }
+    },
     countItems: async (conversationKeys) => {
     try {
         const minScore = '-inf';

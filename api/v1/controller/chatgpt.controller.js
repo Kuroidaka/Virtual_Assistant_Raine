@@ -49,7 +49,7 @@ const chatGpt = {
             const prompt = data.content
             redisService.addToConversation("user", prompt, data.guildId, lan)
             const GPT = new GptService
-            const result = await GPT.askTTS(prompt, maxTokenEachScript, curUser, ConversationPrompt, lan)
+            const result = await GPT.askTTS(prompt, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID)
 
             if(result.status === 200) {
                 redisService.addToConversation("assistant", result.data.choices[0].message.content, data.guildId, lan)

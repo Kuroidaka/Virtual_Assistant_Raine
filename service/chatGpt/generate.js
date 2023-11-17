@@ -58,10 +58,11 @@ class GptService {
     }
 
   }
-  async askTTS (promptContent, maxTokenEachScript, curUser, ConversationPrompt, lan) {
+  async askTTS (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
       let countSystem = 0
+      let flagCheckOverToken = false
       if(RainePrompt[lan]) {
         this.promptMessageTTS[0] = { role: "system", content: RainePrompt[lan].system }
         ++countSystem
@@ -87,14 +88,20 @@ class GptService {
       let numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
       log(chalk.yellow.bold("Token: "), numTokens)
       while(condition) {
+        
         const numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
         log(chalk.yellow.bold("Token: "), numTokens)
-        if(numTokens >= 3500)
+        if(numTokens >= 3500) {
+          flagCheckOverToken = true
           this.promptMessageTTS.splice(countSystem, 2);
+        }
         else 
           condition = false
       }
       numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
+
+      if(flagCheckOverToken)
+        await redisService.mergeNewConversation(guildID, lan, this.promptMessageTTS)
 
       const completion = await openai.chat.completions.create({
         // model: 'gpt-4',
