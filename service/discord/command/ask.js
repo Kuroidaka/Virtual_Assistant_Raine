@@ -21,7 +21,7 @@ module.exports = {
 			const maxTokenEachScript = 2000 
 			let substringToCheck = "hey raine";
 			let botName = "raine"
-			interaction.channel.sendTyping()
+			interaction.channel.sendTyping(10)
 
 			if(interaction.mentions?.users?.first() && interaction.mentions?.users?.first()?.id !== process.env.RAINE_ID) {
 
@@ -41,7 +41,11 @@ module.exports = {
 				newData.map(msg => {
 					interaction.channel.send(msg)
 				})
-			})    
+			})
+			.catch(err => {
+				console.log(err)
+				interaction.channel.send("Error Occurred")
+			})
 		
 		} catch (error) {
 			console.log(error)

@@ -3,41 +3,71 @@ const redisClient = require('../../config/redis/redis.config');
 const chalk = require("chalk");
 
 const redisService = {
-    addToConversation:  (role, content, guildId) => {
+    addToConversation: async (role, content, guildId, lan = "") => {
         const message = { role, content };
 
         if(role && content ) {
-            const conversationKey = `${guildId}:conversation:${Date.now()}`;
-            const expirationInSeconds = 180; // 3 minutes
-            
-            redisClient.lPush(conversationKey, JSON.stringify(message), (error, result) => {
-                if (error) {
-                    console.error('Redis - addToConversation - lPush - Error adding message to conversation:', error);
-                } else {
-                    console.log('Redis - Message added to conversation:', result);
-                }
-            })
-    
-            redisClient.expire(conversationKey, expirationInSeconds);
-        }
-    },
-    followUpWithOlderResponse: async (guildId) => {
+            let conversationKey
+            lan === "" ?
+                conversationKey = `${guildId}:conversation`
+            :   conversationKey = `${lan}:${guildId}:conversation`
 
-        const conversationKeys = await redisClient.keys(`${guildId}:conversation:*`);
-
-        const conversationList = []
-
-        for(let i = 0; i < conversationKeys.length; i++) {
-            const conversation = await redisClient.lRange(conversationKeys[i], 0, -1);
-
-            if(conversation) {
-                const msgObj = JSON.parse(conversation[0])
-                conversationList.push(msgObj)
+            try {
+                let initIndex = 0
+                const count = await redisService.countItems(conversationKey)
+                console.log("count", count)
+                if(count) initIndex = count - 1
+        
+                let index = 0
+                console.log(index, index + initIndex, message)
+                await redisClient.zAdd(conversationKey, { score: index + initIndex , value: `${Date.now()}|${JSON.stringify(message)}` });
+                
+            } catch (error) {
+                console.log('Redis - Message added to conversation:', error);
             }
         }
+    },
+    followUpWithOlderResponse: async (guildId, lan = "") => {
+        let conversationKeys
+        console.log("language", lan)
+        lan === "" ?
+            [conversationKeys] = await redisClient.keys(`${guildId}:conversation`)
+            :[conversationKeys] = await redisClient.keys(`${lan}:${guildId}:conversation`);
+        
+            console.log("conversationKeys", conversationKeys)
+        const conversationList = []
+
+        try {
+            const conversation = await redisClient.zRange(conversationKeys, 0, -1);
+            conversation.forEach(result => {
+                let data = JSON.parse(result.substring(14,result.length))
+
+                if(data) {
+                    const msgObj = data
+                    conversationList.push(msgObj)
+                }
+            });
+        } catch (error) {
+            console.error('Error retrieving items from Redis:', error);
+        }
+
+
 
         return conversationList
-      }
+    },
+
+    countItems: async (conversationKeys) => {
+    try {
+        const minScore = '-inf';
+        const maxScore = '+inf';
+
+        const data = await redisClient.zCount(conversationKeys, minScore, maxScore);
+        return data
+    } catch (err) {
+        console.log(err)
+    }
+}
+
     
 }
 

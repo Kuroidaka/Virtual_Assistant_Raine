@@ -84,7 +84,6 @@ client.on('messageCreate', async interaction => {
 
 	if (interaction.author.bot || !interaction.guild) return;
 	let command
-	interaction.channel.sendTyping()
 
 	// console.log(client.commands.get("raine").data.check(interaction))
 	client.commands.each((cmd) => {
@@ -107,9 +106,16 @@ client.on('messageCreate', async interaction => {
 		const user = member.user;
 
 		await command.execute(interaction, user);
-		setTimeout(() => {
-			interaction.channel.sendTyping()
-		}, 5000)
+		// setTimeout(() => {
+		// 	interaction.channel.sendTyping()
+		// 	interaction.channel.send("Let's me think...")
+		// }, 5000)
+
+		// setTimeout(() => {
+		// 	interaction.channel.sendTyping()
+		// 	interaction.channel.send("a bit more...")
+		// }, 10000)
+
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {

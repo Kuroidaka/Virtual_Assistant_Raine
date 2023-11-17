@@ -4,19 +4,26 @@ const redisService = require("../redis/redis.service");
 const { log } = require("../../config/log/log.config");
 const fs = require('node:fs');
 const path = require("node:path");
-
+const RainePrompt = require("../../Raine_prompt_system.json")
+const { numTokensFromString } = require("../../utils/index");
 
 class GptService {
   constructor() {
     this.promptMessage = [
       { role: "system", content: process.env.RAINE_PROMPT},
     ],
+    this.promptMessageTTS = []
     this.loyalSystem = { role: "system", content: process.env.RAINE_PROMPT_LOYAL }
+    // this.llm_model = "gpt-3.5-turbo"
+    this.llm_model = "gpt-4"
+    this.llm_max_tokens = 4097
   }
-  async ask (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt) {
+  async ask (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan) {
     try {
-      log(chalk.blue.bold("prompt:"), promptContent);
+      log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
 
+
+      // check user boss on Discord
       if(curUser) {
         const userResponse = { role: "system", content: `Please response to this user: ${curUser.globalName}`}
         curUser.id == process.env.OWNER_ID && this.promptMessage.push(this.loyalSystem)
@@ -31,14 +38,18 @@ class GptService {
 
       this.promptMessage.push(newMsg)
 
-      log(chalk.blue.bold("ConversationPrompt"), this.promptMessage);
+      // console.log(numTokensFromString(this.promptMessag) )
+      // if(numTokensFromString(this.promptMessag) > 4097) 
 
+
+      log(chalk.blue.bold("ConversationPrompt"), this.promptMessage);
+      
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
+        model: this.llm_model,
         messages: this.promptMessage,
         // model: "gpt-3.5-turbo",
-        temperature: Number(process.env.TEMPLATE_GPT),
-        max_tokens: maxTokenEachScript
+        temperature: 1,
+        max_tokens: maxTokenEachScript,
       });
   
       const generatedResponse = completion
@@ -50,6 +61,49 @@ class GptService {
     }
 
   }
+  async askTTS (promptContent, maxTokenEachScript, curUser, ConversationPrompt, lan) {
+    try {
+      log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
+
+      if(RainePrompt[lan]) {
+        this.promptMessageTTS[0] = { role: "system", content: RainePrompt[lan].system }
+        this.loyalSystem.content = RainePrompt[lan].loyal
+      }
+
+      if(curUser) {
+        const userResponse = { role: "system", content: `Please response to this user: ${curUser.globalName}`}
+        curUser.id == process.env.OWNER_ID && this.promptMessageTTS.push(this.loyalSystem)
+        this.promptMessageTTS.push(userResponse)
+      }
+
+      const newMsg = { role: "user", content: promptContent }
+
+      if(ConversationPrompt && ConversationPrompt.length > 0) {
+        this.promptMessageTTS = [...this.promptMessageTTS, ...ConversationPrompt]
+      }
+
+      this.promptMessageTTS.push(newMsg)
+
+      log(chalk.blue.bold("ConversationPrompt"), this.promptMessageTTS);
+
+      const completion = await openai.chat.completions.create({
+        // model: 'gpt-4',
+        messages: this.promptMessageTTS,
+        model: "gpt-3.5-turbo",
+        temperature: 1,
+        max_tokens: maxTokenEachScript,
+      });
+  
+      const generatedResponse = completion
+  
+      return ({ status: 200, data: generatedResponse })
+    } catch(error) {
+      console.log(error)
+      return ({status: 500, error: error})
+    }
+
+  }
+
   async askImage (promptContent, qty = 1) {
 
     log(chalk.blue.bold("prompt:"), promptContent);
