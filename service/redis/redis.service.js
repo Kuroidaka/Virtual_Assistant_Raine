@@ -15,11 +15,11 @@ const redisService = {
             try {
                 let initIndex = 0
                 const count = await redisService.countItems(conversationKey)
-                console.log("count", count)
+                log(chalk.red("Redis"), conversationKey );
+                log(chalk.magenta(`Count in Conversation: ${count}`));
                 if(count) initIndex = count - 1
         
                 let index = 0
-                console.log(index, index + initIndex, message)
                 await redisClient.zAdd(conversationKey, { score: index + initIndex , value: `${Date.now()}|${JSON.stringify(message)}` });
                 
             } catch (error) {

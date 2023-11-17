@@ -33,7 +33,7 @@ module.exports = {
 			axios.post(`${originURL}/api/v1/chatgpt/ask`, {
 				data: interaction,
 				maxTokenEachScript: maxTokenEachScript,
-				curUser: user
+				curUser: user,
 			})
 			.then(res => {
 				console.log(res.data.data.length)
@@ -44,7 +44,7 @@ module.exports = {
 			})
 			.catch(err => {
 				console.log(err)
-				interaction.channel.send("Error Occurred")
+				interaction.channel.send("Error Occur")
 			})
 		
 		} catch (error) {

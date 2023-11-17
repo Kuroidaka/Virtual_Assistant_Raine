@@ -38,9 +38,6 @@ class GptService {
 
       this.promptMessage.push(newMsg)
 
-      // console.log(numTokensFromString(this.promptMessag) )
-      // if(numTokensFromString(this.promptMessag) > 4097) 
-
 
       log(chalk.blue.bold("ConversationPrompt"), this.promptMessage);
       
@@ -56,17 +53,18 @@ class GptService {
   
       return ({ status: 200, data: generatedResponse })
     } catch(error) {
-      console.log(error)
-      return ({status: 500, error: error})
+      log(error)
+      return ({status: 500, error: error.error.message})
     }
 
   }
   async askTTS (promptContent, maxTokenEachScript, curUser, ConversationPrompt, lan) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
-
+      let countSystem = 0
       if(RainePrompt[lan]) {
         this.promptMessageTTS[0] = { role: "system", content: RainePrompt[lan].system }
+        ++countSystem
         this.loyalSystem.content = RainePrompt[lan].loyal
       }
 
@@ -74,6 +72,7 @@ class GptService {
         const userResponse = { role: "system", content: `Please response to this user: ${curUser.globalName}`}
         curUser.id == process.env.OWNER_ID && this.promptMessageTTS.push(this.loyalSystem)
         this.promptMessageTTS.push(userResponse)
+        countSystem += 2
       }
 
       const newMsg = { role: "user", content: promptContent }
@@ -81,10 +80,21 @@ class GptService {
       if(ConversationPrompt && ConversationPrompt.length > 0) {
         this.promptMessageTTS = [...this.promptMessageTTS, ...ConversationPrompt]
       }
-
       this.promptMessageTTS.push(newMsg)
 
       log(chalk.blue.bold("ConversationPrompt"), this.promptMessageTTS);
+      let condition = true
+      let numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
+      log(chalk.yellow.bold("Token: "), numTokens)
+      while(condition) {
+        const numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
+        log(chalk.yellow.bold("Token: "), numTokens)
+        if(numTokens >= 3500)
+          this.promptMessageTTS.splice(countSystem, 2);
+        else 
+          condition = false
+      }
+      numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
 
       const completion = await openai.chat.completions.create({
         // model: 'gpt-4',
@@ -98,8 +108,7 @@ class GptService {
   
       return ({ status: 200, data: generatedResponse })
     } catch(error) {
-      console.log(error)
-      return ({status: 500, error: error})
+      return ({status: 500, error: error.error.message})
     }
 
   }
@@ -122,19 +131,23 @@ class GptService {
   }
 
   async editImage() {
-
-    const commandsPath = path.join(__dirname, '../../assert/image/image_edit_original.png');
-    const mask = path.join(__dirname, '../../assert/image/image_edit_mask.png');
-
-    console.log("commandsPath", commandsPath)
-    const image = await openai.images.edit({
-      image: fs.createReadStream(commandsPath),
-      mask: fs.createReadStream(mask),
-      prompt: "A cute baby sea otter wearing a beret",
-    });
+    try {
+      const commandsPath = path.join(__dirname, '../../assert/image/image_edit_original.png');
+      const mask = path.join(__dirname, '../../assert/image/image_edit_mask.png');
   
-    console.log(image.data);
-    return image
+      console.log("commandsPath", commandsPath)
+      const image = await openai.images.edit({
+        image: fs.createReadStream(commandsPath),
+        mask: fs.createReadStream(mask),
+        prompt: "A cute baby sea otter wearing a beret",
+      });
+    
+      console.log(image.data);
+      return image
+      
+    } catch (error) {
+      console.log(error.error.message)
+    }
   }
 
   async translate(promptContent, maxTokenEachScript) { 
@@ -157,8 +170,8 @@ class GptService {
       return ({ status: 200, data: response })
       
     } catch (error) {
-      log(error)
-      return ({status: 500, data: error})
+      log(error.error.message)
+      return ({status: 500, data: error.error.message})
     }
   }
 }
