@@ -33,10 +33,11 @@ const redisService = {
         lan === "" ?
             [conversationKeys] = await redisClient.keys(`${guildId}:conversation`)
             :[conversationKeys] = await redisClient.keys(`${lan}:${guildId}:conversation`);
-        
+            
+            if(!conversationKeys) return []
+
             console.log("conversationKeys", conversationKeys)
         const conversationList = []
-
         try {
             const conversation = await redisClient.zRange(conversationKeys, 0, -1);
             conversation.forEach(result => {
@@ -50,8 +51,6 @@ const redisService = {
         } catch (error) {
             console.error('Error retrieving items from Redis:', error);
         }
-
-
 
         return conversationList
     },

@@ -6,11 +6,11 @@ const weatherService = require("../../functionCalling/weather");
 
 module.exports = {
 	data: {
-		name: 'raine-weather',
+		name: 'raine-weather2',
 		check: (interaction) => {
-			let substringToCheck = "-weat";
+			let substringToCheck = "-weat2";
 			if(interaction.content.toLowerCase().includes(substringToCheck.toLowerCase())){
-				log(chalk.red("raine-weather"))
+				log(chalk.red("raine-weather2"))
 				return true 
 			}
 
@@ -21,18 +21,27 @@ module.exports = {
 		try {
 			// console.log(`Channel ID: ${interaction.channel.id}`);
 			const maxTokenEachScript = 2000 
-			log(chalk.blue("API weather"))
+			log(chalk.blue("API weather2"))
 			log(chalk.blue("interaction.content", interaction))
 	
 			interaction.channel.sendTyping()
 
-			await weatherService.getByLocation("Ho Chi Minh", "vi")
+			const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
+			axios.post(`${originURL}/api/v1/chatgpt/ask-for-func`, {
+				data: interaction,
+				maxTokenEachScript: maxTokenEachScript,
+				curUser: user,
+			})
 			.then(res => {
-				const newData = res.data
-				if(newData) {
-					interaction.channel.sendTyping()
-					interaction.channel.send(JSON.stringify(newData))
-				}
+				console.log(res.data.data.length)
+				const newData = sliceString(res.data.data, maxTokenEachScript)
+				newData.map(msg => {
+					interaction.channel.send(msg)
+				})
+			})
+			.catch(err => {
+				console.log(err)
+				interaction.channel.send("Error Occur")
 			})
 
 		} catch (error) {

@@ -16,13 +16,46 @@ const chatGpt = {
             const prompt = data.content
             redisService.addToConversation("user", prompt, data.guildId)
             const GPT = new GptService
-            const result = await GPT.ask(prompt, data, maxTokenEachScript, curUser, ConversationPrompt)
+            const result = await GPT.functionCalling(prompt, data, maxTokenEachScript, curUser, ConversationPrompt)
 
             console.log("Request OPENAI status: ", result.status)
-            console.log("Request OPENAI data: ", result.data.choices[0].message.content)
+            console.log("Request OPENAI data: ", result.data)
             if(result.status === 200) {
-                redisService.addToConversation("assistant", result.data.choices[0].message.content, data.guildId)
-                return res.status(200).json({data: result.data.choices[0].message.content})
+                redisService.addToConversation("assistant", result.data, data.guildId)
+                return res.status(200).json({data: result.data})
+            }
+            else {
+                error = result.error
+            }
+            // const summary = await GptService.ask(`
+            // Please provide a brief summary of the main points in the following text
+            // ${result.data}`, data, maxTokenEachScript, curUser, ConversationPrompt)
+            
+        } catch (err) {
+            console.error(error);
+            return res.status(500).json({ error: error });
+        }
+
+    },
+    askForFunction: async (req, res) => { 
+        let error
+        try{            
+            const { data, maxTokenEachScript, curUser } = req.body;
+
+            const guildID = data.guildId
+            const ConversationPrompt = await redisService.followUpWithOlderResponse(guildID)
+            
+            // const prompt = data.content
+            const prompt = "What's the weather like in in Ho Chi Minh"
+            redisService.addToConversation("user", prompt, data.guildId)
+            const GPT = new GptService
+            const result = await GPT.functionCalling(prompt, data, maxTokenEachScript, curUser, ConversationPrompt)
+
+            console.log("Request OPENAI status: ", result.status)
+            console.log("Request OPENAI data: ", result.data)
+            if(result.status === 200) {
+                redisService.addToConversation("assistant", result.data, data.guildId)
+                return res.status(200).json({data: result.data})
             }
             else {
                 error = result.error
@@ -52,8 +85,8 @@ const chatGpt = {
             const result = await GPT.askTTS(prompt, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID)
 
             if(result.status === 200) {
-                redisService.addToConversation("assistant", result.data.choices[0].message.content, data.guildId, lan)
-                return res.status(200).json({data: result.data.choices[0].message.content})
+                redisService.addToConversation("assistant", result.data, data.guildId, lan)
+                return res.status(200).json({data: result.data})
             }
             else {
                 error = result.error
@@ -103,7 +136,7 @@ const chatGpt = {
             
             const result = await GPT.translate(prompt, maxTokenEachScript)
 
-            return res.status(200).json({ data: result.data.choices[0].message.content })
+            return res.status(200).json({ data: result.data })
 
         } catch (error) {
             return res.status(500).json({ error: error });
