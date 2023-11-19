@@ -2,15 +2,16 @@ const chalk = require("chalk");
 const { log } = require("../../config/log/log.config");
 const { numTokensFromString } = require("../../utils/index");
 const openai = require("../../config/openAI")
+const RainePrompt = require("../../Raine_prompt_system.json")
+const redisService = require("../redis/redis.service");
 
 const gpt = {
-    callGPT: async (model, conversation, maxTokenEachScript, countSystem, functionCall = false, listFunc = () => {}) => {
+    callGPT: async (model, conversation, maxTokenEachScript, countSystem, guildID, lan = "", functionCall = false, listFunc = () => {}) => {
       let flagCheckOverToken = false
 
       const { newFlag, conversation:newConversation } = await gpt.countToken(flagCheckOverToken, conversation, countSystem, model)
       conversation = newConversation
       if(newFlag) {
-        let lan = ""
         await redisService.mergeNewConversation(guildID, lan, conversation)
       }
 
@@ -45,18 +46,33 @@ const gpt = {
           completion
       }
     },
-    prepare_system_prompt: async (conversation, oldConversation, userPrompt, curUser, loyal,) => {
-      let countSystem = 1
-      let loyalSystem = { role: "system", content: process.env.RAINE_PROMPT_LOYAL }
+    prepare_system_prompt: async (conversation, oldConversation, userPrompt, curUser, loyal, lang, isTalk = false) => {
+      let countSystem = 0
+      let loyalSystem = { role: "system", content: RainePrompt[lang].loyal }
+      let systemTTS =  { role: "system", content: RainePrompt[lang].system_tts }
+
+      if(lang &&RainePrompt[lang]) {
+        conversation[0] = { role: "system", content: RainePrompt[lang].system }
+        ++countSystem
+      }
 
       // check user boss on Discord
       if(curUser) {
         const userResponse = { role: "system", content: `Please response to this user: ${curUser.globalName}`}
         conversation.push(userResponse)
-        loyal && conversation.push(loyalSystem)
-        countSystem += 2
+        ++countSystem
       }
       
+      if(loyal) {
+        conversation.push(loyalSystem)
+        ++countSystem
+      }
+
+      if(isTalk) {
+        conversation.push(systemTTS)
+        ++countSystem
+      }
+
       // prepare data for conversation
       const newMsg = { role: "user", content: userPrompt }
       if(oldConversation && oldConversation.length > 0) {
@@ -80,7 +96,7 @@ const gpt = {
       while(condition) { 
         const numTokens = numTokensFromString(JSON.stringify(conversation), model)
         log(chalk.yellow.bold("Token: "), numTokens)
-        if(numTokens >= 3500) {
+        if(numTokens >= 2000) {
           flagCheckOverToken = true
           conversation.splice(countSystem, 2);
         }

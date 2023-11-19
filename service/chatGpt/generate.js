@@ -6,16 +6,13 @@ const fs = require('node:fs');
 const path = require("node:path");
 const RainePrompt = require("../../Raine_prompt_system.json")
 const { numTokensFromString } = require("../../utils/index");
-const weatherService = require("../functionCalling/weather");
+const weatherService = require("../functionList/weather.func");
 const gpt = require("./function")
+const listFunc = require("../functionList/index")
 class GptService {
   constructor() {
-    this.promptMessage = [
-      { role: "system", content: process.env.RAINE_PROMPT},
-    ],
-    this.promptMessageFunc = [
-      { role: "system", content: process.env.RAINE_PROMPT},
-    ],
+    this.promptMessage = []
+    this.promptMessageFunc = []
     this.promptMessageTTS = []
     this.loyalSystem = { role: "system", content: process.env.RAINE_PROMPT_LOYAL }
     // this.llm_model = "gpt-3.5-turbo"
@@ -25,15 +22,15 @@ class GptService {
   async ask (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
-      
+      let guildID = data.guildID
       let loyal = false
       if(curUser.id === process.env.OWNER_ID) loyal = true
 
       // prepare data system for conversation prompt
-      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessage, ConversationPrompt, promptContent, curUser, loyal)
+      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessage, ConversationPrompt, promptContent, curUser, loyal, "en")
       this.promptMessageFunc = preparedConversation
 
-      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", this.promptMessageFunc, maxTokenEachScript, countSystem)
+      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
       this.promptMessage = conversation
 
       const content = completion.choices[0].message.content
@@ -49,64 +46,18 @@ class GptService {
   async askTTS (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
-      let countSystem = 0
-      let flagCheckOverToken = false
+      let guildID = data.guildID
+      let loyal = false
+      if(curUser.id === process.env.OWNER_ID) loyal = true
 
-      // check language for response
-      if(RainePrompt[lan]) {
-        this.promptMessageTTS[0] = { role: "system", content: RainePrompt[lan].system }
-        ++countSystem
-        this.loyalSystem.content = RainePrompt[lan].loyal
-      }
-
-      // check user boss on Discord
-      if(curUser) {
-        const userResponse = { role: "system", content: `Please response to this user: ${curUser.globalName}`}
-        curUser.id == process.env.OWNER_ID && this.promptMessageTTS.push(this.loyalSystem)
-        this.promptMessageTTS.push(userResponse)
-        countSystem += 2
-      }
-
-      // prepare data for conversation
-      const newMsg = { role: "user", content: promptContent }
-      if(ConversationPrompt && ConversationPrompt.length > 0) {
-        this.promptMessageTTS = [...this.promptMessageTTS, ...ConversationPrompt]
-      }
-      this.promptMessageTTS.push(newMsg)
-
-      // check token length
-      let condition = true
-      let numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
-      let numTokensBefore = numTokens
-      log(chalk.yellow.bold("Token: "), numTokens)
-      while(condition) {
-        const numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
-        log(chalk.yellow.bold("Token: "), numTokens)
-        if(numTokens >= 3500) {
-          flagCheckOverToken = true
-          this.promptMessageTTS.splice(countSystem, 2);
-        }
-        else 
-          condition = false
-      }
-      numTokens = numTokensFromString(JSON.stringify(this.promptMessageTTS), "gpt-3.5-turbo")
-      log(chalk.blue.bold("ConversationPrompt"), this.promptMessageTTS);
-      log(chalk.yellow.bold("Token before: "), numTokensBefore)
-      log(chalk.yellow.bold("Token after: "), numTokens)
-
-      // if token length over 3500, merge conversation to redis
-      if(flagCheckOverToken)
-        await redisService.mergeNewConversation(guildID, lan, this.promptMessageTTS)
-
+      // prepare data system for conversation prompt
+      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageTTS, ConversationPrompt, promptContent, curUser, loyal, lan)
+      this.promptMessageTTS = preparedConversation
+      
       // Ask OpenAI
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: this.promptMessageTTS,
-        // model: "gpt-3.5-turbo",
-        temperature: 1,
-        max_tokens: maxTokenEachScript,
-      });
-  
+      const { conversation, completion } = await gpt.callGPT("gpt-4", this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
+      this.promptMessage = conversation
+
       const content = completion.choices[0].message.content
   
       return ({ status: 200, data: content })
@@ -179,14 +130,14 @@ class GptService {
     }
   }
 
-  async functionCalling (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan) {
+  async functionCalling (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID, isTalk = false) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
       const getCurrentWeather = async (location) => {
         return weatherService.getByLocation(location)
         .then(res => {
           const newData = res.data
-          const raineWeatherPrompt = RainePrompt.en.weather
+          const raineWeatherPrompt = RainePrompt[lan].weather
 
           if(newData) {
             const data = {
@@ -211,28 +162,11 @@ class GptService {
           }
         })
       }
-      const weatherFuncSpec = {
-        name: "get_current_weather",
-        description: "Get the current weather in a given location",
-        parameters: {
-          type: "object",
-          properties: {
-            location: {
-              type: "string",
-              description: "The city and state, e.g. Ho Chi Minh",
-            },
-            unit: { type: "string", enum: ["celsius", "fahrenheit"] },
-          },
-          required: ["location"],
-        },
-      }
-      let loyal = true
-      let listFunc = []
 
-      listFunc.push(weatherFuncSpec)
+      let loyal = true
 
       // prepare data system for conversation prompt
-      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageFunc, ConversationPrompt, promptContent, curUser, loyal)
+      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageFunc, ConversationPrompt, promptContent, curUser, loyal, lan, isTalk)
       this.promptMessageFunc = preparedConversation
 
       // const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", this.promptMessageFunc, maxTokenEachScript, countSystem, true, listFunc)
@@ -245,7 +179,7 @@ class GptService {
         
         log(chalk.green.bold("------------------ REQUEST ------------------"));
   
-        const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", this.promptMessageFunc, maxTokenEachScript, countSystem, true, listFunc)
+        const { conversation, completion } = await gpt.callGPT("gpt-4", this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan, true, listFunc)
   
         this.promptMessageFunc = conversation
   
