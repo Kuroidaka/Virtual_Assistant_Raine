@@ -30,7 +30,7 @@ class GptService {
       const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessage, ConversationPrompt, promptContent, curUser, loyal, "en")
       this.promptMessageFunc = preparedConversation
 
-      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
+      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", 0, this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
       this.promptMessage = conversation
 
       const content = completion.choices[0].message.content
@@ -55,7 +55,7 @@ class GptService {
       this.promptMessageTTS = preparedConversation
       
       // Ask OpenAI
-      const { conversation, completion } = await gpt.callGPT("gpt-4", this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
+      const { conversation, completion } = await gpt.callGPT("gpt-4", 0.7, this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
       this.promptMessage = conversation
 
       const content = completion.choices[0].message.content
@@ -179,7 +179,7 @@ class GptService {
         
         log(chalk.green.bold("------------------ REQUEST ------------------"));
   
-        const { conversation, completion } = await gpt.callGPT("gpt-4", this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan, true, listFunc)
+        const { conversation, completion } = await gpt.callGPT("gpt-4", 1, this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan, true, listFunc)
   
         this.promptMessageFunc = conversation
   
