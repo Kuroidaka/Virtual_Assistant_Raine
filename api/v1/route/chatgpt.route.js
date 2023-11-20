@@ -8,6 +8,6 @@ router.post('/ask-for-tts', chatgpt.generateForTTS)
 router.post('/ask-for-func', chatgpt.askForFunction)
 router.post('/trans', chatgpt.translate)
 router.post('/image/ask', chatgpt.generateImg)
-router.post('/image/edit', chatgpt.editImage)
+// router.post('/image/edit', chatgpt.editImage)
 
 module.exports = router

@@ -84,25 +84,26 @@ class GptService {
     
   }
 
-  async editImage() {
-    try {
-      const commandsPath = path.join(__dirname, '../../assert/image/image_edit_original.png');
-      const mask = path.join(__dirname, '../../assert/image/image_edit_mask.png');
+  // async editImage() {
+  //   try {
+  //     const commandsPath = path.join(__dirname, '../../assert/image/image_edit_original.png');
+  //     const mask = path.join(__dirname, '../../assert/image/image_edit_mask.png');
   
-      console.log("commandsPath", commandsPath)
-      const image = await openai.images.edit({
-        image: fs.createReadStream(commandsPath),
-        mask: fs.createReadStream(mask),
-        prompt: "A cute baby sea otter wearing a beret",
-      });
+  //     console.log("commandsPath", commandsPath)
+  //     const image = await openai.images.edit({
+  //       image: fs.createReadStream(commandsPath),
+  //       mask: fs.createReadStream(mask),
+  //       prompt: "A cute baby sea otter wearing a beret",
+  //     });
     
-      console.log(image.data);
-      return image
+  //     console.log(image.data);
+  //     return image
       
-    } catch (error) {
-      console.log(error)
-    }
-  }
+  //   } catch (error) {
+  //     console.log(error)
+  //     return ({status: 500, error: error})
+  //   }
+  // }
 
   async translate(promptContent, maxTokenEachScript) { 
 
