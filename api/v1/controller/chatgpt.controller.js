@@ -16,7 +16,7 @@ const chatGpt = {
             const prompt = data.content
             redisService.addToConversation("user", prompt, data.guildId)
             const GPT = new GptService
-            const result = await GPT.functionCalling(prompt, data, maxTokenEachScript, curUser, ConversationPrompt, "en", guildID)
+            const result = await GPT.functionCalling(prompt, data, maxTokenEachScript, curUser, ConversationPrompt, "default", guildID)
 
             log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
             log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${result.data}`), "\n}")
@@ -39,7 +39,7 @@ const chatGpt = {
     },
     askForFunction: async (req, res) => { 
         try{            
-            const { data, maxTokenEachScript, curUser, lan } = req.body;
+            const { data, maxTokenEachScript, curUser, lan = "default" } = req.body;
 
             const guildID = data.guildId
             const ConversationPrompt = await redisService.followUpWithOlderResponse(guildID, lan)

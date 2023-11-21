@@ -7,7 +7,7 @@ const path = require("node:path");
 const RainePrompt = require("../../Raine_prompt_system.json")
 const { numTokensFromString } = require("../../utils/index");
 const weatherService = require("../functionList/weather.func");
-const gpt = require("./function")
+const gpt = require("./gptFeature")
 const listFunc = require("../functionList/index")
 class GptService {
   constructor() {
