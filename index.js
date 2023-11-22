@@ -27,8 +27,6 @@ app.listen(port, () => {
     log("Server :", chalk.blue(port), chalk.green("connected"));
 })
 
-
-
 // DB
 
 DB.on('connection', function (connection) {
@@ -45,10 +43,9 @@ connection.on('close', function (err) {
 // BOT
 
 // const { Events, Collection } = require('discord.js');
-const { client, Collection, Events } = require("./config/discord/bot.config")
-const { sliceString } = require("./service/discord/format/length"); 
+const { client, Collection, Events } = require("./config/discord/bot.config") 
 const { log } = require("./config/log/log.config");
-const sendCronMessage = require("./service/cron/vocab.js");
+// const sendCronMessage = require("./service/cron/vocab.js");
 
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;

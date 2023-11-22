@@ -1,7 +1,7 @@
 const axios = require("axios");
 const { log } = require("../../../config/log/log.config");
 const chalk = require("chalk");
-const weatherService = require("../../functionList/weather.func");
+const weatherService = require("../../chatGpt/functionList/weather.func");
 
 
 module.exports = {

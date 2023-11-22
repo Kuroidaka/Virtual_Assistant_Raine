@@ -6,9 +6,9 @@ const fs = require('node:fs');
 const path = require("node:path");
 const RainePrompt = require("../../Raine_prompt_system.json")
 const { numTokensFromString } = require("../../utils/index");
-const weatherService = require("../functionList/weather.func");
+const weatherService = require("./functionList/weather.func");
 const gpt = require("./gptFeature")
-const listFunc = require("../functionList/index")
+const listFunc = require("./functionList/index")
 class GptService {
   constructor() {
     this.promptMessage = []
@@ -134,45 +134,41 @@ class GptService {
   async functionCalling (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID, isTalk = false) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
-      const getCurrentWeather = async (location) => {
-        return weatherService.getByLocation(location)
-        .then(res => {
-          const newData = res.data
-          const raineWeatherPrompt = RainePrompt[lan].weather
+      // const getCurrentWeather = async (location) => {
+      //   return weatherService.getByLocation(location)
+      //   .then(res => {
+      //     const newData = res.data
+      //     const raineWeatherPrompt = RainePrompt[lan].weather
 
-          if(newData) {
-            const data = {
-              content: `
-              ${raineWeatherPrompt}: 
-              ${JSON.stringify(newData)}
-              `,
-              role: "user"
-            }
+      //     if(newData) {
+      //       const data = {
+      //         content: `
+      //         ${raineWeatherPrompt}: 
+      //         ${JSON.stringify(newData)}
+      //         `,
+      //         role: "user"
+      //       }
 
-            log("Weather prompt:", data)
+      //       log("Weather prompt:", data)
 
-            return {
-              have_content: true,
-              data: data
-            }
-          } else {
-            return {
-              have_content: false,
-              data: null
-            }
-          }
-        })
-      }
+      //       return {
+      //         have_content: true,
+      //         data: data
+      //       }
+      //     } else {
+      //       return {
+      //         have_content: false,
+      //         data: null
+      //       }
+      //     }
+      //   })
+      // }
 
       let loyal = true
 
       // prepare data system for conversation prompt
       const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageFunc, ConversationPrompt, promptContent, curUser, loyal, lan, isTalk)
       this.promptMessageFunc = preparedConversation
-
-      // const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", this.promptMessageFunc, maxTokenEachScript, countSystem, true, listFunc)
-
-      // this.promptMessageFunc = conversation
 
       let retry = 0
 
@@ -195,8 +191,7 @@ class GptService {
 
           log(chalk.green.bold("---> GPT ask to call Weather API with location: "), location);
           
-
-          const weatherData = await getCurrentWeather(location)
+          const weatherData = await weatherService.getByLocation(location, lan)
 
           if(!weatherData.have_content) {
             retry ++

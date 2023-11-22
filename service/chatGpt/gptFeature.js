@@ -96,7 +96,7 @@ const gpt = {
       while(condition) { 
         const numTokens = numTokensFromString(JSON.stringify(conversation), model)
         log(chalk.yellow.bold("Token: "), numTokens)
-        if(numTokens >= 2000) {
+        if(numTokens >= 3000) {
           flagCheckOverToken = true
           conversation.splice(countSystem, 2);
         }

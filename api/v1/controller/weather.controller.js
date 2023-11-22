@@ -1,5 +1,5 @@
 
-const weatherService = require("../../../service/functionList/weather.func")
+const weatherService = require("../../../service/chatGpt/functionList/weather.func")
 
 const weatherController = { 
     getWeatherInfo: async (req, res) => { 
