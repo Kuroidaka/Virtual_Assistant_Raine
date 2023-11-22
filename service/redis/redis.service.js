@@ -70,18 +70,18 @@ const redisService = {
         }
     },
     countItems: async (conversationKeys) => {
-    try {
-        const minScore = '-inf';
-        const maxScore = '+inf';
+        try {
+            const minScore = '-inf';
+            const maxScore = '+inf';
 
-        const data = await redisClient.zCount(conversationKeys, minScore, maxScore);
-        return data
-    } catch (err) {
-        console.log(err)
+            const data = await redisClient.zCount(conversationKeys, minScore, maxScore);
+            return data
+        } catch (err) {
+            console.log(err)
+        }
     }
-}
-
     
 }
 
 module.exports = redisService;
+

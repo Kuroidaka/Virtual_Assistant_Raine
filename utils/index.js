@@ -9,6 +9,12 @@ const numTokensFromString = (message, model) => {
   return tokens.length;
 }
 
+const convertDates = (dateStr) => {
+    let date = new Date(dateStr);
+    return date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate();
+}
+
 module.exports = {
-    numTokensFromString
+    numTokensFromString,
+    convertDates
 }

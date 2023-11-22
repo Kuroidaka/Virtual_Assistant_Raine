@@ -183,15 +183,20 @@ class GptService {
         // process function calling from tools
         const responseMessage = completion.choices[0].message
 
-        log(chalk.green.bold("Finish_reason"), completion.choices[0].finish_reason )
+        completion.choices[0].finish_reason && log(chalk.green.bold("Finish_reason"), completion.choices[0].finish_reason )
 
         if(responseMessage.function_call?.name === "get_current_weather") {
           const args = JSON.parse(responseMessage.function_call.arguments)
           const location = args.location
+          const time = args.time
+          const date = args.date
 
-          log(chalk.green.bold("---> GPT ask to call Weather API with location: "), location);
+          log(chalk.green.bold("---> GPT ask to call Weather API "), location);
+          log(chalk.green.bold("---> Location: "), location);
+          log(chalk.green.bold("---> time: "), time);
+          log(chalk.green.bold("---> date: "), date);
           
-          const weatherData = await weatherService.getByLocation(location, lan)
+          const weatherData = await weatherService.getByLocation(location, lan, time, date)
 
           if(!weatherData.have_content) {
             retry ++
