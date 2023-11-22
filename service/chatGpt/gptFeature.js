@@ -58,9 +58,11 @@ const gpt = {
 
       // check user boss on Discord
       if(curUser) {
-        const userResponse = { role: "system", content: `Please response to this user: ${curUser.globalName}`}
+        const userResponse = { 
+          role: "system", content: `You know who you are talking to, and this is the person's name talking to you: ${curUser.globalName}`
+        }
         conversation.push(userResponse)
-        ++countSystem
+        countSystem += 3
       }
       
       if(loyal) {
@@ -96,7 +98,7 @@ const gpt = {
       while(condition) { 
         const numTokens = numTokensFromString(JSON.stringify(conversation), model)
         log(chalk.yellow.bold("Token: "), numTokens)
-        if(numTokens >= 3000) {
+        if(numTokens >= 6000) {
           flagCheckOverToken = true
           conversation.splice(countSystem, 2);
         }
