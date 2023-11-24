@@ -172,7 +172,7 @@ class GptService {
       this.promptMessageFunc = preparedConversation
 
       let retry = 0
-
+      
       while(true) {
         
         log(chalk.green.bold("------------------ REQUEST ------------------"));
@@ -203,7 +203,7 @@ class GptService {
             if(retry < 3) {
               continue
             } else {
-              return ({ status: 200, data: "Sorry, I can't find the weather for this location"})
+              return ({ status: 404, data: "Sorry, I can't find the weather for this location"})
             }
           } else {
             this.promptMessageFunc.push(weatherData.data)
@@ -217,7 +217,7 @@ class GptService {
           const what_to_do = args.what_to_do
           const time = args.time
           const repeat = args.repeat
-
+          
 
           log(chalk.green.bold("---> GPT ask to call Cron service "));
           log(chalk.green.bold("---> what_to_do: "), what_to_do);
@@ -230,9 +230,22 @@ class GptService {
               role: "user",
               content: "user must provide what to do"
             })
+          } else if(!time) {
+            this.promptMessageFunc.push({
+              role: "user",
+              content: "user must provide time"
+            })
+          } else if(time === "tomorrow") {
+            this.promptMessageFunc.push({
+              role: "user",
+              content: "user must provide time for the tomorrow reminder"
+            })
           }
           else {
-            await reminder.createJob(what_to_do, time, repeat)
+            const result = await reminder.createJob(what_to_do, time, repeat)
+            if(result?.status === 500) {
+              return ({status: 500, error: error})
+            }
           }
         }
         else if(completion.choices[0].finish_reason === "stop") {

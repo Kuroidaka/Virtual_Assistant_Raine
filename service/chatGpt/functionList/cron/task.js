@@ -5,8 +5,6 @@ const { client, Collection, Events } = require("../../../../config/discord/bot.c
 const chalk = require("chalk")
 const schedule = require('node-schedule');
 
-const TOKEN = process.env.DISCORD_BOT_TOKEN;
-client.login(TOKEN);
 class reminderService {
   constructor() {
     this.list_job = {}
@@ -22,7 +20,7 @@ class reminderService {
               },
               "time": {
                   "type": "string",
-                  "description": "The time that user want to remind, can be a period of time or a specific time, example if user want to be reminded after 1 hour, please take 1 hour, do not take the word 'after'",
+                  "description": "The time that user want to remind, can be a period of time or a specific time, example if user want to be reminded after 1 hour, please take 1 hour, do not take the word 'after', the specific time format is 0-23 if you want to be reminded tomorrow at 8 or 8:30, please take 'tomorrow:8:30'",
               },
               "repeat": {
                   "type": "boolean",
@@ -43,6 +41,7 @@ class reminderService {
     const secondsPattern = /\b(\d+)\s*(s|seconds|second)\b/i;
     const daysPattern = /\b(\d+)\s*(d|days|day)\b/i;
     const monthsPattern = /\b(\d+)\s*(months|month|mo)\b/i;
+    const tomorrowPattern = /^tomorrow:(\d{1,2})(?::(\d{2}))?$/
    
     if(secondsPattern.test(time)) {
         const seconds = `*/${time.match(secondsPattern)[1]} * * * * *`;
@@ -59,17 +58,20 @@ class reminderService {
         return {
             time: hours,
         };
-    }
-    else if(daysPattern.test(time)) {
+    } else if(daysPattern.test(time)) {
         const days = `0 0 */${time.match(daysPattern)[1]} * *`;
         return {
             time: days,
         };
-    }
-    else if(monthsPattern.test(time)) {
+    } else if(monthsPattern.test(time)) {
       const months = `0 0 0 */${time.match(daysPattern)[1]} *`;
         return {
             time: months,
+        };
+    } else if(tomorrowPattern.test(time)) {
+      const tomorrow = `0 ${time.match(tomorrowPattern)[2] ? time.match(tomorrowPattern)[2] : "0"} ${time.match(tomorrowPattern)[1]} */1 * *`;
+      return {
+            time: tomorrow,
         };
     }
     else {
@@ -84,19 +86,19 @@ class reminderService {
     if (this.list_job[task]) {
       this.list_job[task].cancel();
       delete this.list_job[task];
-      console.log(`Job ${task} cancelled`);
+      log(`Job ${task} cancelled`);
     } else {
-        console.log(`Job ${task} not found`);
+        log(chalk.red.bold(`Job ${task} not found`));
     }
   }
 
   async createJob(task, time, repeat = false) {
     const self = this;
       try {
-        console.log("Cron is ready");
+        log(chalk.green.bold("Cron is ready"));
         time = self.convertTime(time)
         if(time.time === undefined) throw new Error("Time is not valid")
-        console.log(time.time)
+        log("Cron time: ", chalk.green.bold(time.time))
         this.list_job[task] = schedule.scheduleJob(task, time.time, async () => {
           const channelID = process.env.CHANNEL_CRON_ID
           const channel = client.channels.cache.get(channelID);
@@ -113,22 +115,21 @@ class reminderService {
 
       } catch (error) {
         log(chalk.red.bold("[ERROR API]: ____REMINDER-SET-TIME___ "), error)
-      
+        return ({status: 500, error: `Error occur: ${error}`})
       }
   }
   
 
 }
 
-const Service = new reminderService()
-// console.log(Service.convertTime("1 hour"))
+// log(Service.convertTime("1 hour"))
 // Service.createJob("have dinner", "2 seconds", true)
 // Service.createJob("clean body", "*/4 * * * * *", true)
 
 
 
 // setTimeout(() => {
-//   console.log(Service.list_job)
+//   log(Service.list_job)
 // }, 5000)
 
 

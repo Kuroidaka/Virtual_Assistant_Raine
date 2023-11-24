@@ -46,7 +46,7 @@ module.exports = {
 					console.log(err)
 					reaction.remove().catch(error => console.error('Failed to remove reactions: ', error));
 					await interaction.react("☠️")
-					interaction.channel.send("Error Occur")
+					interaction.channel.send("Error Occur", err)
 				})
 
 			})
