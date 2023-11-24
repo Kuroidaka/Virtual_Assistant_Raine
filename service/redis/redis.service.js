@@ -27,7 +27,7 @@ const redisService = {
             }
         }
     },
-    followUpWithOlderResponse: async (guildId, lan = "") => {
+    followUpWithOlderResponse: async (guildId, lan = "default") => {
         let conversationKeys
         console.log("language", lan)
         lan === "" ?
@@ -54,7 +54,7 @@ const redisService = {
 
         return conversationList
     },
-    mergeNewConversation: async(guildID, lan = "", newConversation) => {
+    mergeNewConversation: async(guildID, lan = "default", newConversation) => {
         const conversationKey = `${lan && lan + ":"}${guildID}:conversation`
         try {
 
