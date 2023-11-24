@@ -3,7 +3,7 @@ const redisClient = require('../../config/redis/redis.config');
 const chalk = require("chalk");
 
 const redisService = {
-    addToConversation: async (role, content, guildId, lan = "") => {
+    addToConversation: async (role, content, guildId, lan = "default") => {
         const message = { role, content };
 
         if(role && content ) {

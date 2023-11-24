@@ -6,7 +6,7 @@ const RainePrompt = require("../../Raine_prompt_system.json")
 const redisService = require("../redis/redis.service");
 
 const gpt = {
-    callGPT: async (model, temperature, conversation, maxTokenEachScript, countSystem, guildID, lan = "", functionCall = false, listFunc = () => {}) => {
+    callGPT: async (model, temperature, conversation, maxTokenEachScript, countSystem, guildID, lan = "default", functionCall = false, listFunc = () => {}) => {
       let flagCheckOverToken = false
 
       const { newFlag, conversation:newConversation } = await gpt.countToken(flagCheckOverToken, conversation, countSystem, model)
@@ -50,12 +50,17 @@ const gpt = {
       let countSystem = 0
       let loyalSystem = { role: "system", content: RainePrompt[lang].loyal }
       let systemTTS =  { role: "system", content: RainePrompt[lang].system_tts }
+      let taskRemind =  { role: "system", content: RainePrompt[lang].task }
+
 
       if(lang && RainePrompt[lang]) {
         conversation[0] = { role: "system", content: RainePrompt[lang].system }
         ++countSystem
       }
 
+      conversation.push(taskRemind)
+      countSystem ++
+      
       // check user boss on Discord
       if(curUser) {
         const userResponse = { 

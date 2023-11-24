@@ -7,6 +7,7 @@ const path = require("node:path");
 const RainePrompt = require("../../Raine_prompt_system.json")
 const { numTokensFromString } = require("../../utils/index");
 const weatherService = require("./functionList/weather.func");
+const reminderService = require("./functionList/cron/task");
 const gpt = require("./gptFeature")
 const listFunc = require("./functionList/index")
 class GptService {
@@ -19,7 +20,7 @@ class GptService {
     this.llm_model = "gpt-4"
     this.llm_max_tokens = 4097
   }
-  async ask (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan) {
+  async ask (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan = "default") {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
       let guildID = data.guildID
@@ -43,7 +44,7 @@ class GptService {
 
   }
 
-  async askTTS (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID) {
+  async askTTS (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan = "default", guildID) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
       let guildID = data.guildID
@@ -131,7 +132,7 @@ class GptService {
     }
   }
 
-  async functionCalling (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID, isTalk = false) {
+  async functionCalling (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan = "default", guildID, isTalk = false) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
       // const getCurrentWeather = async (location) => {
@@ -179,7 +180,6 @@ class GptService {
         const { conversation, completion } = await gpt.callGPT("gpt-4", 1, this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan, true, listFunc)
   
         this.promptMessageFunc = conversation
-  
         // process function calling from tools
         const responseMessage = completion.choices[0].message
 
@@ -210,7 +210,32 @@ class GptService {
           }
 
 
-        } else if(completion.choices[0].finish_reason === "stop") {
+        } 
+        else if(responseMessage.function_call?.name === "create_reminder") {
+          const args = JSON.parse(responseMessage.function_call.arguments)
+          const reminder = new reminderService()
+          const what_to_do = args.what_to_do
+          const time = args.time
+          const repeat = args.repeat
+
+
+          log(chalk.green.bold("---> GPT ask to call Cron service "));
+          log(chalk.green.bold("---> what_to_do: "), what_to_do);
+          log(chalk.green.bold("---> time: "), time);
+          log(chalk.green.bold("---> repeat: "), repeat);
+          // if() return ({ status: 200, data: "Sorry, I can't find the weather for this location"})
+          
+          if(!what_to_do) {
+            this.promptMessageFunc.push({
+              role: "user",
+              content: "user must provide what to do"
+            })
+          }
+          else {
+            await reminder.createJob(what_to_do, time, repeat)
+          }
+        }
+        else if(completion.choices[0].finish_reason === "stop") {
           return ({ status: 200, data: completion.choices[0].message.content })
         }
 

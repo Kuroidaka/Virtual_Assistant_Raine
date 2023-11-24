@@ -1,2 +1,6 @@
 const weatherFunc = require("./weather.func")
-module.exports = [weatherFunc.weatherFuncSpec]
+const taskFunc = require("./cron/task")
+
+const taskFunction = new taskFunc()
+
+module.exports = [weatherFunc.weatherFuncSpec, taskFunction.createReminderFuncSpec]
