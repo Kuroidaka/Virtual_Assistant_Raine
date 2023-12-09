@@ -3,8 +3,11 @@ const axios = require("axios")
 const { log } = require("../../../../config/log/log.config")
 const { client, Collection, Events } = require("../../../../config/discord/bot.config") 
 const chalk = require("chalk")
+const { detectLan } = require("../../../../utils/index")
+const DB = require("../../../../config/database/config.js")
+const openai = require("../../../../config/openAI")
+const RainePrompt = require("../../../../Raine_prompt_system.json")
 const schedule = require('node-schedule');
-
 class reminderService {
   constructor() {
     this.list_job = {}
@@ -18,16 +21,29 @@ class reminderService {
                   "type": "string",
                   "description": "The task that user want to be reminded",
               },
-              "time": {
+              "period_time": {
                   "type": "string",
-                  "description": "The time that user want to remind, can be a period of time or a specific time, example if user want to be reminded after 1 hour, please take 1 hour, do not take the word 'after', the specific time format is 0-23 if you want to be reminded tomorrow at 8 or 8:30, please take 'tomorrow:8:30'",
+                  "description": `The a period of time that user want to remind, example if user want to be reminded after 1 hour, please take 1 hour, do not take the word 'after'`,
               },
+              "specific_time": {
+                  "type": "string",
+                  "description": `The specific time that user want to remind, The specific time format is 0-23 if you want to be reminded tomorrow at 8 or 8:30, please take 'tomorrow:8:30'. the specific time can be something like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the time will be converted to UTC time, the year time will be automatically set to ${new Date().getFullYear()}`,
+              },
+              
               "repeat": {
                   "type": "boolean",
                   "description": "repeating the reminder or not",
               }
           },
           "required": ["task", "time"],
+      }
+    }
+    this.listJobFuncSpec = {
+      "name": "list_reminder",
+      "description": "List out all the reminders that user have been set",
+      "parameters": {
+          "type": "object",
+          "properties": {},
       }
     }
     this.deleteReminderFuncSpec = {
@@ -94,17 +110,39 @@ class reminderService {
 
   async createJob(task, time, repeat = false) {
     const self = this;
+    let finalTime
       try {
-        log(chalk.green.bold("Cron is ready"));
-        time = self.convertTime(time)
-        if(time.time === undefined) throw new Error("Time is not valid")
-        log("Cron time: ", chalk.green.bold(time.time))
-        this.list_job[task] = schedule.scheduleJob(task, time.time, async () => {
+        log(chalk.green.bold("Cron is ready: "), time);
+        if(!isNaN(Date.parse(time))) {
+          finalTime = new Date(time)
+        }
+        else {
+          finalTime = self.convertTime(time).time
+          if(finalTime === undefined) throw new Error("Time is not valid")
+        }
+        log("Cron time: ", chalk.green.bold(finalTime))
+        
+
+        this.list_job[task] = await schedule.scheduleJob(task, finalTime, async () => {
           const channelID = process.env.CHANNEL_CRON_ID
           const channel = client.channels.cache.get(channelID);
 
           if (channel) {
-            channel.send(task);
+            const detectTaskLang = detectLan(task)
+            console.log("Language detect from task", detectTaskLang )
+            const completion = await openai.chat.completions.create({
+              model: 'gpt-4',
+              messages: [
+                { role: "system", content: RainePrompt[detectTaskLang].reminder },
+                { role: "user", content: `This is what user want to be reminded: ${task}`},
+              ],
+              temperature: 1,
+              max_tokens: 200,
+            })
+
+            const content = await completion.choices[0].message.content
+            if(content) 
+              channel.send(content);
             if(!repeat){
               schedule.cancelJob(task);
               await self.deleteJob(task)
@@ -119,6 +157,10 @@ class reminderService {
       }
   }
   
+  async listJob() {
+    log(chalk.blueBright.bold("list_job"), this.list_job)
+    return this.list_job
+  }
 
 }
 

@@ -215,13 +215,16 @@ class GptService {
           const args = JSON.parse(responseMessage.function_call.arguments)
           const reminder = new reminderService()
           const what_to_do = args.what_to_do
-          const time = args.time
+          const period_time = args.period_time
+          const specific_time = args.specific_time
           const repeat = args.repeat
-          
+          let time = period_time || specific_time
 
           log(chalk.green.bold("---> GPT ask to call Cron service "));
           log(chalk.green.bold("---> what_to_do: "), what_to_do);
-          log(chalk.green.bold("---> time: "), time);
+          specific_time
+            ? log(chalk.green.bold("---> specific_time: "), specific_time)
+            : log(chalk.green.bold("---> period_time: "), period_time);
           log(chalk.green.bold("---> repeat: "), repeat);
           // if() return ({ status: 200, data: "Sorry, I can't find the weather for this location"})
           
@@ -247,6 +250,15 @@ class GptService {
               return ({status: 500, error: error})
             }
           }
+        }
+        else if(responseMessage.function_call?.name === "list_reminder") {
+          const reminder = new reminderService()
+          const result = await reminder.listJob()
+          // if() return ({ status: 200, data: "Sorry, I can't find the weather for this location"})
+          this.promptMessageFunc.push({
+            role: "user",
+            content: JSON.stringify(result)
+          })
         }
         else if(completion.choices[0].finish_reason === "stop") {
           return ({ status: 200, data: completion.choices[0].message.content })
