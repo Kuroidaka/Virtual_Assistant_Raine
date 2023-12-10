@@ -247,7 +247,7 @@ class GptService {
           else {
             const result = await reminder.createJob(what_to_do, time, repeat)
             if(result?.status === 500) {
-              return ({status: 500, error: error})
+              return ({status: 500, error: result.error})
             }
           }
         }

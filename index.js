@@ -27,19 +27,7 @@ app.listen(port, () => {
     log("Server :", chalk.blue(port), chalk.green("connected"));
 })
 
-// DB
 
-DB.on('connection', function (connection) {
-log('DB Connection established');
-
-connection.on('error', function (err) {
-    console.error(new Date(), 'MySQL error', err.code);
-});
-connection.on('close', function (err) {
-    console.error(new Date(), 'MySQL close', err);
-});
-
-});
 // BOT
 
 // const { Events, Collection } = require('discord.js');

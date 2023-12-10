@@ -8,6 +8,7 @@ const DB = require("../../../../config/database/config.js")
 const openai = require("../../../../config/openAI")
 const RainePrompt = require("../../../../Raine_prompt_system.json")
 const schedule = require('node-schedule');
+const taskDBhandle = require("../../../database/task")
 class reminderService {
   constructor() {
     this.list_job = {}
@@ -111,25 +112,35 @@ class reminderService {
   async createJob(task, time, repeat = false) {
     const self = this;
     let finalTime
-      try {
-        log(chalk.green.bold("Cron is ready: "), time);
-        if(!isNaN(Date.parse(time))) {
-          finalTime = new Date(time)
-        }
-        else {
-          finalTime = self.convertTime(time).time
-          if(finalTime === undefined) throw new Error("Time is not valid")
-        }
-        log("Cron time: ", chalk.green.bold(finalTime))
-        
+    const dataTask = {
+        title: task,
+        repeat: repeat
+    }
 
-        this.list_job[task] = await schedule.scheduleJob(task, finalTime, async () => {
+    // process time
+    log(chalk.green.bold("Cron is ready: "), time);
+    if(!isNaN(Date.parse(time))) {
+      finalTime = new Date(time)
+      dataTask.specificTime = finalTime
+    }
+    else {
+      dataTask.periodTime = time
+      finalTime = self.convertTime(time).time
+      if(finalTime === undefined) throw new Error("Time is not valid")
+    }
+    log("Cron time: ", chalk.green.bold(finalTime))
+  
+    // setup cron job
+    const scheduleJobPromise = () => {
+      this.list_job[task] = schedule.scheduleJob(task, finalTime, async () => {
+        try {
           const channelID = process.env.CHANNEL_CRON_ID
           const channel = client.channels.cache.get(channelID);
-
+    
           if (channel) {
             const detectTaskLang = detectLan(task)
             console.log("Language detect from task", detectTaskLang )
+            // advance response reminder
             const completion = await openai.chat.completions.create({
               model: 'gpt-4',
               messages: [
@@ -139,22 +150,33 @@ class reminderService {
               temperature: 1,
               max_tokens: 200,
             })
-
+    
             const content = await completion.choices[0].message.content
             if(content) 
               channel.send(content);
             if(!repeat){
               schedule.cancelJob(task);
+              // delete job from database
+              // taskDBhandle.deleteTask({id: 7})
               await self.deleteJob(task)
             }
           }
-        });
+        } catch (error) {
+          throw(error);
+        }
+    });
+    };
 
+    try {
 
-      } catch (error) {
-        log(chalk.red.bold("[ERROR API]: ____REMINDER-SET-TIME___ "), error)
-        return ({status: 500, error: `Error occur: ${error}`})
-      }
+      // promise all to insert task into database and setup cron job
+      const [idInserted] = await Promise.all([taskDBhandle.createTask(dataTask), scheduleJobPromise()])
+      console.log('Task ID Inserted:', idInserted);
+
+    } catch (error) {
+      log(chalk.red.bold("[ERROR API]: ____REMINDER-SET-TIME___ "), error)
+      return ({status: 500, error: `Error occur: ${error}`})
+    }
   }
   
   async listJob() {
