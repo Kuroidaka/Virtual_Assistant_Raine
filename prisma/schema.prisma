@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:Idaka123@localhost:3306/Raine_DB"
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  period_time String?
+  specific_time     String?
+  repeat     Boolean
+
+}
+
