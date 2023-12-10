@@ -9,6 +9,7 @@ const openai = require("../../../../config/openAI")
 const RainePrompt = require("../../../../Raine_prompt_system.json")
 const schedule = require('node-schedule');
 const taskDBhandle = require("../../../database/task")
+const { nanoid } = require('nanoid');
 class reminderService {
   constructor() {
     this.list_job = {}
@@ -112,9 +113,11 @@ class reminderService {
   async createJob(task, time, repeat = false) {
     const self = this;
     let finalTime
+    const taskID = nanoid()
     const dataTask = {
         title: task,
-        repeat: repeat
+        repeat: repeat,
+        id: taskID
     }
 
     // process time
@@ -131,7 +134,7 @@ class reminderService {
     log("Cron time: ", chalk.green.bold(finalTime))
   
     // setup cron job
-    const scheduleJobPromise = () => {
+    const scheduleJobPromise = (taskID) => {
       this.list_job[task] = schedule.scheduleJob(task, finalTime, async () => {
         try {
           const channelID = process.env.CHANNEL_CRON_ID
@@ -157,7 +160,7 @@ class reminderService {
             if(!repeat){
               schedule.cancelJob(task);
               // delete job from database
-              // taskDBhandle.deleteTask({id: 7})
+              taskDBhandle.deleteTask({id: taskID})
               await self.deleteJob(task)
             }
           }
@@ -170,7 +173,7 @@ class reminderService {
     try {
 
       // promise all to insert task into database and setup cron job
-      const [idInserted] = await Promise.all([taskDBhandle.createTask(dataTask), scheduleJobPromise()])
+      const [idInserted] = await Promise.all([taskDBhandle.createTask(dataTask), scheduleJobPromise(taskID)])
       console.log('Task ID Inserted:', idInserted);
 
     } catch (error) {

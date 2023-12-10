@@ -1,13 +1,15 @@
 const DB = require('../../config/database/config.js')
 const chalk = require('chalk')
 const log = console.log
+const { nanoid } = require('nanoid');
 
 const taskDBhandle = {
   createTask: async (req) => {
-    const { title, periodTime=null, specificTime=null, repeat } = req 
+    const { title, periodTime=null, specificTime=null, repeat, id=nanoid() } = req 
     log('create task')
 
     const taskData = {
+        id: id,
         title: title,
         period_time: periodTime,
         specific_time: specificTime,
