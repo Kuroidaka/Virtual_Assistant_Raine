@@ -190,7 +190,17 @@ class GptService {
           else {
             const result = await reminder.createJob(what_to_do, time, repeat)
             if(result?.status === 500) {
-              return ({status: 500, error: result.error})
+              // return ({status: 500, error: result.error})
+              this.promptMessageFunc.push({
+                role: "assistant",
+                content: `Error occur while trying to setup reminder, let user know about this bug in create_reminder function: ${result.error}`
+              })
+            }
+            else {
+              this.promptMessageFunc.push({
+                role: "user",
+                content: result.data
+              })
             }
           }
         }

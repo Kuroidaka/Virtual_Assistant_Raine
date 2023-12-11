@@ -168,7 +168,7 @@ class reminderService {
     else {
       dataTask.periodTime = time
       finalTime = self.convertTime(time).time
-      if(finalTime === undefined) throw new Error("Time is not valid")
+      if(finalTime === undefined) throw new Error("Time is not valid in create job function")
     }
     log("Cron time: ", chalk.green.bold(finalTime))
   
@@ -178,10 +178,10 @@ class reminderService {
       // promise all to insert task into database and setup cron job
       const [idInserted] = await Promise.all([taskDBhandle.createTask(dataTask), this.scheduleJobPromise(taskID, task, finalTime, repeat)])
       console.log('Task ID Inserted:', idInserted);
-
+      return ({status: 200, data: `Reminder set successful with ID: ${idInserted}`})
     } catch (error) {
       log(chalk.red.bold("[ERROR API]: ____REMINDER-SET-TIME___ "), error)
-      return ({status: 500, error: `Error occur: ${error}`})
+      return ({status: 500, error: `Reminder set failed. Error occur: ${error}`})
     }
   }
   
