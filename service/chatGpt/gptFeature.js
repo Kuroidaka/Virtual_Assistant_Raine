@@ -64,7 +64,7 @@ const gpt = {
       // check user boss on Discord
       if(curUser) {
         const userResponse = { 
-          role: "system", content: `You know who you are talking to, and this is the person's name talking to you: ${curUser.globalName}`
+          role: "system", content: `You know who you are talking to, and this is the person's name talking to you: ${curUser}`
         }
         conversation.push(userResponse)
         countSystem += 3
@@ -98,7 +98,6 @@ const gpt = {
       let condition = true
       let numTokens = numTokensFromString(JSON.stringify(conversation), model)
       let numTokensBefore = numTokens
-      log(chalk.yellow.bold("Token: "), numTokens)
 
       while(condition) { 
         const numTokens = numTokensFromString(JSON.stringify(conversation), model)
@@ -113,8 +112,10 @@ const gpt = {
       numTokens = numTokensFromString(JSON.stringify(conversation), model)
 
       log(chalk.blue.bold("ConversationPrompt"), conversation);
-      log(chalk.yellow.bold("Token before: "), numTokensBefore)
-      log(chalk.yellow.bold("Token after: "), numTokens)
+      if(flagCheckOverToken) {
+        log(chalk.yellow.bold("Token before: "), numTokensBefore)
+        log(chalk.yellow.bold("Token after: "), numTokens)
+      }
 
       return { 
         newFlag: flagCheckOverToken,

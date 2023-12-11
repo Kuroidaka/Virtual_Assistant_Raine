@@ -3,7 +3,6 @@ const DB = require('../../../config/database/config');
 
 const user = { 
     insertUser: async (req, res) => { 
-
         const {username, displayName, id} = req.body;
         let connection = await DB.getConnection();
         try {

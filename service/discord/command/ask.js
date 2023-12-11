@@ -18,7 +18,7 @@ module.exports = {
 	async execute(interaction, user) {
 		try {
 			// console.log(`Channel ID: ${interaction.channel.id}`);
-			const maxTokenEachScript = 2000 
+			const maxToken = 2000 
 			let substringToCheck = "hey raine";
 			let botName = "raine"
 			interaction.channel.sendTyping(10)
@@ -32,18 +32,17 @@ module.exports = {
 				const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
 				axios.post(`${originURL}/api/v1/chatgpt/ask`, {
 					data: interaction,
-					maxTokenEachScript: maxTokenEachScript,
+					maxToken: maxToken,
 					curUser: user,
+					type: "discord"
 				})
 				.then(res => {
-					console.log(res.data.data.length)
-					const newData = sliceString(res.data.data, maxTokenEachScript)
+					const newData = sliceString(res.data.data, maxToken)
 					newData.map(msg => {
 						interaction.channel.send(msg)
 					})
 				})
 				.catch(async err => {
-					console.log(err)
 					reaction.remove().catch(error => console.error('Failed to remove reactions: ', error));
 					await interaction.react("☠️")
 					interaction.channel.send("Error Occur", err)

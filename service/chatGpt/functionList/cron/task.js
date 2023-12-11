@@ -1,6 +1,5 @@
 require("dotenv").config();
 const axios = require("axios")
-const { log } = require("../../../../config/log/log.config")
 const { client, Collection, Events } = require("../../../../config/discord/bot.config") 
 const chalk = require("chalk")
 const { detectLan } = require("../../../../utils/index")
@@ -10,6 +9,8 @@ const RainePrompt = require("../../../../Raine_prompt_system.json")
 const schedule = require('node-schedule');
 const taskDBhandle = require("../../../database/task")
 const { nanoid } = require('nanoid');
+
+const log = console.log
 class reminderService {
   constructor() {
     this.list_job = {}
@@ -110,6 +111,44 @@ class reminderService {
     }
   }
 
+  async scheduleJobPromise (taskID, task, finalTime, repeat = false) {
+    this.list_job[task] = schedule.scheduleJob(task, finalTime, async () => {
+      try {
+        const channelID = process.env.CHANNEL_CRON_ID
+        const channel = client.channels.cache.get(channelID);
+  
+        if (channel) {
+          log(chalk.green.bold("============= SET REMINDER ============="));
+          const detectTaskLang = detectLan(task)
+          console.log("Language detect from task", detectTaskLang )
+          // advance response reminder
+          const completion = await openai.chat.completions.create({
+            model: 'gpt-4',
+            messages: [
+              { role: "system", content: RainePrompt[detectTaskLang].reminder },
+              { role: "user", content: `This is what user want to be reminded: ${task}`},
+            ],
+            temperature: 1,
+            max_tokens: 200,
+          })
+  
+          const content = await completion.choices[0].message.content
+          if(content) 
+            channel.send(`
+            >>> ## __Reminder:__ \n*${content}*`);
+          if(!repeat){
+            schedule.cancelJob(task);
+            // delete job from database
+            await Promise.all([taskDBhandle.deleteTask({id: taskID}), this.deleteJob(task)])
+          }
+          log(chalk.green.bold("============= END SET REMINDER ============="));
+        }
+      } catch (error) {
+        throw(error);
+      }
+  });
+  };
+
   async createJob(task, time, repeat = false) {
     const self = this;
     let finalTime
@@ -134,46 +173,10 @@ class reminderService {
     log("Cron time: ", chalk.green.bold(finalTime))
   
     // setup cron job
-    const scheduleJobPromise = (taskID) => {
-      this.list_job[task] = schedule.scheduleJob(task, finalTime, async () => {
-        try {
-          const channelID = process.env.CHANNEL_CRON_ID
-          const channel = client.channels.cache.get(channelID);
-    
-          if (channel) {
-            const detectTaskLang = detectLan(task)
-            console.log("Language detect from task", detectTaskLang )
-            // advance response reminder
-            const completion = await openai.chat.completions.create({
-              model: 'gpt-4',
-              messages: [
-                { role: "system", content: RainePrompt[detectTaskLang].reminder },
-                { role: "user", content: `This is what user want to be reminded: ${task}`},
-              ],
-              temperature: 1,
-              max_tokens: 200,
-            })
-    
-            const content = await completion.choices[0].message.content
-            if(content) 
-              channel.send(content);
-            if(!repeat){
-              schedule.cancelJob(task);
-              // delete job from database
-              taskDBhandle.deleteTask({id: taskID})
-              await self.deleteJob(task)
-            }
-          }
-        } catch (error) {
-          throw(error);
-        }
-    });
-    };
-
     try {
 
       // promise all to insert task into database and setup cron job
-      const [idInserted] = await Promise.all([taskDBhandle.createTask(dataTask), scheduleJobPromise(taskID)])
+      const [idInserted] = await Promise.all([taskDBhandle.createTask(dataTask), this.scheduleJobPromise(taskID, task, finalTime, repeat)])
       console.log('Task ID Inserted:', idInserted);
 
     } catch (error) {
@@ -182,10 +185,10 @@ class reminderService {
     }
   }
   
-  async listJob() {
-    log(chalk.blueBright.bold("list_job"), this.list_job)
-    return this.list_job
+  async getCronJob() {
+    
   }
+
 
 }
 
@@ -193,11 +196,6 @@ class reminderService {
 // Service.createJob("have dinner", "2 seconds", true)
 // Service.createJob("clean body", "*/4 * * * * *", true)
 
-
-
-// setTimeout(() => {
-//   log(Service.list_job)
-// }, 5000)
 
 
 module.exports = reminderService

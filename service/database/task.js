@@ -6,8 +6,6 @@ const { nanoid } = require('nanoid');
 const taskDBhandle = {
   createTask: async (req) => {
     const { title, periodTime=null, specificTime=null, repeat, id=nanoid() } = req 
-    log('create task')
-
     const taskData = {
         id: id,
         title: title,
@@ -34,8 +32,6 @@ const taskDBhandle = {
   },
   getTask: async (req) => {
     const { id } = req
-    log('get task')
-
     const transaction = await DB.$transaction(async (prisma) => {
     try {
         let task
@@ -49,6 +45,7 @@ const taskDBhandle = {
             })
         }
         log( chalk.green("GET TASK:"), task);
+        return task
 
     } catch (error) {
         log(error)
@@ -60,8 +57,6 @@ const taskDBhandle = {
   },
   deleteTask: async(req) => {
     const { id } = req
-    log('delete task')
-
     const transaction = await DB.$transaction(async (prisma) => {
     try {
         const task = await prisma.task.delete({

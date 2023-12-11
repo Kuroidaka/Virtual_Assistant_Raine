@@ -3,20 +3,19 @@ const redisClient = require('../../config/redis/redis.config');
 const chalk = require("chalk");
 
 const redisService = {
-    addToConversation: async (role, content, guildId, lan = "default") => {
+    addToConversation: async (role, content, prepareKey, lan = "default") => {
         const message = { role, content };
 
         if(role && content ) {
             let conversationKey
             lan === "" ?
-                conversationKey = `${guildId}:conversation`
-            :   conversationKey = `${lan}:${guildId}:conversation`
+                conversationKey = `${prepareKey}:conversation`
+            :   conversationKey = `${lan}:${prepareKey}:conversation`
 
             try {
                 let initIndex = 0
                 const count = await redisService.countItems(conversationKey)
-                log(chalk.red("Redis"), conversationKey );
-                log(chalk.magenta(`Count in Conversation: ${count}`));
+                log(chalk.red("Redis"), `role: ${role} | `,conversationKey );
                 if(count) initIndex = count - 1
         
                 let index = 0
@@ -27,12 +26,12 @@ const redisService = {
             }
         }
     },
-    followUpWithOlderResponse: async (guildId, lan = "default") => {
+    followUpWithOlderResponse: async (prepareKey, lan = "default") => {
         let conversationKeys
         console.log("language", lan)
         lan === "" ?
-            [conversationKeys] = await redisClient.keys(`${guildId}:conversation`)
-            :[conversationKeys] = await redisClient.keys(`${lan}:${guildId}:conversation`);
+            [conversationKeys] = await redisClient.keys(`${prepareKey}:conversation`)
+            :[conversationKeys] = await redisClient.keys(`${lan}:${prepareKey}:conversation`);
             
             if(!conversationKeys) return []
 
@@ -54,8 +53,8 @@ const redisService = {
 
         return conversationList
     },
-    mergeNewConversation: async(guildID, lan = "default", newConversation) => {
-        const conversationKey = `${lan && lan + ":"}${guildID}:conversation`
+    mergeNewConversation: async(prepareKey, lan = "default", newConversation) => {
+        const conversationKey = `${lan && lan + ":"}${prepareKey}:conversation`
         try {
 
             await redisClient.del(conversationKey);

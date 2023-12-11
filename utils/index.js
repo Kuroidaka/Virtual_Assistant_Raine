@@ -18,7 +18,6 @@ const convertDates = (dateStr) => {
 
 const detectLan = (lang) => {
   const data = lngDetector.detect(lang)
-  console.log(data)
   let languages = ["english", "vietnamese", "japanese"];
 
   let found = data.find(([language]) => languages.includes(language));

@@ -7,39 +7,38 @@ const lanJson = require("../../../language.json")
 
 const chatGpt = { 
     generate: async (req, res) => { 
-        try{            
-            const { data, maxTokenEachScript, curUser } = req.body;
+      
+        const { data, maxToken, curUser, type } = req.body;
 
-            const guildID = data.guildId
-            const ConversationPrompt = await redisService.followUpWithOlderResponse(guildID)
-            
-            const prompt = data.content
-            const GPT = new GptService
-            const result = await GPT.functionCalling(prompt, data, maxTokenEachScript, curUser, ConversationPrompt, "default", guildID)
+        let prepareKey
+        let prompt
+        let currentUser
+        if(type === "discord") {
+            prepareKey = data.guildId
+            prompt = data.content
+            currentUser = curUser.globalName
+        }
+        const ConversationPrompt = await redisService.followUpWithOlderResponse(prepareKey)
 
-            log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
+        redisService.addToConversation("user", prompt, prepareKey)
+        const GPT = new GptService
+        const result = await GPT.functionCalling(prompt, maxToken, currentUser, ConversationPrompt, "default", prepareKey)
+
+        log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
+        if(result.status === 200) {
+            redisService.addToConversation("assistant", result.data, prepareKey)
             log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${result.data}`), "\n}")
-            if(result.status === 200) {
-                redisService.addToConversation("user", prompt, data.guildId)
-                redisService.addToConversation("assistant", result.data, data.guildId)
-                return res.status(200).json({data: result.data})
-            }
-            else {
-                return res.status(500).json({ error: result.error });
-            }
-            // const summary = await GptService.ask(`
-            // Please provide a brief summary of the main points in the following text
-            // ${result.data}`, data, maxTokenEachScript, curUser, ConversationPrompt)
-            
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({ error: err });
+            return res.status(200).json({data: result.data})
+        }
+        else {
+            log("Request OPENAI data: ", "{\n\terror: ", chalk.red.bold(`${result.error}`), "\n}")
+            return res.status(500).json({ error: result.error });
         }
 
     },
     askForFunction: async (req, res) => { 
         try{            
-            const { data, maxTokenEachScript, curUser, lan = "default" } = req.body;
+            const { data, maxToken, curUser, lan = "default" } = req.body;
 
             const guildID = data.guildId
             const ConversationPrompt = await redisService.followUpWithOlderResponse(guildID, lan)
@@ -47,7 +46,7 @@ const chatGpt = {
             const prompt = data.content
 
             const GPT = new GptService
-            const result = await GPT.functionCalling(prompt, data, maxTokenEachScript, curUser, ConversationPrompt, "en", guildID)
+            const result = await GPT.functionCalling(prompt, data, maxToken, curUser, ConversationPrompt, "en", guildID)
 
             console.log("Request OPENAI status: ", result.status)
             console.log("Request OPENAI data: ", result.data)
@@ -68,7 +67,7 @@ const chatGpt = {
     },
     generateForTTS: async (req, res) => { 
         try{            
-            const { data, maxTokenEachScript, curUser, lan } = req.body;
+            const { data, maxToken, curUser, lan } = req.body;
 
             const guildID = data.guildId
             let isTalk = true
@@ -78,7 +77,7 @@ const chatGpt = {
             const prompt = data.content
             
             const GPT = new GptService
-            const result = await GPT.functionCalling(prompt, data, maxTokenEachScript, curUser, ConversationPrompt, lan, guildID, isTalk)
+            const result = await GPT.functionCalling(prompt, data, maxToken, curUser, ConversationPrompt, lan, guildID, isTalk)
 
             if(result.status === 200) {
                 redisService.addToConversation("user", prompt, data.guildId, lan)
@@ -131,12 +130,12 @@ const chatGpt = {
     // },
     translate: async (req, res) => {
 
-        const { prompt, maxTokenEachScript } = req.body
+        const { prompt, maxToken } = req.body
             
         try {
             const GPT = new GptService
             
-            const result = await GPT.translate(prompt, maxTokenEachScript)
+            const result = await GPT.translate(prompt, maxToken)
 
             return res.status(200).json({ data: result.data })
 

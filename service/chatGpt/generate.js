@@ -15,15 +15,10 @@ class GptService {
     this.promptMessage = []
     this.promptMessageFunc = []
     this.promptMessageTTS = []
-    this.loyalSystem = { role: "system", content: process.env.RAINE_PROMPT_LOYAL }
-    // this.llm_model = "gpt-3.5-turbo"
-    this.llm_model = "gpt-4"
-    this.llm_max_tokens = 4097
   }
-  async ask (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan = "default") {
+  async ask (promptContent, maxToken, curUser, ConversationPrompt, lan = "default", guildID) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
-      let guildID = data.guildID
       let loyal = false
       if(curUser.id === process.env.OWNER_ID) loyal = true
 
@@ -31,7 +26,7 @@ class GptService {
       const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessage, ConversationPrompt, promptContent, curUser, loyal, "en")
       this.promptMessageFunc = preparedConversation
 
-      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", 0, this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
+      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", 0, this.promptMessageFunc, maxToken, countSystem, guildID, lan)
       this.promptMessage = conversation
 
       const content = completion.choices[0].message.content
@@ -44,10 +39,9 @@ class GptService {
 
   }
 
-  async askTTS (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan = "default", guildID) {
+  async askTTS (promptContent, maxToken, curUser, ConversationPrompt, lan = "default", guildID) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
-      let guildID = data.guildID
       let loyal = false
       if(curUser.id === process.env.OWNER_ID) loyal = true
 
@@ -56,7 +50,7 @@ class GptService {
       this.promptMessageTTS = preparedConversation
       
       // Ask OpenAI
-      const { conversation, completion } = await gpt.callGPT("gpt-4", 0.7, this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan)
+      const { conversation, completion } = await gpt.callGPT("gpt-4", 0.7, this.promptMessageFunc, maxToken, countSystem, guildID, lan)
       this.promptMessage = conversation
 
       const content = completion.choices[0].message.content
@@ -85,28 +79,7 @@ class GptService {
     
   }
 
-  // async editImage() {
-  //   try {
-  //     const commandsPath = path.join(__dirname, '../../assert/image/image_edit_original.png');
-  //     const mask = path.join(__dirname, '../../assert/image/image_edit_mask.png');
-  
-  //     console.log("commandsPath", commandsPath)
-  //     const image = await openai.images.edit({
-  //       image: fs.createReadStream(commandsPath),
-  //       mask: fs.createReadStream(mask),
-  //       prompt: "A cute baby sea otter wearing a beret",
-  //     });
-    
-  //     console.log(image.data);
-  //     return image
-      
-  //   } catch (error) {
-  //     console.log(error)
-  //     return ({status: 500, error: error})
-  //   }
-  // }
-
-  async translate(promptContent, maxTokenEachScript) { 
+  async translate(promptContent, maxToken) { 
 
     let promptList = [
       {role: "system", content: process.env.TRANSLATE_PROMPT},
@@ -120,7 +93,7 @@ class GptService {
         model: "gpt-4",
         messages: promptList,
         temperature: 0,
-        max_tokens: maxTokenEachScript,
+        max_tokens: maxToken,
       });
 
       const content = completion.choices[0].message.content
@@ -132,39 +105,9 @@ class GptService {
     }
   }
 
-  async functionCalling (promptContent, data, maxTokenEachScript, curUser, ConversationPrompt, lan = "default", guildID, isTalk = false) {
+  async functionCalling (promptContent, maxToken, curUser, ConversationPrompt, lan = "default", guildID, isTalk = false) {
     try {
       log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
-      // const getCurrentWeather = async (location) => {
-      //   return weatherService.getByLocation(location)
-      //   .then(res => {
-      //     const newData = res.data
-      //     const raineWeatherPrompt = RainePrompt[lan].weather
-
-      //     if(newData) {
-      //       const data = {
-      //         content: `
-      //         ${raineWeatherPrompt}: 
-      //         ${JSON.stringify(newData)}
-      //         `,
-      //         role: "user"
-      //       }
-
-      //       log("Weather prompt:", data)
-
-      //       return {
-      //         have_content: true,
-      //         data: data
-      //       }
-      //     } else {
-      //       return {
-      //         have_content: false,
-      //         data: null
-      //       }
-      //     }
-      //   })
-      // }
-
       let loyal = true
 
       // prepare data system for conversation prompt
@@ -177,7 +120,7 @@ class GptService {
         
         log(chalk.green.bold("------------------ REQUEST ------------------"));
   
-        const { conversation, completion } = await gpt.callGPT("gpt-4", 1, this.promptMessageFunc, maxTokenEachScript, countSystem, guildID, lan, true, listFunc)
+        const { conversation, completion } = await gpt.callGPT("gpt-4", 1, this.promptMessageFunc, maxToken, countSystem, guildID, lan, true, listFunc)
   
         this.promptMessageFunc = conversation
         // process function calling from tools
@@ -251,22 +194,12 @@ class GptService {
             }
           }
         }
-        else if(responseMessage.function_call?.name === "list_reminder") {
-          const reminder = new reminderService()
-          const result = await reminder.listJob()
-          // if() return ({ status: 200, data: "Sorry, I can't find the weather for this location"})
-          this.promptMessageFunc.push({
-            role: "user",
-            content: JSON.stringify(result)
-          })
-        }
         else if(completion.choices[0].finish_reason === "stop") {
           return ({ status: 200, data: completion.choices[0].message.content })
         }
 
       }  
     } catch(error) {
-      log(error)
       return ({status: 500, error: error})
     }
 
