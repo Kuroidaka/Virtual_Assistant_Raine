@@ -113,6 +113,7 @@ class GptService {
       // prepare data system for conversation prompt
       const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageFunc, ConversationPrompt, promptContent, curUser, loyal, lan, isTalk)
       this.promptMessageFunc = preparedConversation
+      let temperature = 0.5
 
       let retry = 0
       
@@ -120,7 +121,7 @@ class GptService {
         
         log(chalk.green.bold("------------------ REQUEST ------------------"));
   
-        const { conversation, completion } = await gpt.callGPT("gpt-4", 1, this.promptMessageFunc, maxToken, countSystem, guildID, lan, true, listFunc)
+        const { conversation, completion } = await gpt.callGPT("gpt-4", temperature, this.promptMessageFunc, maxToken, countSystem, guildID, lan, true, listFunc)
   
         this.promptMessageFunc = conversation
         // process function calling from tools
