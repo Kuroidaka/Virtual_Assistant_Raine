@@ -9,7 +9,7 @@ const getLatestMsg = async (message, id) => {
 
 	if (secondLatestMessage) {
 		console.log(`Second latest message from ${message.author.username}: ${secondLatestMessage.content}`);
-		return secondLatestMessage.content
+		return secondLatestMessage
 	} else {
 		console.log('Not any recent message from this user: ', message.author.username);
 		return null
@@ -36,6 +36,7 @@ module.exports = {
 			let substringToCheck = "hey raine";
 			let botName = "raine"
 			let prompt = ""
+			let files = []
 			interaction.channel.sendTyping(10)
 
 
@@ -45,20 +46,38 @@ module.exports = {
 			}
 
 			// Check and response for the latest missing msg from user
-			if(interaction.content.toLowerCase() === botName.toLowerCase() || interaction.content.toLowerCase() === substringToCheck.toLowerCase()) {
-				prompt = await getLatestMsg(interaction, user.id)
+			if(
+				(
+					interaction.content.toLowerCase() === botName.toLowerCase() || 
+					interaction.content.toLowerCase() === substringToCheck.toLowerCase()
+				) &&
+				interaction.attachments.size === 0
+			) {
+				interaction = await getLatestMsg(interaction, user.id)
+				prompt = interaction.content
 			}
 			else {
 				prompt = interaction.content
 			}
 
+			if(interaction.attachments.size > 0) {
+				// user attached files
+				for (const [key, value] of interaction.attachments) {
+					files.push(value)
+				}
+			}
+			else {
+				console.log(0);
+			}
 
+ 
 			await interaction.react("🔍").then(reaction => {
 				const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
 				axios.post(`${originURL}/api/v1/chatgpt/ask`, {
 					data: {
 						content: prompt,
-						prepareKey: interaction.guildId
+						prepareKey: interaction.guildId,
+						file: files
 					},
 					maxToken: maxToken,
 					curUser: user,
@@ -84,5 +103,3 @@ module.exports = {
 		}
 	},
 };
-
-// secondLatestMessage.attachments.first().attachment
