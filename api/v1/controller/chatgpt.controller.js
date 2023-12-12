@@ -14,7 +14,7 @@ const chatGpt = {
         let prompt
         let currentUser
         if(type === "discord") {
-            prepareKey = data.guildId
+            prepareKey = data.prepareKey
             prompt = data.content
             currentUser = curUser.globalName
         }

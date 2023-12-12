@@ -52,9 +52,13 @@ const gpt = {
       let systemTTS =  { role: "system", content: RainePrompt[lang].system_tts }
       let taskRemind =  { role: "system", content: RainePrompt[lang].task }
 
+      const date = new Date()
+      const currentDate = date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate();
 
       if(lang && RainePrompt[lang]) {
-        conversation[0] = { role: "system", content: RainePrompt[lang].system }
+        conversation[0] = { role: "system", content: `
+        Current date: ${currentDate}
+        ${RainePrompt[lang].system}` }
         ++countSystem
       }
 
