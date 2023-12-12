@@ -12,17 +12,47 @@ const chatGpt = {
 
         let prepareKey
         let prompt
+        let promptRedis
         let currentUser
+        let files
+        let haveFile = false
+        let isTask = false
+
         if(type === "discord") {
             prepareKey = data.prepareKey
             prompt = data.content
+            promptRedis = prompt
             currentUser = curUser.globalName
-        }
-        const ConversationPrompt = await redisService.followUpWithOlderResponse(prepareKey)
+            files = data.files
+            
+            if(files.length > 0) {// prepare prompt data for file attachment
+                prompt = [{
+                    type: "text",
+                    text: prompt
+                }]
 
-        redisService.addToConversation("user", prompt, prepareKey)
+                files.forEach(file => {
+                    prompt.push({
+                        type: "image_url",
+                        image_url: {
+                          "url": file.url,
+                        },
+                    })
+                }); 
+                haveFile = true
+                promptRedis = JSON.stringify(prompt)
+            }
+        }
+
+        // get the conversation from redis
+        const conversation = await redisService.followUpWithOlderResponse(prepareKey)
+
+        // add new prompt into redis
+        redisService.addToConversation("user", promptRedis, prepareKey)
+
+        // call GPT
         const GPT = new GptService
-        const result = await GPT.functionCalling(prompt, maxToken, currentUser, ConversationPrompt, "default", prepareKey)
+        const result = await GPT.functionCalling(prompt, maxToken, currentUser, conversation, "default", prepareKey, isTask, haveFile)
 
         log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
         if(result.status === 200) {
@@ -41,12 +71,12 @@ const chatGpt = {
             const { data, maxToken, curUser, lan = "default" } = req.body;
 
             const guildID = data.guildId
-            const ConversationPrompt = await redisService.followUpWithOlderResponse(guildID, lan)
+            const conversation = await redisService.followUpWithOlderResponse(guildID, lan)
             
             const prompt = data.content
 
             const GPT = new GptService
-            const result = await GPT.functionCalling(prompt, data, maxToken, curUser, ConversationPrompt, "en", guildID)
+            const result = await GPT.functionCalling(prompt, data, maxToken, curUser, conversation, "en", guildID)
 
             console.log("Request OPENAI status: ", result.status)
             console.log("Request OPENAI data: ", result.data)
@@ -72,12 +102,12 @@ const chatGpt = {
             const guildID = data.guildId
             let isTalk = true
 
-            const ConversationPrompt = await redisService.followUpWithOlderResponse(guildID, lan)
+            const conversation = await redisService.followUpWithOlderResponse(guildID, lan)
             
             const prompt = data.content
             
             const GPT = new GptService
-            const result = await GPT.functionCalling(prompt, data, maxToken, curUser, ConversationPrompt, lan, guildID, isTalk)
+            const result = await GPT.functionCalling(prompt, data, maxToken, curUser, conversation, lan, guildID, isTalk)
 
             if(result.status === 200) {
                 redisService.addToConversation("user", prompt, data.guildId, lan)

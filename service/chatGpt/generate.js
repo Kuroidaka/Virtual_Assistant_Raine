@@ -16,17 +16,17 @@ class GptService {
     this.promptMessageFunc = []
     this.promptMessageTTS = []
   }
-  async ask (promptContent, maxToken, curUser, ConversationPrompt, lan = "default", guildID) {
+  async ask (prompt, maxToken, curUser, conversation, lan = "default", prepareKey) {
     try {
-      log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
+      log(chalk.blue.bold(`prompt:(${lan})`), prompt);
       let loyal = false
       if(curUser.id === process.env.OWNER_ID) loyal = true
 
       // prepare data system for conversation prompt
-      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessage, ConversationPrompt, promptContent, curUser, loyal, "en")
+      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessage, conversation, prompt, curUser, loyal, "en")
       this.promptMessageFunc = preparedConversation
 
-      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", 0, this.promptMessageFunc, maxToken, countSystem, guildID, lan)
+      const { conversation, completion } = await gpt.callGPT("gpt-3.5-turbo", 0, this.promptMessageFunc, maxToken, countSystem, prepareKey, lan)
       this.promptMessage = conversation
 
       const content = completion.choices[0].message.content
@@ -39,18 +39,18 @@ class GptService {
 
   }
 
-  async askTTS (promptContent, maxToken, curUser, ConversationPrompt, lan = "default", guildID) {
+  async askTTS (prompt, maxToken, curUser, conversation, lan = "default", prepareKey) {
     try {
-      log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
+      log(chalk.blue.bold(`prompt:(${lan})`), prompt);
       let loyal = false
       if(curUser.id === process.env.OWNER_ID) loyal = true
 
       // prepare data system for conversation prompt
-      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageTTS, ConversationPrompt, promptContent, curUser, loyal, lan)
+      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageTTS, conversation, prompt, curUser, loyal, lan)
       this.promptMessageTTS = preparedConversation
       
       // Ask OpenAI
-      const { conversation, completion } = await gpt.callGPT("gpt-4", 0.7, this.promptMessageFunc, maxToken, countSystem, guildID, lan)
+      const { conversation, completion } = await gpt.callGPT("gpt-4", 0.7, this.promptMessageFunc, maxToken, countSystem, prepareKey, lan)
       this.promptMessage = conversation
 
       const content = completion.choices[0].message.content
@@ -62,12 +62,12 @@ class GptService {
 
   }
 
-  async askImage (promptContent, qty = 1) {
+  async askImage (prompt, qty = 1) {
 
-    log(chalk.blue.bold("prompt:"), promptContent);
+    log(chalk.blue.bold("prompt:"), prompt);
     try {
       const response = await openai.images.generate({
-        prompt: promptContent,
+        prompt: prompt,
         n: qty,
         size: "1024x1024",
       });
@@ -79,14 +79,14 @@ class GptService {
     
   }
 
-  async translate(promptContent, maxToken) { 
+  async translate(prompt, maxToken) { 
 
     let promptList = [
       {role: "system", content: process.env.TRANSLATE_PROMPT},
-      { role: "user", content: promptContent}
+      { role: "user", content: prompt}
     ]
 
-    log(chalk.blue.bold("prompt:"), promptContent);
+    log(chalk.blue.bold("prompt:"), prompt);
 
     try {
       const response = await openai.chat.completions.create({
@@ -105,23 +105,31 @@ class GptService {
     }
   }
 
-  async functionCalling (promptContent, maxToken, curUser, ConversationPrompt, lan = "default", guildID, isTalk = false) {
+  async functionCalling (prompt, maxToken, curUser, conversation, lan = "default", prepareKey, isTalk = false, haveFile) {
     try {
-      log(chalk.blue.bold(`prompt:(${lan})`), promptContent);
+      log(chalk.blue.bold(`prompt:(${lan})`), prompt);
       let loyal = true
+      let mainModel = "gpt-4"
 
       // prepare data system for conversation prompt
-      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageFunc, ConversationPrompt, promptContent, curUser, loyal, lan, isTalk)
+      const { countSystem, conversation:preparedConversation } = await gpt.prepare_system_prompt(this.promptMessageFunc, conversation, prompt, curUser, loyal, lan, isTalk)
       this.promptMessageFunc = preparedConversation
       let temperature = 0.5
 
       let retry = 0
+
+      if(haveFile) {
+        const { conversation, completion } = await gpt.callGPT("gpt-4-vision-preview", temperature, this.promptMessageFunc, maxToken, countSystem, prepareKey, lan, false, listFunc)
+        this.promptMessageFunc = conversation
+        console.log("Response:", completion.choices[0]);
+        return ({ status: 200, data: completion.choices[0].message.content })
+      }
       
       while(true) {
         
         log(chalk.green.bold("------------------ REQUEST ------------------"));
   
-        const { conversation, completion } = await gpt.callGPT("gpt-4", temperature, this.promptMessageFunc, maxToken, countSystem, guildID, lan, true, listFunc)
+        const { conversation, completion } = await gpt.callGPT(mainModel, temperature, this.promptMessageFunc, maxToken, countSystem, prepareKey, lan, true, listFunc)
   
         this.promptMessageFunc = conversation
         // process function calling from tools

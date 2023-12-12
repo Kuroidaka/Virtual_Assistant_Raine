@@ -77,7 +77,7 @@ module.exports = {
 					data: {
 						content: prompt,
 						prepareKey: interaction.guildId,
-						file: files
+						files: files
 					},
 					maxToken: maxToken,
 					curUser: user,

@@ -6,13 +6,19 @@ const RainePrompt = require("../../Raine_prompt_system.json")
 const redisService = require("../redis/redis.service");
 
 const gpt = {
-    callGPT: async (model, temperature, conversation, maxTokenEachScript, countSystem, guildID, lan = "default", functionCall = false, listFunc = () => {}) => {
+    callGPT: async (model, temperature, conversation, maxTokenEachScript, countSystem, prepareKey, lan = "default", functionCall = false, listFunc = () => {}) => {
       let flagCheckOverToken = false
-
-      const { newFlag, conversation:newConversation } = await gpt.countToken(flagCheckOverToken, conversation, countSystem, model)
+      let modelCountToken
+      if(model === "gpt-4-vision-preview") {
+        modelCountToken = "gpt-4"
+      }
+      else {
+        modelCountToken = model
+      }
+      const { newFlag, conversation:newConversation } = await gpt.countToken(flagCheckOverToken, conversation, countSystem, modelCountToken)
       conversation = newConversation
       if(newFlag) {
-        await redisService.mergeNewConversation(guildID, lan, conversation)
+        await redisService.mergeNewConversation(prepareKey, lan, conversation)
       }
 
       let completion
@@ -34,7 +40,6 @@ const gpt = {
         completion = await openai.chat.completions.create({
           model: model,
           messages: conversation,
-          // model: "gpt-3.5-turbo",
           temperature: 1,
           max_tokens: maxTokenEachScript,
         });
