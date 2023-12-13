@@ -29,15 +29,10 @@ app.listen(port, () => {
 
 
 // BOT
-
-// const { Events, Collection } = require('discord.js');
 const { client, Collection, Events } = require("./config/discord/bot.config") 
 const { log } = require("./config/log/log.config");
-// const sendCronMessage = require("./service/cron/vocab.js");
-
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
-
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -59,10 +54,7 @@ for (const file of commandFiles) {
 }
 
 client.on("ready", () => {
-    // if (!interaction.isChatInputCommand()) return;
     log(`✨ ${client.user.tag} is ${chalk.green("online")}! ✨ `);
-    // const channelCron = interaction.channels.cache.get(process.env.CHANNEL_CRON_ID);
-
 });
 
 client.on('messageCreate', async interaction => {
@@ -110,20 +102,6 @@ client.on('messageCreate', async interaction => {
 		}
 	}
 });
-
-// client.once('ready', async (message) => {
-   
-//     sendCronMessage(message, channelCron)
-// });
-
- 
-// client.on('messageCreate', async message => {
-//     log(chalk.cyan("catch event"))
-//     if (message.author.bot || !message.guild) return;
-  
-   
-
-// });
 
 // Login to Discord with the bot's token
 client.login(TOKEN);
