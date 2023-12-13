@@ -89,7 +89,7 @@ class GptService {
     log(chalk.blue.bold("prompt:"), prompt);
 
     try {
-      const response = await openai.chat.completions.create({
+      await openai.chat.completions.create({
         model: "gpt-4",
         messages: promptList,
         temperature: 0,
@@ -143,10 +143,10 @@ class GptService {
           const time = args.time
           const date = args.date
 
-          log(chalk.green.bold("---> GPT ask to call Weather API "), location);
-          log(chalk.green.bold("---> Location: "), location);
-          log(chalk.green.bold("---> time: "), time);
-          log(chalk.green.bold("---> date: "), date);
+          log(chalk.blue.bold("---> GPT ask to call Weather API "), location);
+          log(chalk.blue.bold("---> Location: "), location);
+          log(chalk.blue.bold("---> time: "), time);
+          log(chalk.blue.bold("---> date: "), date);
           
           const weatherData = await weatherService.getByLocation(location, lan, time, date)
 
@@ -172,12 +172,12 @@ class GptService {
           const repeat = args.repeat
           let time = period_time || specific_time
 
-          log(chalk.green.bold("---> GPT ask to call Cron service "));
-          log(chalk.green.bold("---> what_to_do: "), what_to_do);
+          log(chalk.blue.bold("---> GPT ask to call Cron service "));
+          log(chalk.blue.bold("---> what_to_do: "), what_to_do);
           specific_time
-            ? log(chalk.green.bold("---> specific_time: "), specific_time)
-            : log(chalk.green.bold("---> period_time: "), period_time);
-          log(chalk.green.bold("---> repeat: "), repeat);
+            ? log(chalk.blue.bold("---> specific_time: "), specific_time)
+            : log(chalk.blue.bold("---> period_time: "), period_time);
+          log(chalk.blue.bold("---> repeat: "), repeat);
           // if() return ({ status: 200, data: "Sorry, I can't find the weather for this location"})
           
           if(!what_to_do) {
@@ -212,6 +212,48 @@ class GptService {
               })
             }
           }
+        }
+        else if(responseMessage.function_call?.name === "follow_up_image_in_chat") {
+          const args = JSON.parse(responseMessage.function_call.arguments)
+          const image_list = args.image_list
+          const prompt = args.prompt
+
+          log(chalk.blue.bold("---> GPT ask to call follow image service "));
+          log(chalk.blue.bold("---> image_list: "), image_list);
+          log(chalk.blue.bold("---> prompt: "), prompt);
+
+          let content = []
+
+          this.promptMessageFunc.pop()
+
+          if(image_list.length > 0) {
+            content = [{type: "text", text: prompt}]
+            image_list.forEach(img => content.push({
+              type: "image_url",
+              image_url: {
+                "url": img.url,
+              },
+            }))
+            this.promptMessageFunc.push({
+              role: "user",
+              content: content
+            })         
+          }
+          else {
+            this.promptMessageFunc.push({
+              role: "assistant",
+              content: "not found any image"
+            })
+            continue
+          }
+
+          const { conversation, completion } = await gpt.callGPT(
+            "gpt-4-vision-preview", temperature, this.promptMessageFunc, maxToken, countSystem, prepareKey, lan, false, listFunc
+          )
+          this.promptMessageFunc = conversation
+          log(chalk.blue.bold("Response for asking about image:"), completion.choices[0]);
+
+          return ({ status: 200, data: completion.choices[0].message.content })
         }
         else if(completion.choices[0].finish_reason === "stop") {
           return ({ status: 200, data: completion.choices[0].message.content })
