@@ -33,7 +33,7 @@ module.exports = {
 		try {
 			// console.log(`Channel ID: ${interaction.channel.id}`);
 			const maxToken = 2000 
-			let substringToCheck = "hey raine";
+			let substringToCheck = "hey raine"; 
 			let botName = "raine"
 			let prompt = ""
 			let files = []
@@ -76,7 +76,7 @@ module.exports = {
 				axios.post(`${originURL}/api/v1/chatgpt/ask`, {
 					data: {
 						content: prompt,
-						prepareKey: interaction.guildId,
+						prepareKey: interaction.channelId,
 						files: files
 					},
 					maxToken: maxToken,
