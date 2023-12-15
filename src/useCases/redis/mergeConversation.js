@@ -1,8 +1,8 @@
 module.exports = (dependencies) => {
     const { redisClient } = dependencies
 
-    const execute = async(prepareKey, lan = "default", newConversation) => {
-        const conversationKey = `${lan && lan + ":"}${prepareKey}:conversation`
+    const execute = async(prepareKey, newConversation) => {
+        const conversationKey = `${prepareKey}:conversation`
         try {
 
             await redisClient.del(conversationKey);

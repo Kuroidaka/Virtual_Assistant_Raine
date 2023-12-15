@@ -3,11 +3,9 @@ const chalk = require("chalk")
 module.exports = (dependencies) => {
     const { redisClient } = dependencies
 
-    const execute = async ({prepareKey, lan = "default"}) => {
+    const execute = async ({prepareKey}) => {
         let conversationKeys
-        lan === "" ?
-            conversationKeys = `${prepareKey}:conversation`
-        :   conversationKeys = `${lan}:${prepareKey}:conversation`
+        conversationKeys = `${prepareKey}:conversation`
 
         try {
             await redisClient.del(conversationKeys);

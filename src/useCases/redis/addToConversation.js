@@ -8,14 +8,12 @@ module.exports = (dependencies) => {
         }
     } = dependencies
 
-    const execute = async ({role, content, prepareKey, lan = "default"}) => {
+    const execute = async ({role, content, prepareKey}) => {
         const message = { role, content };
 
         if(role && content ) {
             let conversationKey
-            lan === "" ?
-                conversationKey = `${prepareKey}:conversation`
-            :   conversationKey = `${lan}:${prepareKey}:conversation`
+            conversationKey = `${prepareKey}:conversation`
 
             try {
                 let initIndex = 0

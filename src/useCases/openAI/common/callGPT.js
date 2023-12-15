@@ -19,7 +19,6 @@ module.exports = (dependencies) => {
     maxToken,
     systemMsgCount,
     prepareKey,
-    lan = 'default',
     functionCall = false,
     listFunc = () => {},
   }) => {
@@ -41,7 +40,7 @@ module.exports = (dependencies) => {
     conversation = newConversation
     if (newFlag) {
       const conMerge = mergeConversation(dependencies)
-      await conMerge.execute(prepareKey, lan, conversation)
+      await conMerge.execute(prepareKey, conversation)
     }
 
     let completion

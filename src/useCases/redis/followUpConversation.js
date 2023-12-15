@@ -1,12 +1,9 @@
 module.exports = (dependencies) => {
     const { redisClient } = dependencies
 
-    const execute = async ({prepareKey, lan = "default"}) => {
+    const execute = async ({prepareKey,}) => {
         let conversationKeys
-        console.log("language", lan)
-        lan === "" ?
-            [conversationKeys] = await redisClient.keys(`${prepareKey}:conversation`)
-            :[conversationKeys] = await redisClient.keys(`${lan}:${prepareKey}:conversation`);
+        [conversationKeys] = await redisClient.keys(`${prepareKey}:conversation`)
             
             if(!conversationKeys) return []
 
