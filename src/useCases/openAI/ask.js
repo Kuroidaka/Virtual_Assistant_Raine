@@ -98,7 +98,7 @@ module.exports = class askOpenAIUseCase {
             console.log(chalk.blue.bold("---> time: "), time);
             console.log(chalk.blue.bold("---> date: "), date);
             
-            const weatherData = await funcCall.func.weatherFunc.getByLocation(location, lan, time, date)
+            const weatherData = await funcList.func.weatherFunc.getByLocation(location, lan, time, date)
   
             if(!weatherData.have_content) {
               retry ++

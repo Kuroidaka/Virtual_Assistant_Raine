@@ -59,39 +59,33 @@ const weatherFunc = {
       const weatherAPIKEY = process.env.WEATHER_API_KEY
       const url = `${weatherURL}/forecast.json`
 
+
+      const today = new Date()
+      const tomorrow = today.setDate(today.getDate() + 1)
+      if(date === "tomorrow") {
+        date = convertDates(tomorrow)
+        console.log("-----> Date Convert when it prompt asking for tomorrow", date)
+      }
+
+      const params = {
+        q: q,
+        key: weatherAPIKEY,
+        lang: lang,
+        hour: time,
+      }
+
       if(time === "current") {
         const currentDate = new Date();
         const currentHour = currentDate.getHours();
         time = currentHour
-
-        const params = {
-          q: q,
-          key: weatherAPIKEY,
-          lang: lang,
-          hour: time
-        }
-        const dataWeather = await weatherService.callAPI(url, params, lang)
-        return dataWeather
+        params.hour = time
       }
       else {
-        const today = new Date()
-        const tomorrow = today.setDate(today.getDate() + 1)
-        if(date === "tomorrow") {
-          date = convertDates(tomorrow)
-          console.log("-----> Date Convert when it prompt asking for tomorrow", date)
-        }
-
-        const params = {
-          q: q,
-          key: weatherAPIKEY,
-          lang: lang,
-          hour: time,
-          date: date
-        }
-        
-        const dataWeather = await weatherService.callAPI(url, params, lang)
-        return dataWeather
+        params.date = date
       }
+      const dataWeather = await weatherFunc.callAPI(url, params, lang)
+      return dataWeather
+      
       
   
   },
