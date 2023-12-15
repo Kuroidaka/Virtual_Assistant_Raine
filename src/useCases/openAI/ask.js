@@ -22,7 +22,7 @@ module.exports = class askOpenAIUseCase {
         let loyal = true
   
         // prepare data system for conversation prompt
-        const preparePrompt = common.prepareSystemPromptCommon
+        const preparePrompt = common.prepareSystemPromptCommon()
         const prepareData = {
           conversation: this.promptMessageFunc,
           oldConversation: conversation,
@@ -37,12 +37,12 @@ module.exports = class askOpenAIUseCase {
           conversation:preparedConversation
         } = await preparePrompt.execute(prepareData)
         this.promptMessageFunc = preparedConversation
-        
+
         let temperature = 0.5
         let retry = 0
   
         if(haveFile) {// Read image
-          const callGpt = common.callGPTCommon(dependencies)
+          const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
             model: "gpt-4-vision-preview",
             temperature: temperature,
@@ -53,7 +53,7 @@ module.exports = class askOpenAIUseCase {
             lan: lan,
             functionCall: false
           }
-          const { conversation, completion } = await callGpt(gptData)
+          const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
 
           // send the response data back to user
@@ -65,7 +65,7 @@ module.exports = class askOpenAIUseCase {
           
           console.log(chalk.green.bold("------------------ REQUEST ------------------"));
     
-          const callGpt = common.callGPTCommon(dependencies)
+          const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
             model: "gpt-4",
             temperature: temperature,
@@ -77,7 +77,7 @@ module.exports = class askOpenAIUseCase {
             functionCall: false,
             listFunc: funcCall.listFuncSpec
           }
-          const { conversation, completion } = await callGpt(gptData)
+          const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
 
           // process function calling from tools
@@ -193,7 +193,7 @@ module.exports = class askOpenAIUseCase {
               continue
             }
 
-            const callGpt = common.callGPTCommon(dependencies)
+            const callGpt = common.callGPTCommon(this.dependencies)
             const gptData = {
               model: "gpt-4-vision-preview",
               temperature: temperature,
@@ -204,7 +204,7 @@ module.exports = class askOpenAIUseCase {
               lan: lan,
               functionCall: false
             }
-            const { conversation, completion } = await callGpt(gptData)
+            const { conversation, completion } = await callGpt.execute(gptData)
             this.promptMessageFunc = conversation
             console.log(chalk.blue.bold("Response for asking about image:"), completion.choices[0]);
   

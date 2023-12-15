@@ -1,7 +1,7 @@
 module.exports = (dependencies) => {
     const { redisClient } = dependencies
 
-    const execute = async (prepareKey, lan = "default") => {
+    const execute = async ({prepareKey, lan = "default"}) => {
         let conversationKeys
         console.log("language", lan)
         lan === "" ?

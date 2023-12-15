@@ -1,3 +1,6 @@
+
+const RainePrompt = require("../../../assets/Raine_prompt_system.json")
+
 module.exports = () => {
   const execute = async ({
     conversation,
@@ -37,7 +40,7 @@ module.exports = () => {
         content: `You know who you are talking to, and this is the person's name talking to you: ${curUser}`,
       }
       conversation.push(userResponse)
-      countSystem += 3
+      countSystem++
     }
 
     if (loyal) {

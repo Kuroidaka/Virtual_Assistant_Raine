@@ -19,7 +19,8 @@ module.exports = (dependencies) => {
 
             try {
                 let initIndex = 0
-                const count = await countFromConversation(conversationKey)
+                const countCon = countFromConversation(dependencies)
+                const count = await countCon.execute(conversationKey)
                 console.log(chalk.red("Redis"), `role: ${role} | `,conversationKey );
                 if(count) initIndex = count - 1
         
