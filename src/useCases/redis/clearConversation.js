@@ -3,7 +3,7 @@ const chalk = require("chalk")
 module.exports = (dependencies) => {
     const { redisClient } = dependencies
 
-    const execute = async (prepareKey, lan = "default") => {
+    const execute = async ({prepareKey, lan = "default"}) => {
         let conversationKeys
         lan === "" ?
             conversationKeys = `${prepareKey}:conversation`
