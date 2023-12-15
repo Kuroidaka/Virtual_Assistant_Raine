@@ -34,6 +34,7 @@ module.exports = {
 			console.log("Server :", chalk.blue(PORT), chalk.green("connected"));
 		})
 
+        // init discord bot
         initDCBot(dependencies)
 	},
 };
