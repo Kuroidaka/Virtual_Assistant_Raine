@@ -85,9 +85,6 @@ const weatherFunc = {
       }
       const dataWeather = await weatherFunc.callAPI(url, params, lang)
       return dataWeather
-      
-      
-  
   },
   funcSpec: {
     name: "get_current_weather",
