@@ -61,6 +61,9 @@ module.exports = class askOpenAIUseCase {
           return ({ status: 200, data: completion.choices[0].message.content })
         }
         
+        // get defind function calling
+        const funcList = await funcCall()
+
         while(true) {
           
           console.log(chalk.green.bold("------------------ REQUEST ------------------"));
@@ -74,8 +77,8 @@ module.exports = class askOpenAIUseCase {
             systemMsgCount: countSystem,
             prepareKey: prepareKey,
             lan: lan,
-            functionCall: false,
-            listFunc: funcCall.listFuncSpec
+            functionCall: true,
+            listFunc: funcList.listFuncSpec
           }
           const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
@@ -143,7 +146,7 @@ module.exports = class askOpenAIUseCase {
               })
             }
             else {
-              const result = await funcCall.func.reminderFunc.createJob(what_to_do, time, repeat)
+              const result = await funcList.func.reminderFunc.createJob(what_to_do, time, repeat)
               if(result?.status === 500) {
                 // return ({status: 500, error: result.error})
                 this.promptMessageFunc.push({

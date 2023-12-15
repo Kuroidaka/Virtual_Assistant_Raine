@@ -17,6 +17,7 @@ module.exports = class reminderFunc {
       openAi
       
     } = dependencies
+    this.dependencies = dependencies
     this.openAi = openAi
     this.discordClient = discordClient
     this.addTaskDB = addTask
@@ -51,8 +52,6 @@ module.exports = class reminderFunc {
       }
     }
   }
-
-
 
   convertTime(time) {
     const minutesPattern = /\b(\d+)\s*(m|minutes|minute)\b/i;

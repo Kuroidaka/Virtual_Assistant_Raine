@@ -3,7 +3,6 @@ const axios = require("axios")
 const { client, Collection, Events } = require("../../../../src/config/discord/bot.config") 
 const chalk = require("chalk")
 const { detectLan } = require("../../../../utils/index")
-const DB = require("../../../../src/config/database/config.js")
 const openai = require("../../../../src/config/openAI/index.js")
 const RainePrompt = require("../../../../Raine_prompt_system.json")
 const schedule = require('node-schedule');
@@ -47,9 +46,6 @@ class reminderService {
           "type": "object",
           "properties": {},
       }
-    }
-    this.deleteReminderFuncSpec = {
-
     }
   }
 
