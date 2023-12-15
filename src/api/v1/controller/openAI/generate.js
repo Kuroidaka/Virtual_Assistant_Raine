@@ -3,47 +3,45 @@ const chalk = require("chalk")
 module.exports = (dependencies) => {
     const { useCases: { 
         openAiUseCase: { askOpenAIUseCase },
-        redisUseCase: { addToConversation, followUpConversation }
+        redisUseCase: { addToConversation, followUpConversation, popConversation }
     } } = dependencies;
 
     return async (req, res) => { 
-        try {
-            const { data, maxToken, currentUser, type } = req.body;
+        const { data, maxToken, currentUser, type } = req.body;
+        let prepareKey
+        let prompt
+        let promptRedis
+        let curUser
+        let files
+        let haveFile = false
+        let isTask = false
 
-            let prepareKey
-            let prompt
-            let promptRedis
-            let curUser
-            let files
-            let haveFile = false
-            let isTask = false
-    
-            if(type === "discord") {// if the request is from discord
-                prepareKey = data.prepareKey
-                prompt = data.content
-                promptRedis = prompt
-                curUser = currentUser.globalName
-                files = data.files
-                
-                if(files.length > 0) {// prepare prompt data for file attachment
-                    prompt = [{
-                        type: "text",
-                        text: prompt
-                    }]
-    
-                    files.forEach(file => {
-                        prompt.push({
-                            type: "image_url",
-                            image_url: {
-                              "url": file.url,
-                            },
-                        })
-                    }); 
-                    haveFile = true
-                    promptRedis = JSON.stringify(prompt)
-                }
+        if(type === "discord") {// if the request is from discord
+            prepareKey = data.prepareKey
+            prompt = data.content
+            promptRedis = prompt
+            curUser = currentUser.globalName
+            files = data.files
+            
+            if(files.length > 0) {// prepare prompt data for file attachment
+                prompt = [{
+                    type: "text",
+                    text: prompt
+                }]
+
+                files.forEach(file => {
+                    prompt.push({
+                        type: "image_url",
+                        image_url: {
+                          "url": file.url,
+                        },
+                    })
+                }); 
+                haveFile = true
+                promptRedis = JSON.stringify(prompt)
             }
-    
+        }
+        try {
             // get the conversation from redis
             const redisFollowUp = followUpConversation(dependencies)
             const conversation = await redisFollowUp.execute({prepareKey})
@@ -79,8 +77,13 @@ module.exports = (dependencies) => {
                 }
                 await redisAdd.execute(redisAddData)
 
+                let dataResponse = result.data
                 console.log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${result.data}`), "\n}")
-                return res.status(result.status).json({data: result.data})
+
+                if(result.image_list && result.image_list.length > 0) {
+                    dataResponse = result.image_list
+                }
+                return res.status(result.status).json({data: dataResponse})
             }
             else {
                 throw Error(result.error)
@@ -88,6 +91,9 @@ module.exports = (dependencies) => {
     
         } catch (error) {
             console.log("Request OPENAI data: ", "{\n\terror: ", chalk.red.bold(`${error}`), "\n}")
+            const redisPop = popConversation(dependencies)
+            const redisPopData = {prepareKey: prepareKey}
+            await redisPop.execute(redisPopData)
             return res.status(500).json({ error: error });
         }
    

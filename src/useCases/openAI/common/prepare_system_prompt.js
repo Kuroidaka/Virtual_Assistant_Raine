@@ -12,22 +12,26 @@ module.exports = () => {
     isTalk = false,
   }) => {
     let countSystem = 0
-    let loyalSystem = { role: 'system', content: RainePrompt[lang].loyal }
-    let systemTTS = { role: 'system', content: RainePrompt[lang].system_tts }
-    let taskRemind = { role: 'system', content: RainePrompt[lang].task }
+    let loyalSystem = { role: 'system', content: RainePrompt["en"].loyal }
+    let systemTTS = { role: 'system', content: RainePrompt["en"].system_tts }
+    let taskRemind = { role: 'system', content: RainePrompt["en"].task }
+    let dalle = { role: 'system', content: RainePrompt["en"].dalle }
 
     const date = new Date()
     const currentDate =
       date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
 
-    if (lang && RainePrompt[lang]) {
+    if (RainePrompt["en"]) {
       conversation[0] = {
         role: 'system',
         content: `
           Current date: ${currentDate}
-          ${RainePrompt[lang].system}`,
+          Response to user by this language: ${lang}
+          ${RainePrompt["en"].system}`,
       }
-      ++countSystem
+      conversation.push(dalle)
+
+      countSystem +=2
     }
 
     conversation.push(taskRemind)
