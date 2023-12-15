@@ -1,7 +1,8 @@
 const common = require("./common")
 const funcCall = require("./funcCall")
 const chalk = require("chalk")
-
+const language = require("../../assets/language.json")
+const { detectLan } = require("../../utils")
 module.exports = class askOpenAIUseCase {
     constructor (dependencies) {
       this.dependencies = dependencies
@@ -18,7 +19,8 @@ module.exports = class askOpenAIUseCase {
       haveFile
     }) => {
       try {
-        console.log(chalk.blue.bold(`prompt:(${lan})`), prompt);
+        const currentLang = language.languages[detectLan(prompt)]
+        console.log(chalk.blue.bold(`prompt:(${currentLang})`), prompt);
         let loyal = true
   
         // prepare data system for conversation prompt
@@ -29,8 +31,8 @@ module.exports = class askOpenAIUseCase {
           userPrompt: prompt,
           curUser: curUser,
           loyal: loyal,
-          lang: lan,
           isTalk : false,
+          lang: currentLang
         }
         const { 
           countSystem,
@@ -212,6 +214,49 @@ module.exports = class askOpenAIUseCase {
             console.log(chalk.blue.bold("Response for asking about image:"), completion.choices[0]);
   
             return ({ status: 200, data: completion.choices[0].message.content })
+          }
+          else if(responseMessage.function_call?.name === "generate_image") {
+            const args = JSON.parse(responseMessage.function_call.arguments)
+            const n = args.n
+            const prompt = args.prompt
+            const size = args.size
+  
+            console.log(chalk.blue.bold("---> GPT ask to call generate image "));
+            console.log(chalk.blue.bold("---> n: "), n);
+            console.log(chalk.blue.bold("---> prompt: "), prompt);
+            console.log(chalk.blue.bold("---> size: "), size);
+
+            const dalleData = { 
+              model: "dall-e-2",
+              prompt: prompt,
+              quality: "standard",
+              size: size,
+              n: n,
+              style: "vivid" 
+            }
+            const response = await funcList.func.generateImageFunc.execute(dalleData)
+
+            if(response) {
+              const imgList = []
+              let content = ""
+              response.data.forEach((img, idx) => {
+                imgList.push(img.url)
+                content += `Image ${idx + 1}: ${img.revised_prompt ? img.revised_prompt: ""}\nURL: ${img.url}\n`
+              })
+              
+              this.promptMessageFunc.push({
+                role: "assistant",
+                content: content
+              })
+              
+              return ({ status: 200, data: content, image_list: imgList })
+            }
+            else {
+              this.promptMessageFunc.push({
+                role: "user",
+                content: "Sorry, I can't generate any image"
+              })
+            }
           }
           else if(completion.choices[0].finish_reason === "stop") {
             return ({ status: 200, data: completion.choices[0].message.content })
