@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Collection } = require('discord.js');
 const chalk = require("chalk")
+const eventHandler = require('./eventHandler')
 
 module.exports = (dependencies) => {
 
@@ -26,13 +27,15 @@ module.exports = (dependencies) => {
      }
 
      discordClient.on("ready", () => {
-         console.log(`✨ ${discordClient.user.tag} is ${chalk.green("online")}! ✨ `);
+        console.log(`✨ ${discordClient.user.tag} is ${chalk.green("online")}! ✨ `);
      });
 
      discordClient.on('messageCreate', async interaction => {
 
          if (interaction.author.bot || !interaction.guild) return;
          let command
+
+         eventHandler.detectUserSendFile(dependencies).execute({interaction})
 
          discordClient.commands.each((cmd) => {
              if(cmd.data.check(interaction)) {

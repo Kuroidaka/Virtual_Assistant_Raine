@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { sliceString } = require("../format/length");
+const dependencies = require("../../config/dependencies")
 
 const getLatestMsg = async (message, id) => {
 
@@ -31,7 +32,7 @@ module.exports = {
 	},
 	async execute(interaction, user) {
 		try {
-			// console.log(`Channel ID: ${interaction.channel.id}`);
+			const { redisClient } = dependencies
 			const maxToken = 2000 
 			let substringToCheck = "hey raine"; 
 			let botName = "raine"
@@ -61,7 +62,7 @@ module.exports = {
 			}
 
 			if(interaction.attachments.size > 0) {
-				// user attached files
+				// user attached files		
 				for (const [key, value] of interaction.attachments) {
 					files.push(value)
 				}
@@ -70,7 +71,6 @@ module.exports = {
 				console.log(0);
 			}
 
- 
 			await interaction.react("🔍").then(reaction => {
 				const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
 				axios.post(`${originURL}/api/v1/openai/ask`, {
@@ -84,15 +84,21 @@ module.exports = {
 					type: "discord"
 				})
 				.then(res => {
-					const newData = sliceString(res.data.data, maxToken)
-					newData.map(msg => {
-						interaction.channel.send(msg)
-					})
+					if(Array.isArray(res.data.data)) {
+						res.data.data.map(msg => {
+							interaction.reply(msg)
+						})
+					} else {
+						const newData = sliceString(res.data.data, maxToken)
+						newData.map(msg => {
+							interaction.reply(msg)
+						})
+					}
 				})
 				.catch(async err => {
 					reaction.remove().catch(error => console.error('Failed to remove reactions: ', error));
 					await interaction.react("☠️")
-					interaction.channel.send("Error Occur", err)
+					interaction.reply("Error Occur", err)
 				})
 
 			})
