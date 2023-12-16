@@ -19,7 +19,15 @@ module.exports = class askOpenAIUseCase {
       haveFile
     }) => {
       try {
-        const currentLang = language.languages[detectLan(prompt)]
+        let currentLang = "en"
+        if(typeof prompt === 'string' || prompt instanceof String) {
+          currentLang = language.languages[detectLan(prompt)]
+        }
+        else {
+          const textFromPrompt = prompt.find(msg => typeof msg.text === 'string' || msg.text instanceof String).text
+          currentLang = language.languages[detectLan(textFromPrompt)]
+        }
+       
         console.log(chalk.blue.bold(`prompt:(${currentLang})`), prompt);
         let loyal = true
   
