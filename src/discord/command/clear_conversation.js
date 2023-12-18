@@ -22,9 +22,6 @@ module.exports = {
 				redisUseCase: { clearConversation }
 			} } = dependencies;
 			
-			
-			interaction.channel.sendTyping()
-
             const isSuccesed = clearConversation(dependencies).execute({prepareKey: interaction.channelId})
             if(isSuccesed) {
                 await interaction.react("☑️")

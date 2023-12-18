@@ -38,11 +38,3 @@ module.exports = {
         initDCBot(dependencies)
 	},
 };
-
-
-
-
-
-
-
-

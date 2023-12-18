@@ -2,11 +2,9 @@ const redis = require('redis');
 const chalk = require('chalk');
 
 const redisConfig = {
-    host: process.env.REDIS_HOST || "127.0.0.1", // Redis server host
-    // url: process.env.REDIS_URL,
-    // url: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,       // Redis server port
-  };
+    // port: process.env.REDIS_PORT || 6379,
+    url: 'redis://redis:6379' ,
+};
 
 const redisClient = redis.createClient(redisConfig);
 

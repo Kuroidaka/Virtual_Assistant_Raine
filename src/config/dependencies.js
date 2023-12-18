@@ -1,6 +1,6 @@
 const useCases = require("../useCases");
 const redisClient = require("./redis");
-const openAi = require("./openai");
+const openAi = require("./openAi");
 const DB = require("./database");
 const { client:discordClient } = require("./discord");
 

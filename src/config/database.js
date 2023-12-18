@@ -28,7 +28,7 @@ async function checkDatabaseConnection() {
       await DB.$disconnect();
   }
 }
-// checkDatabaseConnection();
+checkDatabaseConnection();
 
 
 
