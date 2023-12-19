@@ -31,7 +31,7 @@ module.exports = (dependencies) => {
             },
         },
     }
-    const execute = async ({ model="dall-e-3", prompt, quality="standard", size="1024x1024", n, style = "vivid" }) => {
+    const execute = async ({ model="dall-e-2", prompt, quality="standard", size="1024x1024", n, style = "vivid" }) => {
 
         response = await openAi.images.generate({
             model: model,

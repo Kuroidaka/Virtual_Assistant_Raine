@@ -226,47 +226,82 @@ module.exports = class askOpenAIUseCase {
           else if(responseMessage.function_call?.name === "generate_image") {
             const args = JSON.parse(responseMessage.function_call.arguments)
             const model = args.model
-            const n = args.n
+            let n = args.model === "dall-e-3" ? 1 : Number(args.n)
             const prompt = args.prompt
             const size = args.size
   
             console.log(chalk.blue.bold("---> GPT ask to call generate image "));
             console.log(chalk.blue.bold("---> model: "), model);
-            console.log(chalk.blue.bold("---> n: "), n);
+            console.log(chalk.blue.bold("---> n: "), args.n);
             console.log(chalk.blue.bold("---> prompt: "), prompt);
             console.log(chalk.blue.bold("---> size: "), size);
 
             const dalleData = { 
-              model: "dall-e-2",
+              model: model,
               prompt: prompt,
               quality: "standard",
               size: size,
               n: n,
               style: "vivid" 
             }
-            const response = await funcList.func.generateImageFunc.execute(dalleData)
 
-            if(response) {
-              const imgList = []
-              let content = ""
-              response.data.forEach((img, idx) => {
-                imgList.push(img.url)
-                content += `Image ${idx + 1}: ${img.revised_prompt ? img.revised_prompt: ""}\nURL: ${img.url}\n`
-              })
-              
+            const imgList = []
+            let content = ""
+            if(args.model === "dall-e-3") {
+              let promises = [];
+              for(let i = 0; i < args.n; i++) {
+                  promises.push(funcList.func.generateImageFunc.execute(dalleData));
+              }
+
+              await Promise.all(promises).then(responses => {
+                responses.forEach((response, i) => {
+                    if(response) {
+                        const img = response.data[0];
+                        imgList.push(img.url);
+                        content += `Image ${i + 1}: ${img.revised_prompt ? img.revised_prompt : ""}\nURL: ${img.url}\n`;
+                    } else {
+                        this.promptMessageFunc.push({
+                            role: "user",
+                            content: "Sorry, I can't generate any image"
+                        });
+                    }
+                });
+            }).catch(error => {
+                // Handle any error that occurred during any of the promises
+                console.error("Error occurred in image generation:", error);
+            });
+
               this.promptMessageFunc.push({
                 role: "assistant",
                 content: content
               })
-              
+
               return ({ status: 200, data: content, image_list: imgList })
             }
             else {
-              this.promptMessageFunc.push({
-                role: "user",
-                content: "Sorry, I can't generate any image"
-              })
+              const response = await funcList.func.generateImageFunc.execute(dalleData)
+  
+              if(response) {
+                response.data.forEach((img, idx) => {
+                  imgList.push(img.url)
+                  content += `Image ${idx + 1}: ${img.revised_prompt ? img.revised_prompt: ""}\nURL: ${img.url}\n`
+                })
+                
+                this.promptMessageFunc.push({
+                  role: "assistant",
+                  content: content
+                })
+                
+                return ({ status: 200, data: content, image_list: imgList })
+              }
+              else {
+                this.promptMessageFunc.push({
+                  role: "user",
+                  content: "Sorry, I can't generate any image"
+                })
+              }
             }
+
           }
           else if(completion.choices[0].finish_reason === "stop") {
             return ({ status: 200, data: completion.choices[0].message.content })
