@@ -266,9 +266,11 @@ module.exports = class askOpenAIUseCase {
                         });
                     }
                 });
-            }).catch(error => {
-                // Handle any error that occurred during any of the promises
-                console.error("Error occurred in image generation:", error);
+            }).catch(() => {
+              this.promptMessageFunc.push({
+                role: "user",
+                content: `Sorry, I can't generate any image` 
+              });
             });
 
               this.promptMessageFunc.push({
