@@ -18,18 +18,5 @@ const { PrismaClient } = require('@prisma/client')
 
 const DB = new PrismaClient()
 
-async function checkDatabaseConnection() {
-  try {
-      await DB.$connect();
-      console.log('Connection successful');
-  } catch (error) {
-      console.error('Error connecting to the database: ', error);
-  } finally {
-      await DB.$disconnect();
-  }
-}
-checkDatabaseConnection();
-
-
 
 module.exports = DB

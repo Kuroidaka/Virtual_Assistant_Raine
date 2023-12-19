@@ -1,10 +1,13 @@
 const redis = require('redis');
 const chalk = require('chalk');
 
-const redisConfig = {
-    // port: process.env.REDIS_PORT || 6379,
-    url: 'redis://redis:6379' ,
-};
+let redisConfig = {}
+
+if(process.env.NODE_ENV === "production") {
+    redisConfig.url = 'redis://redis:6379' //docker
+} else {
+    redisConfig.port = process.env.REDIS_PORT || 6379 //local
+}
 
 const redisClient = redis.createClient(redisConfig);
 

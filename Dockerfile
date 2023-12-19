@@ -23,4 +23,4 @@ USER node
 
 EXPOSE 8000
 
-CMD npm start
+CMD npm run build:prod

@@ -72,7 +72,7 @@ module.exports = {
 			}
 
 			await interaction.react("🔍").then(reaction => {
-				const originURL = process.env.ORIGIN_URL || "http://localhost:8000"
+				const originURL = process.env.ORIGIN_URL || `http://localhost:${process.env.SERVER_PORT}`
 				axios.post(`${originURL}/api/v1/openai/ask`, {
 					data: {
 						content: prompt,

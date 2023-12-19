@@ -6,7 +6,7 @@ services:
       context: .
     container_name: server
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       REDIS_HOST: redis
       DATABASE_URL: ${DATABASE_URL}
 
