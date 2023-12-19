@@ -225,11 +225,13 @@ module.exports = class askOpenAIUseCase {
           }
           else if(responseMessage.function_call?.name === "generate_image") {
             const args = JSON.parse(responseMessage.function_call.arguments)
+            const model = args.model
             const n = args.n
             const prompt = args.prompt
             const size = args.size
   
             console.log(chalk.blue.bold("---> GPT ask to call generate image "));
+            console.log(chalk.blue.bold("---> model: "), model);
             console.log(chalk.blue.bold("---> n: "), n);
             console.log(chalk.blue.bold("---> prompt: "), prompt);
             console.log(chalk.blue.bold("---> size: "), size);

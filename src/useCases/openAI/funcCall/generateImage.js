@@ -10,6 +10,11 @@ module.exports = (dependencies) => {
             type: "object",
             additionalProperties: false,
             properties: {
+                model: {
+                    type: "string",
+                    description: "Base on the complexity prompt to choose the proper model, default model is 'dall-e-2' if user request a complexity image description or need a high quality image then use model 'dall-e-3' otherwise use 'dall-e-2'",
+                    enum: ["dall-e-3", "dall-e-2"]
+                },
                 prompt: {
                     type: "string",
                     description: "The detailed image description, potentially modified to abide by the dalle policies. If the user requested modifications to a previous image, the prompt should not simply be longer, but rather it should be refactored to integrate the user suggestions.",
@@ -20,7 +25,7 @@ module.exports = (dependencies) => {
                 },
                 size: { 
                     type: "string", 
-                    description: "The size of the requested image. Use 1024x1024 (square) as the default, 1792x1024 if the user requests a wide image, and 1024x1792 for full-body portraits. Always include this parameter in the request."
+                    description: "The size of the requested image. Use 1024x1024 (square) as the default, with model dall-e-3 use 1792x1024 if the user requests a wide image, and 1024x1792 for full-body portraits. Always include this parameter in the request."
                 }
                 
             },
