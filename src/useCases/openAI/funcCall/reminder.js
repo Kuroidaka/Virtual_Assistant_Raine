@@ -3,7 +3,7 @@ const { nanoid } = require('nanoid');
 const schedule = require('node-schedule');
 
 const { detectLan } = require("../../../utils")
-const RainePrompt = require("../../../assets/Raine_prompt_system.json")
+const RainePrompt = require("../../../assets/Raine_prompt_system.js")
 
 module.exports = class reminderFunc {
   constructor(dependencies) {
@@ -22,11 +22,10 @@ module.exports = class reminderFunc {
     this.discordClient = discordClient
     this.addTaskDB = addTask
     this.deleteTaskDB = deleteTask
-
     this.list_job = {}
     this.funcSpec = {
       "name": "create_reminder",
-      "description": "Remind user to do something after a period of time or at a specific time, if user do not provide what to do, it will ask user to provide",
+      "description": "Remind user to do something after a period of time or at a specific time, if user do not provide what to do, then ask user to provide",
       "parameters": {
           "type": "object",
           "properties": {
@@ -122,10 +121,11 @@ module.exports = class reminderFunc {
           const detectTaskLang = detectLan(task)
           console.log("Language detect from task", detectTaskLang )
           // advance response reminder
+          const instructions = RainePrompt()
           const completion = await this.openAi.chat.completions.create({
             model: 'gpt-4',
             messages: [
-              { role: "system", content: RainePrompt[detectTaskLang].reminder },
+              { role: "system", content: instructions.tools.task.reminder },
               { role: "user", content: `This is what user want to be reminded: ${task}`},
             ],
             temperature: 1,

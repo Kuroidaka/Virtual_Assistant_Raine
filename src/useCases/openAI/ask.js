@@ -29,8 +29,6 @@ module.exports = class askOpenAIUseCase {
         }
        
         console.log(chalk.blue.bold(`prompt:(${currentLang})`), prompt);
-        let loyal = true
-  
         // prepare data system for conversation prompt
         const preparePrompt = common.prepareSystemPromptCommon()
         const prepareData = {
@@ -38,7 +36,6 @@ module.exports = class askOpenAIUseCase {
           oldConversation: conversation,
           userPrompt: prompt,
           curUser: curUser,
-          loyal: loyal,
           isTalk : false,
           lang: currentLang
         }
@@ -175,18 +172,18 @@ module.exports = class askOpenAIUseCase {
           else if(responseMessage.function_call?.name === "follow_up_image_in_chat") {
             const args = JSON.parse(responseMessage.function_call.arguments)
             const image_list = args.image_list
-            const prompt = args.prompt
-  
+            let newPrompt = args.prompt || prompt
+            newPrompt += "\n please response to user in language: " + currentLang
             console.log(chalk.blue.bold("---> GPT ask to call follow image service "));
             console.log(chalk.blue.bold("---> image_list: "), image_list);
-            console.log(chalk.blue.bold("---> prompt: "), prompt);
+            console.log(chalk.blue.bold("---> newPrompt: "), newPrompt);
   
             let content = []
-  
+            
             this.promptMessageFunc.pop()
   
             if(image_list.length > 0) {
-              content = [{type: "text", text: prompt}]
+              content = [{type: "text", text: newPrompt}]
               image_list.forEach(img => content.push({
                 type: "image_url",
                 image_url: {

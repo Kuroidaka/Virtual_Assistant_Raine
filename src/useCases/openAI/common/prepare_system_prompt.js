@@ -1,5 +1,5 @@
 
-const RainePrompt = require("../../../assets/Raine_prompt_system.json")
+const RainePrompt = require("../../../assets/Raine_prompt_system.js")
 
 module.exports = () => {
   const execute = async ({
@@ -7,27 +7,29 @@ module.exports = () => {
     oldConversation,
     userPrompt,
     curUser,
-    loyal,
     lang,
     isTalk = false,
   }) => {
+
+    const instructions = RainePrompt()
+    const {loyal:loyalPrompt, tools} = instructions
     let countSystem = 0
-    let loyalSystem = { role: 'system', content: RainePrompt["en"].loyal }
-    let systemTTS = { role: 'system', content: RainePrompt["en"].system_tts }
-    let taskRemind = { role: 'system', content: RainePrompt["en"].task }
-    let dalle = { role: 'system', content: RainePrompt["en"].dalle }
+    let loyalSystem = { role: 'system', content: loyalPrompt }
+    let systemTTS = { role: 'system', content: instructions.system_tts.instructions }
+    let taskRemind = { role: 'system', content: tools.task.instructions }
+    let dalle = { role: 'system', content: tools.dalle }
 
     const date = new Date()
     const currentDate =
       date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
 
-    if (RainePrompt["en"]) {
+    if (instructions) {
       conversation[0] = {
         role: 'system',
         content: `
           Current date: ${currentDate}
           Response to user by this language: ${lang}
-          ${RainePrompt["en"].system}`,
+          ${instructions.system.instructions}`,
       }
       conversation.push(dalle)
 
@@ -41,16 +43,19 @@ module.exports = () => {
     if (curUser) {
       const userResponse = {
         role: 'system',
-        content: `You know who you are talking to, and this is the person's name talking to you: ${curUser}`,
+        content: `You know who you are talking to, and this is the person's name talking to you: ${curUser.name}`,
       }
-      conversation.push(userResponse)
-      countSystem++
-    }
 
-    if (loyal) {
-      conversation.push(loyalSystem)
+      if (curUser.id === process.env.OWNER_ID) {
+        conversation.push(loyalSystem)
+        ++countSystem
+      }
+
+      conversation.push(userResponse)
       ++countSystem
     }
+
+
 
     if (isTalk) {
       conversation.push(systemTTS)

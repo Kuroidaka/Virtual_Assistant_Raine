@@ -1,5 +1,5 @@
 const axios = require("axios")
-const RainePrompt = require("../../../assets/Raine_prompt_system.json")
+const RainePrompt = require("../../../assets/Raine_prompt_system.js")
 const { convertDates } = require("../../../utils")
 
 const weatherFunc = {
@@ -14,7 +14,8 @@ const weatherFunc = {
   })
   .then(res => {
     const newData = res.data
-    const raineWeatherPrompt = RainePrompt[lang].weather
+    const instructions = RainePrompt()
+    const raineWeatherPrompt = instructions.tools.weather
 
     if(params.hour === undefined) { 
       newData.forecast.forecastday[0].hour = []
@@ -86,6 +87,26 @@ const weatherFunc = {
       const dataWeather = await weatherFunc.callAPI(url, params, lang)
       return dataWeather
   },
+  // execute: async () => {
+  //   const args = JSON.parse(responseMessage.function_call.arguments)
+  //   const location = args.location
+  //   const time = args.time
+  //   const date = args.date
+
+  //   console.log(chalk.blue.bold("---> GPT ask to call Weather API "), location);
+  //   console.log(chalk.blue.bold("---> Location: "), location);
+  //   console.log(chalk.blue.bold("---> time: "), time);
+  //   console.log(chalk.blue.bold("---> date: "), date);
+    
+  //   const weatherData = await funcList.func.weatherFunc.getByLocation(location, lan, time, date)
+
+  //   if(!weatherData.have_content) {
+  //       return ({ status: 404, data: "Sorry, I can't find the weather for this location"})
+  //   } else {
+  //     this.promptMessageFunc.push(weatherData.data)
+  //   }
+
+  // },
   funcSpec: {
     name: "get_current_weather",
     description: "Get the current weather in a given location",

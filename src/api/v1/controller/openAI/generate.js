@@ -20,7 +20,10 @@ module.exports = (dependencies) => {
             prepareKey = data.prepareKey
             prompt = data.content
             promptRedis = prompt
-            curUser = currentUser.globalName
+            curUser = {
+                name: currentUser.globalName,
+                id: currentUser.id
+            }
             files = data.files
             
             if(files.length > 0) {// prepare prompt data for file attachment
