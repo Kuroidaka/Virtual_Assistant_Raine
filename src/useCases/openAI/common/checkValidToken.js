@@ -17,7 +17,7 @@ module.exports = () => {
     while (condition) {
       const numTokens = countToken(JSON.stringify(conversation), model)
       console.log(chalk.yellow.bold('Token: '), numTokens)
-      if (numTokens >= 6000) {
+      if (numTokens >= 5000) {
         flagCheckOverToken = true
         conversation.splice(countSystem, 2)
       } else condition = false
