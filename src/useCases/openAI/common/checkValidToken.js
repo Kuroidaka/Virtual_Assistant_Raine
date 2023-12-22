@@ -3,7 +3,6 @@ const chalk = require("chalk")
 
 module.exports = () => {
   const execute = async ({
-    flagCheckOverToken,
     conversation,
     countSystem,
     model,
@@ -13,6 +12,7 @@ module.exports = () => {
     let condition = true
     let numTokens = countToken(JSON.stringify(conversation), model)
     let numTokensBefore = numTokens
+    let flagCheckOverToken = false
 
     while (condition) {
       const numTokens = countToken(JSON.stringify(conversation), model)

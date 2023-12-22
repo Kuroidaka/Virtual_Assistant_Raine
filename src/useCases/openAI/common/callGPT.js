@@ -22,7 +22,6 @@ module.exports = (dependencies) => {
     functionCall = false,
     listFunc = () => {},
   }) => {
-    let flagCheckOverToken = false
     let modelCountToken
     if (model === 'gpt-4-vision-preview') {
       modelCountToken = 'gpt-4'
@@ -31,7 +30,6 @@ module.exports = (dependencies) => {
     }
 
     const tokenCheckData = {
-      flagCheckOverToken: flagCheckOverToken,
       conversation: conversation,
       countSystem: systemMsgCount,
       model: modelCountToken,

@@ -1,29 +1,45 @@
 
 const RainePrompt = require("../../../assets/Raine_prompt_system.js")
+const checkValidToken = require('./checkValidToken')
 
-module.exports = () => {
+module.exports = (dependencies) => {
+
+  const { 
+    useCases: { 
+      redisUseCase: { mergeConversation }
+    }
+  } = dependencies;
+
+
   const execute = async ({
     conversation,
-    oldConversation,
+    redisConversation,
     userPrompt,
     curUser,
     lang,
     isTalk = false,
+    model,
+    prepareKey
   }) => {
 
     const instructions = RainePrompt()
     const {loyal:loyalPrompt, tools} = instructions
     let countSystem = 0
-    let loyalSystem = { role: 'system', content: loyalPrompt }
-    let systemTTS = { role: 'system', content: instructions.system_tts.instructions }
-    let taskRemind = { role: 'system', content: tools.task.instructions }
-    let dalle = { role: 'system', content: tools.dalle }
+    const loyalSystem = { role: 'system', content: loyalPrompt }
+    const systemTTS = { role: 'system', content: instructions.system_tts.instructions }
 
+
+
+    // get current date
     const date = new Date()
     const currentDate =
       date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
 
+    // check instructions
     if (instructions) {
+      const dalle = { role: 'system', content: tools.dalle }
+      const taskRemind = { role: 'system', content: tools.task.instructions }
+
       conversation[0] = {
         role: 'system',
         content: `
@@ -32,12 +48,10 @@ module.exports = () => {
           ${instructions.system.instructions}`,
       }
       conversation.push(dalle)
+      conversation.push(taskRemind)
 
-      countSystem +=2
+      countSystem +=3
     }
-
-    conversation.push(taskRemind)
-    countSystem++
 
     // check user boss on Discord
     if (curUser) {
@@ -55,8 +69,7 @@ module.exports = () => {
       ++countSystem
     }
 
-
-
+    // if user is talking with Raine
     if (isTalk) {
       conversation.push(systemTTS)
       ++countSystem
@@ -64,9 +77,24 @@ module.exports = () => {
 
     // prepare data for conversation
     const newMsg = { role: 'user', content: userPrompt }
-    if (oldConversation && oldConversation.length > 0) {
-      conversation = [...conversation, ...oldConversation]
+    if (redisConversation && redisConversation.length > 0) {
+      conversation = [...conversation, ...redisConversation]
     }
+
+    // check token length before push into chat history
+    const tokenCheckData = {
+      conversation: conversation,
+      countSystem: countSystem,
+      model: model,
+    }
+    const { newFlag, conversation: newConversation } = await checkValidToken().execute(tokenCheckData)
+    conversation = newConversation
+    // if (newFlag) {
+    //   const conMerge = mergeConversation(dependencies)
+    //   await conMerge.execute(prepareKey, conversation)
+    // }
+
+    // push final conversation
     conversation.push(newMsg)
 
     return {

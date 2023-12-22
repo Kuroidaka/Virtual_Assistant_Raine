@@ -29,15 +29,18 @@ module.exports = class askOpenAIUseCase {
         }
        
         console.log(chalk.blue.bold(`prompt:(${currentLang})`), prompt);
+        
         // prepare data system for conversation prompt
-        const preparePrompt = common.prepareSystemPromptCommon()
+        const preparePrompt = common.prepareSystemPromptCommon(this.dependencies)
         const prepareData = {
           conversation: this.promptMessageFunc,
-          oldConversation: conversation,
+          redisConversation: conversation,
           userPrompt: prompt,
           curUser: curUser,
           isTalk : false,
-          lang: currentLang
+          lang: currentLang,
+          model: "gpt-4",
+          prepareKey: prepareKey,
         }
         const { 
           countSystem,
