@@ -18,7 +18,7 @@ const PORT = process.env.SERVER_PORT
 async function checkDatabaseConnection(DB) {
 	try {
 		await DB.$connect()
-		console.log('Connection successful')
+		console.log('Database Connected')
 	} catch (error) {
 		console.error('Error connecting to the database: ', error)
 	} finally {

@@ -35,11 +35,11 @@ module.exports = class reminderFunc {
               },
               "period_time": {
                   "type": "string",
-                  "description": `The a period of time that user want to remind, example if user want to be reminded after 1 hour, please take 1 hour, do not take the word 'after'`,
+                  "description": `The period of time must be in english, The a period of time that user want to remind, example if user want to be reminded after 1 hour, please take 1 hour, do not take the word 'after'`,
               },
               "specific_time": {
                   "type": "string",
-                  "description": `The specific time that user want to remind, The specific time format is 0-23 if you want to be reminded tomorrow at 8 or 8:30, please take 'tomorrow:8:30'. the specific time can be something like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the time will be converted to UTC time, the year time will be automatically set to ${new Date().getFullYear()}`,
+                  "description": `The specific time that user want to remind. The specific time must be in english. The specific time format is 0-23 if you want to be reminded tomorrow at 8 or 8:30, please take 'tomorrow:8:30'. the specific time can be something like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the time will be converted to UTC time, the year time will be automatically set to ${new Date().getFullYear()}`,
               },
               
               "repeat": {
@@ -187,5 +187,47 @@ module.exports = class reminderFunc {
     }
   }
 
+  async execute ({args, conversation}) {
+    const { 
+      what_to_do,
+      period_time,
+      specific_time,
+      repeat
+    } = args
+
+    let time = period_time || specific_time
+       
+    if(!what_to_do) {
+      conversation.push({
+        role: "user",
+        content: "user must provide what to do"
+      })
+    } else if(!time) {
+      conversation.push({
+        role: "user",
+        content: "user must provide time"
+      })
+    } else if(time === "tomorrow") {
+      conversation.push({
+        role: "user",
+        content: "user must provide time for the tomorrow reminder"
+      })
+    } else {
+      const result = await this.createJob(what_to_do, time, repeat)
+      if(result?.status === 500) {
+        conversation.push({
+          role: "assistant",
+          content: `Error occur while trying to setup reminder, let user know about this bug in create_reminder function: ${result.error}`
+        })
+      }
+      else {
+        conversation.push({
+          role: "user",
+          content: result.data
+        })
+      }
+    }
+    return conversation
+  }
 }
 

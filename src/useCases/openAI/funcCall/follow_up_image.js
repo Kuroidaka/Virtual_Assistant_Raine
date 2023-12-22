@@ -1,7 +1,52 @@
+const common = require("../common")
+const chalk = require("chalk")
 
 const followUpImage = {
-    process: async () => {
-   
+    execute: async ({args, conversation, dependencies, countSystem, prepareKey}) => {
+        const { prompt, image_list } = args
+
+        let content = []
+        
+        conversation.pop()
+
+        if(image_list.length > 0) {
+          content = [{type: "text", text: prompt}]
+          image_list.forEach(img => content.push({
+            type: "image_url",
+            image_url: {
+              "url": img.url,
+            },
+          }))
+            conversation.push({
+                role: "user",
+                content: content
+            })
+        }
+        else {
+            conversation.push({
+                role: "assistant",
+                content: "not found any image"
+          })
+        }
+        
+        const callGpt = common.callGPTCommon(dependencies)
+        const gptData = {
+          model: "gpt-4-vision-preview",
+          temperature: 0,
+          conversation: conversation,
+          maxToken: 2000,
+          systemMsgCount: countSystem,
+          prepareKey: prepareKey,
+          functionCall: false
+        }
+        const { conversation:newConversation, completion } = await callGpt.execute(gptData)
+      
+        console.log(chalk.blue.bold("Response for asking about image:"), completion.choices[0]);
+       
+        return {
+            conversation: newConversation,
+            content: completion.choices[0].message.content
+        }
     },
     funcSpec: {
         name: "follow_up_image_in_chat",
@@ -10,6 +55,7 @@ const followUpImage = {
             "{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"content\":\"raine what is this image\"},{\"type\":\"image_url\",\"image_url\":{\"url\":\"https://cdn.discordapp.com/attachments/1146752980599705681/1184158611912523796/image.jpg?ex=658af4a5&is=65787fa5&hm=467057200cedc959cf76ba329679b872f1207ab18eb8581803d8abf48ec0bfa3&\"}}]}
             "
             - You can get the specific image url by using the index of the array
+            - Response to user by the language that user requested
         `,
         parameters: {
             type: "object",
