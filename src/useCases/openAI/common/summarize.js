@@ -19,8 +19,7 @@ module.exports = () => {
       ]);
 
     const promptTemplate = `
-    You are an expert in summarizing information from google.
-    Write a concise summary of the following text for {objective}: 
+    Write a summary of the following text for {objective}: 
     --------
     {text}
     --------

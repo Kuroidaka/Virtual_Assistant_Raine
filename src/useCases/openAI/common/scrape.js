@@ -1,13 +1,10 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
-require('dotenv').config();
 const puppeteer = require('puppeteer');
-
+const sumCommon = require("./summarize")
 
 
 module.exports = () => { 
 
-    const execute = async (url) => {
+    const execute = async (url, objective) => {
     
         const headlessBrowser = await puppeteer.launch({ headless: 'new' });
         
@@ -21,10 +18,14 @@ module.exports = () => {
         
             let text = await newTab.evaluate(() => document.body.innerText);
             
-            console.log(text);
+            if(text.length > 8000) {
+               text = await sumCommon().execute(text, objective)
+            }
+            return text
             
         } catch (error) {
             console.log(error)
+            return error
         }
         finally {
             headlessBrowser.close();
