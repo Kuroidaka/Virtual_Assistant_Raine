@@ -31,7 +31,6 @@ module.exports = (dependencies) => {
      });
 
      discordClient.on('messageCreate', async interaction => {
-
          if (interaction.author.bot || !interaction.guild) return;
          let command
 
@@ -49,14 +48,14 @@ module.exports = (dependencies) => {
          }
 
          try {
-
+         
              const { guildId } = interaction
          
              const guild = discordClient.guilds.cache.get(guildId);
              const member = guild.members.cache.get(interaction.author.id);
              const user = member.user;
 
-             await command.execute(interaction, user);
+             await command.execute(interaction, user, dependencies);
          } catch (error) {
              console.error(error);
              if (interaction.replied || interaction.deferred) {
