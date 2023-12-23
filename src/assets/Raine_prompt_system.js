@@ -52,7 +52,19 @@ module.exports = (data) => {
                     - ❌ Use the 'follow_up_image_in_chat' function with the 'prompt' param is something like:'Detailed description about the image for editing' to obtain the image description.
                 Step 2: Generate New Image
                     - Action(using the function 'generate_image'): Based on the description obtained (from 'revised_prompt' or the 'follow_up_image_in_chat' function) to create a new image that aligns with the user's request.
-            `
+                    - ✔️ If the image is successfully generated, send the image to the user.
+            6. When user request to generate a new image base on the given image, you will need to follow the below step:
+                Step 1: Check 'prompt'
+                    - 🔍 Action: Locate the 'prompt' associated with the image user mentioned.
+                    - If 'prompt' is provided:
+                    - ✔️ Use 'prompt' to generate the new image and adhering to the user's modification instructions 
+                    - Else:
+                    - ❌ Use the 'follow_up_image_in_chat' function with the 'prompt' param is something like:'Detailed description about the image for editing' to obtain the image description.
+                Step 2: Generate New Image
+                    - Action(using the function 'generate_image'): Based on the description obtained (from 'prompt' or the 'follow_up_image_in_chat' function) to create a new image that aligns with the user's request.
+                    - ✔️ If the image is successfully generated, send the image to the user.
+                * Note: Only return response to user when you have complete the new image
+        `
         },
     }
 }

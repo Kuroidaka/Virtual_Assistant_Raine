@@ -12,7 +12,7 @@ module.exports = (dependencies) => {
             properties: {
                 model: {
                     type: "string",
-                    description: "Base on the complexity prompt to choose the proper model, default model is 'dall-e-2' if user request a complexity image description or need a high quality image then use model 'dall-e-3' otherwise use 'dall-e-2'",
+                    description: "Base on the complexity prompt to choose the proper model, default model is 'dall-e-2' if user request a complexity image description or need a high quality image then use model 'dall-e-3' otherwise use 'dall-e-2'. Always include this parameter in the request.",
                     enum: ["dall-e-3", "dall-e-2"]
                 },
                 prompt: {
@@ -23,16 +23,26 @@ module.exports = (dependencies) => {
                     type: "string", 
                     description: "The number of images to generate. If the user does not specify a number, generate 1 image. If the user specifies a number, generate that many images, up to a maximum of 5.",
                 },
+                quality:  {
+                    type: "string",
+                    description: "The quality of the requested image. Use 'standard' as the default, with model dall-e-3 use 'high' if the user requests a high quality image, otherwise use 'standard'. Only use 'hd' with model dall-e-3",
+                    enum: ["standard", "hd"]
+                },
                 size: { 
                     type: "string", 
                     description: "The size of the requested image. Use 1024x1024 (square) as the default, with model dall-e-3 use 1792x1024 if the user requests a wide image, and 1024x1792 for full-body portraits. Always include this parameter in the request."
+                },
+                style: {
+                    type: "string",
+                    description: "The style of the requested image default is 'vivid'. Only include this parameter with model dall-e-3. Use 'natural' if the user requests a natural style, otherwise use 'vivid'",
+                    enum: ["natural", "vivid"]
                 }
                 
             },
         },
     }
 
-    const generate = async ({ model="dall-e-2", prompt, quality="standard", size="1024x1024", n, style = "vivid" }) => {
+    const generate = async ({ model="dall-e-2", prompt, quality="standard", size="1024x1024", n, style }) => {
 
         response = await openAi.images.generate({
             model: model,
@@ -48,80 +58,84 @@ module.exports = (dependencies) => {
     }
 
     const execute = async({args, conversation}) => {
-        const { model, prompt, size, n } = args
+        const { model, prompt, size, n, style } = args
 
         // take 1 image each request if the chain want to use dall-e-3
         let num = args.model === "dall-e-3" ? 1 : Number(n)
-
         const dalleData = { 
-          model: model,
-          prompt: prompt,
-          quality: "standard",
-          size: size,
-          n: num,
-          style: "vivid" 
-        }
-
-        const imgList = []
-        let content = ""
-        if(args.model === "dall-e-3") {
-            let promises = [];
-            for(let i = 0; i < args.n; i++) {
-                promises.push(generate(dalleData));
-            }
-
-            //  begin trigger chain generate image
-            await Promise.all(promises).then(responses => {
-                responses.forEach((response, i) => {
-                    if(response) {
-                        const img = response.data[0];
-                        imgList.push(img.url);
-                        content += `Image ${i + 1}: ${img.revised_prompt ? img.revised_prompt : ""}\nURL: ${img.url}\n`;
-                    } else {
-                        conversation.push({
-                            role: "user",
-                            content: "Sorry, I can't generate any image"
-                        });
-                    }
-                });
-            }).catch(() => {
+            model: model,
+            prompt: prompt,
+            quality: "standard",
+            size: size,
+            n: num,
+            style: style
+          }
+  
+          const imgList = []
+          let content = ""
+        try {
+              if(args.model === "dall-e-3") {
+                  let promises = [];
+                  for(let i = 0; i < args.n; i++) {
+                      promises.push(generate(dalleData));
+                  }
+      
+                  //  begin trigger chain generate image
+                  await Promise.all(promises).then(responses => {
+                      responses.forEach((response, i) => {
+                          if(response) {
+                              const img = response.data[0];
+                              imgList.push(img.url);
+                              content += `Image ${i + 1}: ${img.revised_prompt ? img.revised_prompt : ""}\nURL: ${img.url}\n`;
+                          } else {
+                              conversation.push({
+                                  role: "user",
+                                  content: "Sorry, I can't generate any image"
+                              });
+                          }
+                      });
+                  }).catch(() => {
+                      conversation.push({
+                          role: "user",
+                          content: `Sorry, I can't generate any image` 
+                      });
+                  });
+                  //  end trigger chain generate image
                 conversation.push({
+                  role: "assistant",
+                  content: content
+                })
+              }
+              else {
+                const response = await generate(dalleData)
+      
+                if(response) {
+                  response.data.forEach((img, idx) => {
+                    imgList.push(img.url)
+                    content += `Image ${idx + 1}: ${img.revised_prompt ? img.revised_prompt: ""}\nURL: ${img.url}\n`
+                  })
+                  
+                  conversation.push({
+                    role: "assistant",
+                    content: content
+                  })
+                }
+                else {
+                  conversation.push({
                     role: "user",
-                    content: `Sorry, I can't generate any image` 
-                });
-            });
-            //  end trigger chain generate image
-          conversation.push({
-            role: "assistant",
-            content: content
-          })
+                    content: "Sorry, I can't generate any image"
+                  })
+                }
+              }
+        } catch (error) {
+            console.log(error)
         }
-        else {
-          const response = await generate(dalleData)
-
-          if(response) {
-            response.data.forEach((img, idx) => {
-              imgList.push(img.url)
-              content += `Image ${idx + 1}: ${img.revised_prompt ? img.revised_prompt: ""}\nURL: ${img.url}\n`
-            })
-            
-            conversation.push({
-              role: "assistant",
-              content: content
-            })
-          }
-          else {
-            conversation.push({
-              role: "user",
-              content: "Sorry, I can't generate any image"
-            })
-          }
-        }
-
-        return {
-            conversation,
-            content,
-            imgList
+        finally{
+            return {
+                conversation,
+                content,
+                imgList
+            }
         }
     }
 
