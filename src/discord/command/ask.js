@@ -23,7 +23,8 @@ module.exports = {
 		check: (interaction) => {
 			let substringToCheck = "hey raine";
 			let botName = "raine"
-			if(interaction.mentions?.users?.first()?.id === process.env.RAINE_ID 
+			console.log(process.env.RAINE_ID)
+			if(interaction.mentions?.users?.first()?.id === process.env.RAINE_ID
 			|| interaction.content.toLowerCase().includes(substringToCheck.toLowerCase())
 			|| interaction.content.toLowerCase().includes(botName.toLowerCase())) return true 
 

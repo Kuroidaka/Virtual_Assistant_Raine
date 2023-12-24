@@ -1,5 +1,7 @@
 const { nanoid } = require("nanoid");
 const chalk = require("chalk")
+const moment = require('moment-timezone');
+
 module.exports = (dependencies) => {
 	const { DB } = dependencies;
 
@@ -9,19 +11,21 @@ module.exports = (dependencies) => {
 
 	const execute = async ({ 
         title,
-        periodTime=null,
-        specificTime=null,
+        time,
         repeat,
         id=nanoid() 
     }) => {
+
+        time = moment(time).tz('Asia/Bangkok').format()
         const taskData = {
             id: id,
             title: title,
-            period_time: periodTime,
-            specific_time: specificTime,
+            time: time,
             repeat: repeat
         }
-    
+        
+        console.log("moment(time).tz('Asia/Bangkok').format(),", moment(time).tz('Asia/Bangkok').format(),)
+
         const transaction = await DB.$transaction(async (prisma) => {
         try {
             const task = await prisma.task.create({

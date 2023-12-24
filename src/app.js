@@ -6,6 +6,8 @@ const chalk = require("chalk")
 const bodyParser = require('body-parser')
 
 const initDCBot = require("./discord") 
+const tools = require("./tool")
+const test = require("../test")
 
 const routes = require("./api/v1/route")
 const dependencies = require("./config/dependencies")
@@ -49,5 +51,11 @@ module.exports = {
 
         // init discord bot
         initDCBot(dependencies)
+
+		// Run tools
+		tools(dependencies)
+
+		// test 
+		test(dependencies)
 	},
 }

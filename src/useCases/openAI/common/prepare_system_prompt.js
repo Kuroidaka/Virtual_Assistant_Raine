@@ -32,9 +32,7 @@ module.exports = (dependencies) => {
 
     // get current date
     const date = new Date()
-    const currentDate =
-      date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
-
+    
     // check instructions
     if (instructions) {
       const dalle = { role: 'system', content: tools.dalle }
@@ -43,7 +41,7 @@ module.exports = (dependencies) => {
       conversation[0] = {
         role: 'system',
         content: `
-          Current date: ${currentDate}
+          {Current time}: ${new Date()}
           Response to user by this language: ${lang}
           ${instructions.system.instructions}`,
       }

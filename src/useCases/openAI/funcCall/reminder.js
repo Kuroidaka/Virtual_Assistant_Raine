@@ -29,17 +29,18 @@ module.exports = class reminderFunc {
       "parameters": {
           "type": "object",
           "properties": {
-              "what_to_do": {
+              "task": {
                   "type": "string",
                   "description": "The task that user want to be reminded",
               },
-              "period_time": {
+              "time": {
                   "type": "string",
-                  "description": `The period of time must be in english, The a period of time that user want to remind, example if user want to be reminded after 1 hour, please take 1 hour, do not take the word 'after'`,
-              },
-              "specific_time": {
-                  "type": "string",
-                  "description": `The specific time that user want to remind. The specific time must be in english. The specific time format is 0-23 if you want to be reminded tomorrow at 8 or 8:30, please take 'tomorrow:8:30'. the specific time can be something like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the time will be converted to UTC time, the year time will be automatically set to ${new Date().getFullYear()}`,
+                  "description": `
+                  - The specific time that user want to remind. 
+                  - The specific time must be in english
+                  - The specific time format is like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the year time will be automatically set to ${new Date().getFullYear()}
+                  - If user request to remind after a period of time, please convert the time in this format 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)' base on the {Current time}
+                  `,
               },
               
               "repeat": {
@@ -126,7 +127,7 @@ module.exports = class reminderFunc {
             model: 'gpt-4',
             messages: [
               { role: "system", content: instructions.tools.task.reminder },
-              { role: "user", content: `This is what user want to be reminded: ${task}`},
+              { role: "user", content: `This is what user want to be reminded, please tell it to user: ${task}`},
             ],
             temperature: 1,
             max_tokens: 200,
@@ -150,7 +151,7 @@ module.exports = class reminderFunc {
   });
   };
 
-  async createJob(task, time, repeat = false) {
+  async createJob({task, time, repeat = false}) {
     const self = this;
     let finalTime
     const taskID = nanoid()
@@ -164,13 +165,9 @@ module.exports = class reminderFunc {
     console.log(chalk.green.bold("Cron is ready: "), time);
     if(!isNaN(Date.parse(time))) {
       finalTime = new Date(time)
-      dataTask.specificTime = finalTime
+      dataTask.time = finalTime
     }
-    else {
-      dataTask.periodTime = time
-      finalTime = self.convertTime(time).time
-      if(finalTime === undefined) throw new Error("Time is not valid in create job function")
-    }
+
     console.log("Cron time: ", chalk.green.bold(finalTime))
   
     // setup cron job
@@ -189,15 +186,13 @@ module.exports = class reminderFunc {
 
   async execute ({args, conversation}) {
     const { 
-      what_to_do,
-      period_time,
-      specific_time,
+      task,
+      time,
       repeat
     } = args
 
-    let time = period_time || specific_time
        
-    if(!what_to_do) {
+    if(!task) {
       conversation.push({
         role: "user",
         content: "user must provide what to do"
@@ -207,13 +202,8 @@ module.exports = class reminderFunc {
         role: "user",
         content: "user must provide time"
       })
-    } else if(time === "tomorrow") {
-      conversation.push({
-        role: "user",
-        content: "user must provide time for the tomorrow reminder"
-      })
     } else {
-      const result = await this.createJob(what_to_do, time, repeat)
+      const result = await this.createJob({task, time, repeat})
       if(result?.status === 500) {
         conversation.push({
           role: "assistant",

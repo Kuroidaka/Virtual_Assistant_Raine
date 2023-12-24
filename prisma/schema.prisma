@@ -10,8 +10,7 @@ datasource db {
 model Task {
   id            String   @id
   title         String
-  period_time   String?
-  specific_time String?
+  time          DateTime
   repeat        Boolean
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
