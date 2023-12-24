@@ -92,7 +92,7 @@ const weatherFunc = {
     const weatherData = await weatherFunc.getByLocation(location, lan, time, date)
 
     if(!weatherData.have_content) {
-      conversation.push({ role: "assistant", content: "Sorry, I can't find the weather for this location rightnow"})
+      conversation.push({ role: "assistant", content: "Sorry, I can't find the weather for this location right now"})
     } else {
       conversation.push(weatherData.data)
     }

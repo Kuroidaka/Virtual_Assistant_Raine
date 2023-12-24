@@ -1,5 +1,3 @@
-const axios = require("axios");
-const { sliceString } = require("../format/length");
 const chalk = require("chalk");
 const { EmbedBuilder } = require('discord.js');
 

@@ -14,6 +14,7 @@ module.exports = (dependencies) => {
                 let query = {};
 
                 if (hours) {
+                    // mysql store in UTC time
                     const UTCTime = new Date(Date.now() + 60 * 60 * Number(hours)).toISOString()
                     const UTCNow = new Date().toISOString()
                     query = {

@@ -1,6 +1,7 @@
 const chalk = require("chalk")
 const { nanoid } = require('nanoid');
 const schedule = require('node-schedule');
+const { EmbedBuilder } = require('discord.js');
 
 const { detectLan } = require("../../../utils")
 const RainePrompt = require("../../../assets/Raine_prompt_system.js")
@@ -110,41 +111,54 @@ module.exports = class reminderFunc {
     }
   }
 
+  async reminderOutput(task) { 
+    const channelID = process.env.CHANNEL_CRON_ID
+
+    const channel = this.discordClient.channels.cache.get(channelID);
+
+    if (channel) {
+      const detectTaskLang = detectLan(task)
+      console.log("Language detect from task", detectTaskLang)
+      // advance response reminder
+      const instructions = RainePrompt()
+      const completion = await this.openAi.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+          { role: "system", content: instructions.tools.task.reminder },
+          { role: "user", content: `This is what user want to be reminded, please tell it to user: ${task}`},
+        ],
+        temperature: 1,
+        max_tokens: 200,
+      })
+
+      const content = await completion.choices[0].message.content
+      if(content) {
+        const embed = new EmbedBuilder()
+        // .setImage(url)
+        .setTitle(`__Reminder:__`)
+        .addFields(
+          { name: 'Remind content', value: "```" + content + "```" },
+        )
+        .setTimestamp()
+        channel.send({ embeds: [embed] });
+      }
+
+      }
+      
+  }
+
   async scheduleJobPromise (taskID, task, finalTime, repeat = false) {
     this.list_job[task] = schedule.scheduleJob(task, finalTime, async () => {
       try {
-        const channelID = process.env.CHANNEL_CRON_ID
-
-        const channel = this.discordClient.channels.cache.get(channelID);
-  
-        if (channel) {
-          console.log(chalk.green.bold("============= SET REMINDER ============="));
-          const detectTaskLang = detectLan(task)
-          console.log("Language detect from task", detectTaskLang )
-          // advance response reminder
-          const instructions = RainePrompt()
-          const completion = await this.openAi.chat.completions.create({
-            model: 'gpt-4',
-            messages: [
-              { role: "system", content: instructions.tools.task.reminder },
-              { role: "user", content: `This is what user want to be reminded, please tell it to user: ${task}`},
-            ],
-            temperature: 1,
-            max_tokens: 200,
-          })
-  
-          const content = await completion.choices[0].message.content
-          if(content) 
-            channel.send(`
-            >>> ## __Reminder:__ \n*${content}*`);
-          if(!repeat){
-            schedule.cancelJob(task);
-            // delete job from database
-            const deleteTaskDB = this.deleteTaskDB(this.dependencies)
-            await Promise.all([deleteTaskDB.execute({id: taskID}), this.deleteJob(task)])
-          }
-          console.log(chalk.green.bold("============= END SET REMINDER ============="));
+        console.log(chalk.green.bold("============= SET REMINDER ============="));
+        this.reminderOutput(task)
+        if(!repeat){
+          schedule.cancelJob(task);
+          // delete job from database
+          const deleteTaskDB = this.deleteTaskDB(this.dependencies)
+          await Promise.all([deleteTaskDB.execute({id: taskID}), this.deleteJob(task)])
         }
+        console.log(chalk.green.bold("============= END SET REMINDER ============="));
       } catch (error) {
         throw new Error(error);
       }
@@ -212,7 +226,7 @@ module.exports = class reminderFunc {
       }
       else {
         conversation.push({
-          role: "user",
+          role: "assistant",
           content: result.data
         })
       }
