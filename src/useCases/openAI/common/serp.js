@@ -2,6 +2,22 @@ const axios = require("axios")
 
 module.exports = () => {
 
+    // const funcSpec = {
+    //     name: "search_google",
+    //     description: "The function for generating new image or editing the existing when having the prompt of the review of the image, when user request portrait or wide image then use model dall-e-3",
+    //     parameters: {
+    //         type: "object",
+    //         additionalProperties: false,
+    //         properties: {
+    //             q: {
+    //                 type: "string",
+    //                 description: "Base on the complexity prompt to choose the proper model, default model is 'dall-e-2' if user request a complexity image description or need a high quality image then use model 'dall-e-3' otherwise use 'dall-e-2'. Always include this parameter in the request.",
+    //                 enum: ["dall-e-3", "dall-e-2"]
+    //             }
+                
+    //         },
+    //     },
+    // }
     const execute = async (q) => {
 
         try {

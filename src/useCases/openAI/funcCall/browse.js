@@ -1,5 +1,20 @@
+const { initializeAgentExecutorWithOptions } = require("langchain/agents");
+const { ChatOpenAI } =require("langchain/chat_models/openai");
+const { Tool } = require("@langchain/core/tools");
+const { DynamicTool } = require("langchain/tools");
+const { OpenAIAgentTokenBufferMemory } = require( "langchain/agents/toolkits");
+const { ConversationSummaryBufferMemory } = require("langchain/memory");
+const {
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+  } = require("langchain/prompts");
+
+  
 const { serperCommon, scrapeCommon, sumCommon, callGPTCommon } = require("../common")
 const dependencies = require("../../../config/dependencies")
+
 const test = () => {
 
     const { openAi } = dependencies
@@ -33,28 +48,86 @@ const test = () => {
         },
     }
     const systemPrompt = `
-    You are a world class researcher, who can do detailed research on any topic and produce facts based results; you do not make things up, you will try as hard as possible to gather fact & data to back up the research
-
+    You are a world class researcher, who can do detailed research on any topic and produce facts based results; 
+    you do not make things up, you will try as hard as possible to gather facts & data to back up the research
+    
     Please make sure you complete the objective above with the following rules:
-    1/  You should do enough research to gather as much information as possible about the objective
-    2/ If there are url of relevant link & articles, you will scrape it to gather more information
-    3/ After scraping & search, you should think "is there any new things i should searching & scraping based on the data I collected to increase research quality?"If answer is yes, continue; But don't do this more than 3 iterations
+    1/ You should do enough research to gather as much information as possible about the objective
+    2/ If there are url of relevant links & articles, you will scrape it to gather more information
+    3/ After scraping & search, you should think "is there any new things i should search & scraping based on the data I collected to increase research quality?" If answer is yes, continue; But don't do this more than 3 iteratins
     4/ You should not make things up, you should only write facts & data that you have gathered
-    5/ in the final output, you should include all reference data & links to back up your research
+    5/ In the final output, You should include all reference data & links to back up your research; You should include all reference data & links to back up your research
+    6/ In the final output, You should include all reference data & links to back up your research; You should include all reference data & links to back up your research
     `
 
     const execute = async  (q, objective) => {
-        try {
-        
-            let conversation = []
-            while(true) {
-                completion = await openAi.chat.completions.create({
-                    model: "gpt-4",
-                    messages: conversation,
-                    temperature: 0,
-                })
-                
+
+        const model = new ChatOpenAI({ modelName: "gpt-4", temperature: 0 });
+
+        class ScrapeWebsiteInput extends Tool {
+            constructor(objective, url) {
+                super();
+                this.objective = objective;
+                this.url = url;
             }
+        }
+        
+        class ScrapeWebsiteTool extends Tool {
+            constructor() {
+                super();
+                this.name = "scrape_website";
+                this.description = "useful when you need to get data from a website url, passing both url and objective to the function; DO NOT make up any url, the url should only be from the search results";
+                this.argsSchema = ScrapeWebsiteInput;
+            }
+        
+            _run(objective, url) {
+                return scrapeCommon().execute(objective, url);
+            }
+        
+            _arun(url) {
+                throw new Error("error here");
+            }
+        }
+
+        const tools = [
+            new DynamicTool({
+                name: "search",
+                description:
+                  "useful when you need to answer the questions about current events, data, you should ask targeted questions",
+                func: serperCommon().execute(objective),
+              }),
+            new ScrapeWebsiteTool(),
+
+        ];
+
+        // const memory = new ConversationSummaryBufferMemory({
+        //     memoryKey: "chat_history",
+        //     llm: model,
+        //     maxTokenLimit: 1000,
+        //     returnMessages: true,
+        //   });
+          
+        // const memory = new OpenAIAgentTokenBufferMemory({
+        //     llm: model,
+        //     memoryKey: "chat_history",
+        //     outputKey: "output",
+        //     maxTokenLimit: 1000,
+        //     returnMessages: true,
+        //   });
+
+        const executor = await initializeAgentExecutorWithOptions(tools, model, {
+            agentType: "openai-functions",
+            verbose: true,
+            agentArgs: {
+                prefix: systemPrompt
+            },
+            // memory: memory
+        });
+
+        try {
+            const result = await executor.invoke({ input: objective });
+
+            console.log(`Got output ${result.output}`);
 
         } catch (error) {
             console.log(error)
@@ -66,4 +139,4 @@ const test = () => {
     return { execute, funcSpec }
 }
 
-test().execute("home stay Đà lạt", "gợi ý các homestay ở Đà Lạt")
+test().execute("homestay ở Đà Lạt 2023", "tìm kiếm gợi ý các homestay ở Đà Lạt 2023")
