@@ -26,7 +26,7 @@ module.exports = class reminderFunc {
     this.list_job = {}
     this.funcSpec = {
       "name": "create_reminder",
-      "description": "Remind user to do something after a period of time or at a specific time, if user do not provide what to do, then ask user to provide",
+      "description": "Useful for setup reminder for user, please follow the { Reminder's instruction } to setup reminder",
       "parameters": {
           "type": "object",
           "properties": {
@@ -125,7 +125,7 @@ module.exports = class reminderFunc {
         model: 'gpt-4',
         messages: [
           { role: "system", content: instructions.tools.task.reminder },
-          { role: "user", content: `This is what user want to be reminded, please tell it to user: ${task}`},
+          { role: "user", content: `This is what user want to be reminded, please tell it to user(use some icon relate to the task): ${task}`},
         ],
         temperature: 1,
         max_tokens: 200,
@@ -148,7 +148,7 @@ module.exports = class reminderFunc {
   }
 
   async scheduleJobPromise (taskID, task, finalTime, repeat = false) {
-    this.list_job[task] = schedule.scheduleJob(task, finalTime, async () => {
+    this.list_job[taskID] = schedule.scheduleJob(task, finalTime, async () => {
       try {
         console.log(chalk.green.bold("============= SET REMINDER ============="));
         this.reminderOutput(task)

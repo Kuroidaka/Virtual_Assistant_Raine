@@ -14,6 +14,8 @@ module.exports = (dependencies) => {
      } = dependencies
 
     const syncData = async () => {
+
+        
         const getTaskReminder = getTask(dependencies)
         const tasks = await getTaskReminder.execute({ id: "", hours: 1000 })
 
@@ -31,9 +33,8 @@ module.exports = (dependencies) => {
     }
 
     const execute = async () => {
-      
-        syncData()
-        schedule.scheduleJob("sync-remind", "0 * * * *", async () => {
+        await syncData()
+        schedule.scheduleJob("sync-remind", "0 * * * * *", async () => {
             syncData()
         })
     }

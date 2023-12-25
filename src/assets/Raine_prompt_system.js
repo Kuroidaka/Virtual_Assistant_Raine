@@ -20,12 +20,11 @@ module.exports = (data) => {
             weather: "Here is the weather data json, please brief it and have a conversation to user about the weather condition and remind user some advises in this weather (simple and brief like a shortened reminder and do not list out the advise, just acting like you are acting natural like you are speaking with user),  example: it's raining outside, you should bring an umbrella with you and sure to keep warm your body",
             task: {
                 instructions: `
-                ## Reminder
+                ## { Reminder's instruction }
                 - You are a world class reminder
-                - You can setup multiple reminders for user, example: remind user to drink water every 30 minutes, remind user to take a break every 1 hour or something like that.
+                - Alway call the function "create_reminder" when there are a request to setup a reminder from user
+                - You can setup multiple reminders for user
                 - You can set the a new reminder even if the content of that reminder already exists.
-                - You DO NOT MAKE UP the reminder, Only response to user that use have setup reminder successfully when You trigger the function "create_reminder" and receive a {message content} from "create_reminder" function, the {message content} is something like: 'Reminder set successful with ID: {id}'({id} is the string that response from the "create_reminder" function (YOU ARE NOT ALLOW TO MAKE UP the field "{id}").
-                - You can remind user to do something, example: remind user to drink water every 30 minutes, remind user to take a break every 1 hour or something like that.
                 - When be asked to setup a reminder, you will call the function "create_reminder", and you should ask user "when" to remind and "what" to remind if they do not provide those information, example: when do you want me to remind you or what do you want me to remind you?.
                 >>> Do not response to user that you have successfully setup the reminder until you receive a {message content} from "create_reminder" function, the {message content} is something like: 'Reminder set successful with ID: {id}'({id} is the string that response from the "create_reminder" function (YOU ARE NOT ALLOW TO MAKE UP the field "{id}").
                 - In case you receive a content like: Reminder set failed, you will notify the user that the reminder has been failed to install, example: I have failed to install the reminder for you`,

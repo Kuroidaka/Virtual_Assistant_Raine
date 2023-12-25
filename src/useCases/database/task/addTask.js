@@ -16,15 +16,14 @@ module.exports = (dependencies) => {
         id=nanoid() 
     }) => {
 
-        time = moment(time).tz('Asia/Bangkok').format()
+        time = new Date(time).toISOString()
+        console.log("time: ", time)
         const taskData = {
             id: id,
             title: title,
             time: time,
             repeat: repeat
         }
-        
-        console.log("moment(time).tz('Asia/Bangkok').format(),", moment(time).tz('Asia/Bangkok').format(),)
 
         const transaction = await DB.$transaction(async (prisma) => {
         try {
