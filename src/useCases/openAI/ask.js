@@ -19,6 +19,7 @@ module.exports = class askOpenAIUseCase {
       haveFile
     }) => {
       try {
+        //check language from request
         let currentLang = "en"
         if(typeof prompt === 'string' || prompt instanceof String) {
           currentLang = language.languages[detectLan(prompt)]
@@ -50,7 +51,7 @@ module.exports = class askOpenAIUseCase {
 
         let temperature = 0.5
   
-        if(haveFile) {// Read image
+        if(haveFile) {// Read file image
           const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
             model: "gpt-4-vision-preview",
@@ -69,7 +70,7 @@ module.exports = class askOpenAIUseCase {
           return ({ status: 200, data: completion.choices[0].message.content })
         }
         
-        // get defind function calling
+        // get function calling definition
         const funcList = await funcCall()
         let model = "gpt-4"
         let isFuncCall = true
