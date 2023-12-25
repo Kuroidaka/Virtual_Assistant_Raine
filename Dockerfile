@@ -8,16 +8,23 @@ ARG NODE_VERSION=18.12.0
 
 FROM node:${NODE_VERSION}-alpine
 
-ENV NODE_ENV development
-
-COPY . /usr/src/app
+ENV NODE_ENV production
 
 WORKDIR /usr/src/app
 
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=package-lock.json,target=package-lock.json \
-    --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev
+COPY .env ./
+
+# generated prisma files
+COPY prisma ./prisma/
+
+COPY . .
+
+RUN npm install
+
+RUN npx prisma generate
+
+# Run Prisma command to push schema changes to the database
+RUN npx prisma db push
 
 USER node
 
