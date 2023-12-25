@@ -23,8 +23,6 @@ module.exports = () => {
       } else condition = false
     }
     numTokens = countToken(JSON.stringify(conversation), model)
-
-    console.log(chalk.blue.bold('ConversationPrompt'), conversation)
     if (flagCheckOverToken) {
       console.log(chalk.yellow.bold('Token before: '), numTokensBefore)
       console.log(chalk.yellow.bold('Token after: '), numTokens)

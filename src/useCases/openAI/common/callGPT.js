@@ -42,27 +42,29 @@ module.exports = (dependencies) => {
     }
 
     let completion
+    let callObj = {}
 
     if (functionCall) {
       // Ask OpenAI function
-      completion = await openAi.chat.completions.create({
+      callObj = {
         model: model,
         messages: conversation,
-        // model: "gpt-3.5-turbo",
         temperature: temperature,
         max_tokens: maxToken,
         functions: listFunc,
         function_call: 'auto',
-      })
+      }
     } else {
       // Ask OpenAI
-      completion = await openAi.chat.completions.create({
+      callObj = {
         model: model,
         messages: conversation,
         temperature: 1,
         max_tokens: maxToken,
-      })
+      }
     }
+
+    completion = await openAi.chat.completions.create(callObj)
 
     conversation.push(completion.choices[0].message)
     return {

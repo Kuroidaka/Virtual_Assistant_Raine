@@ -91,7 +91,7 @@ module.exports = class askOpenAIUseCase {
           }
           const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
-
+          console.log(chalk.blue.bold('ConversationPrompt'), conversation)
           // process function calling from tools
           const responseMessage = completion.choices[0].message
           if(completion.choices[0].finish_reason){
