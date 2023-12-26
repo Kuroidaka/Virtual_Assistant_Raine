@@ -4,12 +4,9 @@ const { Tool } = require("@langchain/core/tools");
 const { DynamicTool } = require("langchain/tools");
 const { OpenAIAgentTokenBufferMemory } = require( "langchain/agents/toolkits");
 const { ConversationSummaryBufferMemory } = require("langchain/memory");
-const {
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    MessagesPlaceholder,
-    SystemMessagePromptTemplate,
-  } = require("langchain/prompts");
+
+const { MessagesPlaceholder } = require("langchain/prompts");
+const { BufferMemory } = require( "langchain/memory");
 
   
 const { serperCommon, scrapeCommon, sumCommon, callGPTCommon } = require("../common")
@@ -47,10 +44,41 @@ const test = () => {
             },
         },
     }
+
+    class ScrapeWebsiteInput extends DynamicTool {
+        constructor(objective, url) {
+            super();
+            this.objective = objective;
+            this.url = url;
+        }
+    }
+    
+    class ScrapeWebsiteTool extends DynamicTool {
+        constructor() {
+            super({
+                name: "scrape_website",
+                description: `useful when you need to get data from a website url, passing both url and objective to the function;
+                - DO NOT make up any url, the url should only be the link to the website from the search tool results
+                - objective is the targeted user want to know`,
+                func: async (objective, url) => {
+                    console.log("url:", url)
+                    console.log("objective:", objective)
+                    return scrapeCommon().execute({url, objective});
+                }
+            });
+            // this.name = "scrape_website";
+            this.argsSchema = ScrapeWebsiteInput;
+        }
+        
+        _arun(url) {
+            throw new Error("error here");
+        }
+    }
+
     const systemPrompt = `
     You are a world class researcher, who can do detailed research on any topic and produce facts based results; 
-    you do not make things up, you will try as hard as possible to gather facts & data to back up the research
-    
+    you do not make things up, you will try as hard as possible to gather facts & data to back up the research. 
+
     Please make sure you complete the objective above with the following rules:
     1/ You should do enough research to gather as much information as possible about the objective
     2/ If there are url of relevant links & articles, you will scrape it to gather more information
@@ -64,41 +92,39 @@ const test = () => {
 
         const model = new ChatOpenAI({ modelName: "gpt-4", temperature: 0 });
 
-        class ScrapeWebsiteInput extends Tool {
-            constructor(objective, url) {
-                super();
-                this.objective = objective;
-                this.url = url;
-            }
-        }
-        
-        class ScrapeWebsiteTool extends Tool {
-            constructor() {
-                super();
-                this.name = "scrape_website";
-                this.description = "useful when you need to get data from a website url, passing both url and objective to the function; DO NOT make up any url, the url should only be from the search results";
-                this.argsSchema = ScrapeWebsiteInput;
-            }
-        
-            _run(objective, url) {
-                return scrapeCommon().execute(objective, url);
-            }
-        
-            _arun(url) {
-                throw new Error("error here");
-            }
-        }
 
         const tools = [
             new DynamicTool({
                 name: "search",
                 description:
-                  "useful when you need to answer the questions about current events, data, you should ask targeted questions",
-                func: serperCommon().execute(objective),
+                  `useful when you need to answer the questions about current events, data, you should ask targeted questions,
+                  The input for this tool is the values of "q" in that order and the the output will be a json string.`,
+                func: async (q) => {
+                    return await serperCommon().execute({q})
+                }
               }),
-            new ScrapeWebsiteTool(),
+              new DynamicTool({
+                name: "scrape_website",
+                description:
+                  `Useful when you need to get data from a website url.
+                   The input for this tool contain two arguments "url" and "objective"
+                  - DO NOT make up any "url", the "url" should only be the link to the website from the search tool results
+                  - "objective" is the targeted user want to know
+                  and the the output will be a json string.
+                  `,
+                  func: async (objective, url) => {
+                    console.log("url:", url)
+                    console.log("objective:", objective)
+                    return scrapeCommon().execute({url: objective});
+                }
+              }),
 
         ];
+
+        const agentArgs = { 
+            "systemMessage": systemPrompt,
+            "extraPromptMessage": new MessagesPlaceholder("chat_history")
+        }
 
         // const memory = new ConversationSummaryBufferMemory({
         //     memoryKey: "chat_history",
@@ -106,22 +132,28 @@ const test = () => {
         //     maxTokenLimit: 1000,
         //     returnMessages: true,
         //   });
-          
-        // const memory = new OpenAIAgentTokenBufferMemory({
-        //     llm: model,
-        //     memoryKey: "chat_history",
-        //     outputKey: "output",
-        //     maxTokenLimit: 1000,
+
+        const memory = new OpenAIAgentTokenBufferMemory({
+            llm: model,
+            memoryKey: "chat_history",
+            outputKey: "output",
+            maxTokenLimit: 1000,
+            returnMessages: true,
+          });
+
+        // const customMemory = new BufferMemory({
+        //     chatHistory: new ChatMessageHistory(history),
+        //     memoryKey: 'chat_history',
         //     returnMessages: true,
         //   });
+          
 
         const executor = await initializeAgentExecutorWithOptions(tools, model, {
             agentType: "openai-functions",
             verbose: true,
-            agentArgs: {
-                prefix: systemPrompt
-            },
-            // memory: memory
+            returnIntermediateSteps: true,
+            agentArgs: agentArgs,
+            memory: memory
         });
 
         try {
@@ -139,4 +171,4 @@ const test = () => {
     return { execute, funcSpec }
 }
 
-test().execute("homestay ở Đà Lạt 2023", "tìm kiếm gợi ý các homestay ở Đà Lạt 2023")
+test().execute("homestay Đà Lạt 2023", "một số nhận xét về các homestay highland view house Đà Lạt")

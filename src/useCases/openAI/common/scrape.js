@@ -4,7 +4,7 @@ const sumCommon = require("./summarize")
 
 module.exports = () => { 
 
-    const execute = async (url, objective) => {
+    const execute = async ({url, objective}) => {
     
         const headlessBrowser = await puppeteer.launch({ headless: 'new' });
         
@@ -21,7 +21,7 @@ module.exports = () => {
             if(text.length > 8000) {
                text = await sumCommon().execute(text, objective)
             }
-            return text
+            return JSON.stringify(text)
             
         } catch (error) {
             console.log(error)

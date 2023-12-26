@@ -18,7 +18,7 @@ module.exports = () => {
     //         },
     //     },
     // }
-    const execute = async (q) => {
+    const execute = async ({q}) => {
 
         try {
             const myHeaders = {
@@ -43,7 +43,7 @@ module.exports = () => {
 
             if(res.statusText = "OK") { 
                 // console.log(res.data.knowledgeGraph)
-                return res.data
+                return JSON.stringify(res.data)
             }
 
         } catch (error) {
