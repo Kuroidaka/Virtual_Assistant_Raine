@@ -3,15 +3,15 @@ const { nanoid } = require('nanoid');
 const schedule = require('node-schedule');
 const { EmbedBuilder } = require('discord.js');
 
-const { detectLan } = require("../../../utils")
-const RainePrompt = require("../../../assets/Raine_prompt_system.js")
+const deleteJob = require("./delete_job")
+const printDiscord = require("./discord_print")
 
 module.exports = class reminderFunc {
   constructor(dependencies) {
     const {
       useCases: {
         DBUseCase: {
-          taskDB: { addTask, deleteTask }
+          taskDB
         },
       },
       discordClient,
@@ -21,8 +21,7 @@ module.exports = class reminderFunc {
     this.dependencies = dependencies
     this.openAi = openAi
     this.discordClient = discordClient
-    this.addTaskDB = addTask
-    this.deleteTaskDB = deleteTask
+    this.taskDB = taskDB;
     this.funcSpec = {
       "name": "create_reminder",
       "description": "Useful for setup reminder for user, please follow the { Reminder's instruction } to setup reminder",
@@ -53,55 +52,28 @@ module.exports = class reminderFunc {
     }
   }
 
-  async deleteJob(taskID) {
-    if (schedule.scheduledJobs[taskID]) {
-      const deleteTaskDB = this.deleteTaskDB(this.dependencies)
-      await Promise.all(
-        [
-          deleteTaskDB.execute({id: taskID}),  //Delete task from database
-          schedule.scheduledJobs[taskID].cancel() // Delete task from cron job
-        ]
-      )
-      console.log(`Job ${taskID} cancelled`);
-    } else {
-        console.log(chalk.red.bold(`Job ${task} not found`));
-    }
-  }
-
-  async reminderOutput(reminderPrompt) { 
-    const channelID = process.env.CHANNEL_CRON_ID
-
-    const channel = this.discordClient.channels.cache.get(channelID);
-
-    if (channel && reminderPrompt) {
-        const embed = new EmbedBuilder()
-          .setTitle(`__Reminder:__`)
-          .addFields(
-            { name: 'Remind content', value: "```" + reminderPrompt + "```" },
-          )
-          .setTimestamp()
-          // .setImage(url)
-
-        channel.send({ embeds: [embed] });
-      }
-  }
-
   async scheduleJobPromise (taskID, reminderPrompt, finalTime, repeat = false) {
-    console.log("Object.keys(schedule.scheduledJobs)", Object.keys(schedule.scheduledJobs))
-    if(Object.keys(schedule.scheduledJobs).indexOf(taskID) === -1) {
-      schedule.scheduleJob(taskID, finalTime, async () => {
-        try {
-          console.log(chalk.green.bold("============= SET REMINDER ============="));
-          this.reminderOutput(reminderPrompt)
-          if(!repeat){
-            await this.deleteJob(taskID)
-          }
-          console.log(chalk.green.bold("============= END SET REMINDER ============="));
-        } catch (error) {
-          throw new Error(error);
-        }
-      });
+
+    if (schedule.scheduledJobs[taskID]) {
+      return;
     }
+
+    schedule.scheduleJob(taskID, finalTime, async () => {
+      console.log(chalk.green.bold("============= SET REMINDER ============="));
+      try {
+        // send reminder to discord
+        printDiscord(this.dependencies).execute({reminderPrompt});
+
+        if (!repeat) {
+          await deleteJob(this.dependencies).execute({taskID})
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      console.log(chalk.green.bold('============= END SET REMINDER ============='));
+    });
+    
   };
 
   async createJob({remindPrompt, time, repeat = false}) {
@@ -124,12 +96,11 @@ module.exports = class reminderFunc {
   
     // setup cron job
     try {
-
+      const { addTask } = this.taskDB;
       // promise all to insert task into database and setup cron job
-      const createTask = this.addTaskDB(this.dependencies)
+      const createTask = addTask(this.dependencies)
 
       const [idInserted] = await Promise.all([createTask.execute(dataTask), this.scheduleJobPromise(taskID, remindPrompt, finalTime, repeat)])
-      console.log('Task ID Inserted:', idInserted);
       return ({status: 200, data: `Reminder set successful with ID: ${idInserted}`})
     } catch (error) {
       console.log(chalk.red.bold("[ERROR API]: ____REMINDER-SET-TIME___ "), error)
@@ -137,7 +108,6 @@ module.exports = class reminderFunc {
     }
   }
   
-
   async execute ({args, conversation}) {
     const { 
       remindPrompt,

@@ -1,5 +1,5 @@
 const schedule = require('node-schedule');
-const reminderClass = require("../useCases/openAI/agent/reminder")
+const reminderClass = require("../useCases/openAI/agent/reminder/reminder")
 
 module.exports = (dependencies) => {
 
@@ -30,11 +30,12 @@ module.exports = (dependencies) => {
 
             await Promise.all(promise)
         }
+        console.log("JOBS: ", Object.keys(schedule.scheduledJobs))
     }
 
     const execute = async () => {
         await syncData()
-        schedule.scheduleJob("sync-remind", "0 * * * *", async () => {
+        schedule.scheduleJob("sync-remind", "0 * * * * *", async () => {
             syncData()
         })
     }
