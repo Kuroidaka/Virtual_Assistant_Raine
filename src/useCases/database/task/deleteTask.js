@@ -10,12 +10,18 @@ module.exports = (dependencies) => {
 	const execute = async({ id }) => {
         const transaction = await DB.$transaction(async (prisma) => {
         try {
-            const task = await prisma.task.delete({
-                where: {
-                    id: id
-                },
-            })
-            console.log( chalk.red("DELETED TASK:"), task);
+            const task = await prisma.task.findUnique({
+                where: { id: id },
+            });
+
+            if (task) {
+                await prisma.task.delete({
+                    where: {
+                        id: id
+                    },
+                })
+                console.log( chalk.red("DELETED TASK:"), task);
+            }
         } catch (error) {
             console.log(error)
             throw error

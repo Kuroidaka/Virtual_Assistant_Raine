@@ -23,16 +23,15 @@ module.exports = class reminderFunc {
     this.discordClient = discordClient
     this.addTaskDB = addTask
     this.deleteTaskDB = deleteTask
-    this.list_job = {}
     this.funcSpec = {
       "name": "create_reminder",
       "description": "Useful for setup reminder for user, please follow the { Reminder's instruction } to setup reminder",
       "parameters": {
           "type": "object",
           "properties": {
-              "task": {
+              "remindPrompt": {
                   "type": "string",
-                  "description": "The task that user want to be reminded",
+                  "description": "The task that AI will remind the user about. This will be based on the user's prompt, and will be enhanced to provide a more engaging reminder and will attached with some icon relate to the task. For example, if the user says 'remind me to drink water...', the 'remindPrompt' could be 'Just a friendly reminder, it's time to drink some water. Stay hydrated!'"
               },
               "time": {
                   "type": "string",
@@ -41,136 +40,75 @@ module.exports = class reminderFunc {
                   - The specific time must be in english
                   - The specific time format is like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the year time will be automatically set to ${new Date().getFullYear()}
                   - If user request to remind after a period of time, please convert the time in this format 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)' base on the {Current time}
-                  `,
+                  `
               },
               
               "repeat": {
                   "type": "boolean",
-                  "description": "repeating the reminder or not",
+                  "description": "repeating the reminder or not"
               }
           },
-          "required": ["task", "time"],
+          "required": ["task", "time"]
       }
     }
   }
 
-  convertTime(time) {
-    const minutesPattern = /\b(\d+)\s*(m|minutes|minute)\b/i;
-    const hoursPattern = /\b(\d+)\s*(h|hours|hour)\b/i;
-    const secondsPattern = /\b(\d+)\s*(s|seconds|second)\b/i;
-    const daysPattern = /\b(\d+)\s*(d|days|day)\b/i;
-    const monthsPattern = /\b(\d+)\s*(months|month|mo)\b/i;
-    const tomorrowPattern = /^tomorrow:(\d{1,2})(?::(\d{2}))?$/
-   
-    if(secondsPattern.test(time)) {
-        const seconds = `*/${time.match(secondsPattern)[1]} * * * * *`;
-        return {
-            time: seconds,
-        };
-    } else if(minutesPattern.test(time)) {
-        const minutes = `*/${time.match(minutesPattern)[1]} * * * *`;
-        return {
-            time: minutes,
-        };
-    } else if(hoursPattern.test(time)) {
-        const hours = `0 */${time.match(hoursPattern)[1]} * * *`;
-        return {
-            time: hours,
-        };
-    } else if(daysPattern.test(time)) {
-        const days = `0 0 */${time.match(daysPattern)[1]} * *`;
-        return {
-            time: days,
-        };
-    } else if(monthsPattern.test(time)) {
-      const months = `0 0 0 */${time.match(daysPattern)[1]} *`;
-        return {
-            time: months,
-        };
-    } else if(tomorrowPattern.test(time)) {
-      const tomorrow = `0 ${time.match(tomorrowPattern)[2] ? time.match(tomorrowPattern)[2] : "0"} ${time.match(tomorrowPattern)[1]} */1 * *`;
-      return {
-            time: tomorrow,
-        };
-    }
-    else {
-        return {
-            time: undefined,
-            msg: 'This is not a measure of time'
-        };
-    }
-  }
-
-  async deleteJob(task) {
-    if (this.list_job[task]) {
-      this.list_job[task].cancel();
-      delete this.list_job[task];
-      console.log(`Job ${task} cancelled`);
+  async deleteJob(taskID) {
+    if (schedule.scheduledJobs[taskID]) {
+      const deleteTaskDB = this.deleteTaskDB(this.dependencies)
+      await Promise.all(
+        [
+          deleteTaskDB.execute({id: taskID}),  //Delete task from database
+          schedule.scheduledJobs[taskID].cancel() // Delete task from cron job
+        ]
+      )
+      console.log(`Job ${taskID} cancelled`);
     } else {
         console.log(chalk.red.bold(`Job ${task} not found`));
     }
   }
 
-  async reminderOutput(task) { 
+  async reminderOutput(reminderPrompt) { 
     const channelID = process.env.CHANNEL_CRON_ID
 
     const channel = this.discordClient.channels.cache.get(channelID);
 
-    if (channel) {
-      const detectTaskLang = detectLan(task)
-      console.log("Language detect from task", detectTaskLang)
-      // advance response reminder
-      const instructions = RainePrompt()
-      const completion = await this.openAi.chat.completions.create({
-        model: 'gpt-4',
-        messages: [
-          { role: "system", content: instructions.tools.task.reminder },
-          { role: "user", content: `This is what user want to be reminded, please tell it to user(use some icon relate to the task): ${task}`},
-        ],
-        temperature: 1,
-        max_tokens: 200,
-      })
-
-      const content = await completion.choices[0].message.content
-      if(content) {
+    if (channel && reminderPrompt) {
         const embed = new EmbedBuilder()
-        // .setImage(url)
-        .setTitle(`__Reminder:__`)
-        .addFields(
-          { name: 'Remind content', value: "```" + content + "```" },
-        )
-        .setTimestamp()
+          .setTitle(`__Reminder:__`)
+          .addFields(
+            { name: 'Remind content', value: "```" + reminderPrompt + "```" },
+          )
+          .setTimestamp()
+          // .setImage(url)
+
         channel.send({ embeds: [embed] });
       }
-
-      }
-      
   }
 
-  async scheduleJobPromise (taskID, task, finalTime, repeat = false) {
-    this.list_job[taskID] = schedule.scheduleJob(task, finalTime, async () => {
-      try {
-        console.log(chalk.green.bold("============= SET REMINDER ============="));
-        this.reminderOutput(task)
-        if(!repeat){
-          schedule.cancelJob(task);
-          // delete job from database
-          const deleteTaskDB = this.deleteTaskDB(this.dependencies)
-          await Promise.all([deleteTaskDB.execute({id: taskID}), this.deleteJob(task)])
+  async scheduleJobPromise (taskID, reminderPrompt, finalTime, repeat = false) {
+    console.log("Object.keys(schedule.scheduledJobs)", Object.keys(schedule.scheduledJobs))
+    if(Object.keys(schedule.scheduledJobs).indexOf(taskID) === -1) {
+      schedule.scheduleJob(taskID, finalTime, async () => {
+        try {
+          console.log(chalk.green.bold("============= SET REMINDER ============="));
+          this.reminderOutput(reminderPrompt)
+          if(!repeat){
+            await this.deleteJob(taskID)
+          }
+          console.log(chalk.green.bold("============= END SET REMINDER ============="));
+        } catch (error) {
+          throw new Error(error);
         }
-        console.log(chalk.green.bold("============= END SET REMINDER ============="));
-      } catch (error) {
-        throw new Error(error);
-      }
-  });
+      });
+    }
   };
 
-  async createJob({task, time, repeat = false}) {
-    const self = this;
+  async createJob({remindPrompt, time, repeat = false}) {
     let finalTime
     const taskID = nanoid()
     const dataTask = {
-        title: task,
+        title: remindPrompt,
         repeat: repeat,
         id: taskID
     }
@@ -189,7 +127,8 @@ module.exports = class reminderFunc {
 
       // promise all to insert task into database and setup cron job
       const createTask = this.addTaskDB(this.dependencies)
-      const [idInserted] = await Promise.all([createTask.execute(dataTask), this.scheduleJobPromise(taskID, task, finalTime, repeat)])
+
+      const [idInserted] = await Promise.all([createTask.execute(dataTask), this.scheduleJobPromise(taskID, remindPrompt, finalTime, repeat)])
       console.log('Task ID Inserted:', idInserted);
       return ({status: 200, data: `Reminder set successful with ID: ${idInserted}`})
     } catch (error) {
@@ -197,16 +136,17 @@ module.exports = class reminderFunc {
       return ({status: 500, error: `Reminder set failed. Error occur: ${error}`})
     }
   }
+  
 
   async execute ({args, conversation}) {
     const { 
-      task,
+      remindPrompt,
       time,
       repeat
     } = args
 
        
-    if(!task) {
+    if(!remindPrompt) {
       conversation.push({
         role: "user",
         content: "user must provide what to do"
@@ -217,7 +157,7 @@ module.exports = class reminderFunc {
         content: "user must provide time"
       })
     } else {
-      const result = await this.createJob({task, time, repeat})
+      const result = await this.createJob({remindPrompt, time, repeat})
       if(result?.status === 500) {
         conversation.push({
           role: "assistant",
