@@ -34,7 +34,7 @@ module.exports = (dependencies) => {
 
     const execute = async () => {
         await syncData()
-        schedule.scheduleJob("sync-remind", "0 * * * * *", async () => {
+        schedule.scheduleJob("sync-remind", "0 * * * *", async () => {
             syncData()
         })
     }

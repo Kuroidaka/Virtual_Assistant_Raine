@@ -75,6 +75,9 @@ module.exports = class askOpenAIUseCase {
         let model = "gpt-4"
         let isFuncCall = true
 
+        // Log conversation
+        console.log(chalk.blue.bold('ConversationPrompt'), this.promptMessageFunc)
+
         while(true) {
           
           console.log(chalk.green.bold("------------------ REQUEST ------------------"));
@@ -92,7 +95,6 @@ module.exports = class askOpenAIUseCase {
           }
           const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
-          console.log(chalk.blue.bold('ConversationPrompt'), conversation)
           // process function calling from tools
           const responseMessage = completion.choices[0].message
           if(completion.choices[0].finish_reason){
