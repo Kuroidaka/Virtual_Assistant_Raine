@@ -13,7 +13,6 @@ module.exports = class askOpenAIUseCase {
       maxToken,
       curUser,
       conversation,
-      lan = "default",
       prepareKey,
       isTalk = false,
       haveFile
@@ -120,6 +119,11 @@ module.exports = class askOpenAIUseCase {
               } 
               else if(responseMessage.function_call?.name === "create_reminder") {
                 this.promptMessageFunc = await funcList.func.reminderFunc.execute(funcArgs)
+              } 
+              else if(responseMessage.function_call?.name === "browse") {
+                const { content, conversation } = await funcList.func.browseFunc.execute(funcArgs)
+                this.promptMessageFunc = conversation
+                return ({ status: 200, data: content })
               } 
               else if(responseMessage.function_call?.name === "follow_up_image_in_chat") {
                 const { content, conversation } = await funcList.func.followUpImageFunc.execute(funcArgs)
