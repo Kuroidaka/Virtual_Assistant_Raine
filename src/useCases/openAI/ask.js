@@ -1,5 +1,5 @@
 const common = require("./common")
-const funcCall = require("./funcCall")
+const funcCall = require("./agent")
 const chalk = require("chalk")
 const language = require("../../assets/language.json")
 const { detectLan } = require("../../utils")

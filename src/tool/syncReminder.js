@@ -1,5 +1,5 @@
 const schedule = require('node-schedule');
-const reminderClass = require("../useCases/openAI/funcCall/reminder")
+const reminderClass = require("../useCases/openAI/agent/reminder")
 
 module.exports = (dependencies) => {
 

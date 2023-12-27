@@ -171,4 +171,4 @@ const test = () => {
     return { execute, funcSpec }
 }
 
-test().execute("homestay Đà Lạt 2023", "một số nhận xét về các homestay highland view house Đà Lạt")
+test().execute("homestay Đà Lạt 2023", "môn SE108 của trường UIT HCM là học về cái gì vậy?")
