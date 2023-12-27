@@ -1,6 +1,5 @@
 const { initializeAgentExecutorWithOptions } = require("langchain/agents");
 const { ChatOpenAI } =require("langchain/chat_models/openai");
-const { Tool } = require("@langchain/core/tools");
 const { DynamicTool } = require("langchain/tools");
 const { OpenAIAgentTokenBufferMemory } = require( "langchain/agents/toolkits");
 const { ConversationSummaryBufferMemory } = require("langchain/memory");
@@ -10,8 +9,7 @@ const { BufferMemory } = require( "langchain/memory");
 const { DynamicStructuredTool } = require("langchain/tools");
 const { z } = require("zod")
   
-const { serperCommon, scrapeCommon, sumCommon, callGPTCommon } = require("../common")
-const dependencies = require("../../../config/dependencies")
+const { serperCommon, scrapeCommon } = require("../common")
 
 module.exports = () => {
 
@@ -30,7 +28,7 @@ module.exports = () => {
         },
     }
 
-    const execute = async  ({args, conversation}) => {
+    const execute = async  ({args, conversation, currentLang}) => {
 
         const { q } = args
         const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
@@ -59,7 +57,8 @@ module.exports = () => {
 
         const systemPrompt = `
         You are a world class researcher, who can do detailed research on any topic and produce facts based results; 
-        you do not make things up, you will try as hard as possible to gather facts & data to back up the research. 
+        you do not make things up, you will try as hard as possible to gather facts & data to back up the research.
+        The language response should be ${currentLang}.
 
         Please make sure you complete the objective above with the following rules:
         1/ You should do enough research to gather as much information as possible about the objective

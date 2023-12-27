@@ -112,6 +112,7 @@ module.exports = class askOpenAIUseCase {
                 dependencies: this.dependencies,
                 countSystem: countSystem,
                 prepareKey: prepareKey,
+                currentLang: currentLang
               }
 
               if(responseMessage.function_call?.name === "get_current_weather") {
