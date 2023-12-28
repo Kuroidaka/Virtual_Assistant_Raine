@@ -8,7 +8,19 @@ ARG NODE_VERSION=18.12.0
 
 FROM node:${NODE_VERSION}-alpine
 
-ENV NODE_ENV production
+# Add the "edge" community repository, which has the latest version of Google Chrome
+RUN echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories
+
+# Install the necessary packages
+RUN apk --no-cache add \
+    chromium@edge \
+    nss@edge \
+    freetype@edge \
+    harfbuzz@edge \
+    ttf-freefont@edge
+
+# Set the CHROME_BIN environment variable
+ENV CHROME_BIN=/usr/bin/chromium-browser
 
 WORKDIR /usr/src/app
 

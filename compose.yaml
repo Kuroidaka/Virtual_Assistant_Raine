@@ -29,6 +29,8 @@ services:
       - mysql-data:/var/lib/mysql
   redis:
     image: redis:6.2.5-alpine
+    volumes:
+      - redis-data:/data
 volumes:
   redis-data:
   mysql-data:

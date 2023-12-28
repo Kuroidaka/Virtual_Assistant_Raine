@@ -7,7 +7,7 @@ const { loadSummarizationChain } = require("langchain/chains")
 module.exports = () => {
   const execute = async (text, objective) => {
 
-    const model = new OpenAI({ temperature: 0 });
+    const model = new OpenAI({ temperature: 0, modelName: "gpt-3.5-turbo-16k-0613" });
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 500,

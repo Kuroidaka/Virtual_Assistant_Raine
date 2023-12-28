@@ -6,7 +6,11 @@ module.exports = () => {
 
     const execute = async ({url, objective}) => {
     
-        const headlessBrowser = await puppeteer.launch({ headless: 'new' });
+        const headlessBrowser = await puppeteer.launch({ 
+            headless: 'new',
+            executablePath: "/usr/bin/google-chrome",
+            args: ['--no-sandbox'],
+        });
         
         try {
         
