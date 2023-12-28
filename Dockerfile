@@ -21,6 +21,8 @@ RUN apk --no-cache add \
 
 # Set the CHROME_BIN environment variable
 ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV NODE_ENV production
+
 
 WORKDIR /usr/src/app
 
