@@ -1,27 +1,8 @@
-const chalk = require("chalk")
-const { nanoid } = require('nanoid');
-const schedule = require('node-schedule');
-const { EmbedBuilder } = require('discord.js');
-
-const deleteJob = require("./delete_job")
-const printDiscord = require("./discord_print")
+const createJob = require("./create_job")
 
 module.exports = class reminderFunc {
   constructor(dependencies) {
-    const {
-      useCases: {
-        DBUseCase: {
-          taskDB
-        },
-      },
-      discordClient,
-      openAi
-      
-    } = dependencies
     this.dependencies = dependencies
-    this.openAi = openAi
-    this.discordClient = discordClient
-    this.taskDB = taskDB;
     this.funcSpec = {
       "name": "create_reminder",
       "description": "Useful for setup reminder for user, please follow the { Reminder's instruction } to setup reminder",
@@ -38,7 +19,7 @@ module.exports = class reminderFunc {
                   - The specific time that user want to remind. 
                   - The specific time must be in english
                   - The specific time format is like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the year time will be automatically set to ${new Date().getFullYear()}
-                  - If user request to remind after a period of time, please convert the time in this format 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)' base on the {Current time}
+                  - If user request to remind after a period of time, please convert the time in this format 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)' base on the current time: ${new Date()}
                   `
               },
               
@@ -51,62 +32,6 @@ module.exports = class reminderFunc {
       }
     }
   }
-
-  async scheduleJobPromise (taskID, reminderPrompt, finalTime, repeat = false) {
-
-    if (schedule.scheduledJobs[taskID]) {
-      return;
-    }
-
-    schedule.scheduleJob(taskID, finalTime, async () => {
-      console.log(chalk.green.bold("============= SET REMINDER ============="));
-      try {
-        // send reminder to discord
-        printDiscord(this.dependencies).execute({reminderPrompt});
-
-        if (!repeat) {
-          await deleteJob(this.dependencies).execute({taskID})
-        }
-      } catch (error) {
-        console.error(error);
-      }
-
-      console.log(chalk.green.bold('============= END SET REMINDER ============='));
-    });
-    
-  };
-
-  async createJob({remindPrompt, time, repeat = false}) {
-    let finalTime
-    const taskID = nanoid()
-    const dataTask = {
-        title: remindPrompt,
-        repeat: repeat,
-        id: taskID
-    }
-
-    // process time
-    console.log(chalk.green.bold("Cron is ready: "), time);
-    if(!isNaN(Date.parse(time))) {
-      finalTime = new Date(time)
-      dataTask.time = finalTime
-    }
-
-    console.log("Cron time: ", chalk.green.bold(finalTime))
-  
-    // setup cron job
-    try {
-      const { addTask } = this.taskDB;
-      // promise all to insert task into database and setup cron job
-      const createTask = addTask(this.dependencies)
-
-      const [idInserted] = await Promise.all([createTask.execute(dataTask), this.scheduleJobPromise(taskID, remindPrompt, finalTime, repeat)])
-      return ({status: 200, data: `Reminder set successful with ID: ${idInserted}`})
-    } catch (error) {
-      console.log(chalk.red.bold("[ERROR API]: ____REMINDER-SET-TIME___ "), error)
-      return ({status: 500, error: `Reminder set failed. Error occur: ${error}`})
-    }
-  }
   
   async execute ({args, conversation}) {
     const { 
@@ -114,7 +39,6 @@ module.exports = class reminderFunc {
       time,
       repeat
     } = args
-
        
     if(!remindPrompt) {
       conversation.push({
@@ -127,12 +51,13 @@ module.exports = class reminderFunc {
         content: "user must provide time"
       })
     } else {
-      const result = await this.createJob({remindPrompt, time, repeat})
+      const result = await createJob(this.dependencies).execute({remindPrompt, time, repeat})
       if(result?.status === 500) {
         conversation.push({
           role: "assistant",
           content: `Error occur while trying to setup reminder, let user know about this bug in create_reminder function: ${result.error}`
         })
+        throw new Error(result.error)
       }
       else {
         conversation.push({

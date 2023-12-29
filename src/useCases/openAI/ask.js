@@ -79,7 +79,7 @@ module.exports = class askOpenAIUseCase {
 
         while(true) {
           
-          console.log(chalk.green.bold("------------------ REQUEST ------------------"));
+          console.log(chalk.green.bold("------------------------ REQUEST ------------------------"));
           // OPENAI asking
           const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
@@ -141,6 +141,7 @@ module.exports = class askOpenAIUseCase {
               return ({ status: 200, data: completion.choices[0].message.content })
             }
           }  
+          console.log(chalk.green.bold("------------------------ END REQUEST ------------------------"));
         }  
       } catch(error) {
         return ({status: 500, error: `at File: ${__filename}\n\t${error}`})

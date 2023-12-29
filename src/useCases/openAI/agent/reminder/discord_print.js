@@ -6,18 +6,18 @@ module.exports = (dependencies) => {
     discordClient
   } = dependencies
 
-  const execute = async ({reminderPrompt}) => {
+  const execute = async ({remindPrompt}) => {
     const channelID = process.env.CHANNEL_CRON_ID
 
     const channel = discordClient.channels.cache.get(channelID);
 
-    if (!channel || !reminderPrompt) {
+    if (!channel || !remindPrompt) {
       return;
     }
     
     const embed = new EmbedBuilder()
       .setTitle('__Reminder:__')
-      .addFields({ name: 'Remind content', value: `\`\`\`${reminderPrompt}\`\`\`` })
+      .addFields({ name: 'Remind content', value: `\`\`\`${remindPrompt}\`\`\`` })
       .setTimestamp();
 
     channel.send({ embeds: [embed] });
