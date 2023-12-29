@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
-const sumCommon = require("./summarize")
-
+const summary = require("./summarize")
 
 module.exports = () => { 
 
@@ -23,7 +22,7 @@ module.exports = () => {
             let text = await newTab.evaluate(() => document.body.innerText);
             
             if(text.length > 8000) {
-               text = await sumCommon().execute(text, objective)
+               text = await summary().execute(text, objective)
             }
             return JSON.stringify(text)
             

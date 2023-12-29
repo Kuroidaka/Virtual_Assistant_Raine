@@ -1,7 +1,7 @@
 const weatherFunc = require("./weather")
 const followUpImageFunc = require("./follow_up_image")
 const generateImage = require("./generateImage")
-const browse = require("./browse")
+const browse = require("./browse/browse")
 const reminderClass = require("./reminder/reminder")
 
 module.exports = () => { 

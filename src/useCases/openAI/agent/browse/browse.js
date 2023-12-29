@@ -3,13 +3,13 @@ const { ChatOpenAI } =require("langchain/chat_models/openai");
 const { DynamicTool } = require("langchain/tools");
 const { OpenAIAgentTokenBufferMemory } = require( "langchain/agents/toolkits");
 const { ConversationSummaryBufferMemory } = require("langchain/memory");
-
 const { MessagesPlaceholder } = require("langchain/prompts");
 const { BufferMemory } = require( "langchain/memory");
 const { DynamicStructuredTool } = require("langchain/tools");
 const { z } = require("zod")
-  
-const { serperCommon, scrapeCommon } = require("../common")
+
+const scrape = require("./scrape")
+const serper = require("./serp")
 
 module.exports = () => {
 
@@ -48,7 +48,7 @@ module.exports = () => {
                 func: async ({url, objective}) => {
                 console.log("url:", url)
                 console.log("objective:", objective)
-                return scrapeCommon().execute({url, objective});
+                return scrape().execute({url, objective});
                 },
                 schema: scrapeWebsiteSchema,
             });
@@ -76,7 +76,7 @@ module.exports = () => {
                   `useful when you need to answer the questions about current events, data, you should ask targeted questions,
                   The input for this tool is the values of "q" in that order and the the output will be a json string.`,
                 func: async (q) => {
-                    return await serperCommon().execute({q})
+                    return await serper().execute({q})
                 }
               }),
               new ScrapeWebsiteTool()
