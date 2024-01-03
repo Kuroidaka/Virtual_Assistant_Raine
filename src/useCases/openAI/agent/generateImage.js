@@ -12,8 +12,9 @@ module.exports = (dependencies) => {
             properties: {
                 model: {
                     type: "string",
-                    description: "Base on the complexity prompt to choose the proper model, default model is 'dall-e-2' if user request a complexity image description or need a high quality image then use model 'dall-e-3' otherwise use 'dall-e-2'. Always include this parameter in the request.",
-                    enum: ["dall-e-3", "dall-e-2"]
+                    description: "Base on the complexity prompt to choose the proper model, if user request a complexity image description or need a high quality image then use model 'dall-e-3'. Always include this parameter in the request.",
+                    enum: ["dall-e-3", "dall-e-2"],
+                    default: "dall-e-2"
                 },
                 prompt: {
                     type: "string",
@@ -25,20 +26,24 @@ module.exports = (dependencies) => {
                 },
                 quality:  {
                     type: "string",
-                    description: "The quality of the requested image. Use 'standard' as the default, with model dall-e-3 use 'high' if the user requests a high quality image, otherwise use 'standard'. Only use 'hd' with model dall-e-3",
-                    enum: ["standard", "hd"]
+                    description: "The quality of the requested image. With model dall-e-3 use 'high' if the user requests a high quality image, otherwise use 'standard'. Only use 'hd' with model dall-e-3",
+                    enum: ["standard", "hd"],
+                    default: "standard"
                 },
                 size: { 
                     type: "string", 
-                    description: "The size of the requested image. Use 1024x1024 (square) as the default, with model dall-e-3 use 1792x1024 if the user requests a wide image, and 1024x1792 for full-body portraits. Always include this parameter in the request."
+                    description: "The size of the requested image. With model dall-e-3 use 1792x1024 if the user requests a wide image, and 1024x1792 for full-body portraits. Always include this parameter in the request.",
+                    default: "1024x1024"
                 },
                 style: {
                     type: "string",
-                    description: "The style of the requested image default is 'vivid'. Only include this parameter with model dall-e-3. Use 'natural' if the user requests a natural style, otherwise use 'vivid'",
-                    enum: ["natural", "vivid"]
+                    description: "Only include this parameter with model dall-e-3. Use 'natural' if the user requests a natural style, otherwise use 'vivid'",
+                    enum: ["natural", "vivid"],
+                    default: "vivid"
                 }
                 
             },
+            "required": ["model", "prompt"]
         },
     }
 
