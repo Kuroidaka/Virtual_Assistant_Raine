@@ -21,11 +21,11 @@ module.exports = class askOpenAIUseCase {
         //check language from request
         let currentLang = "en"
         if(typeof prompt === 'string' || prompt instanceof String) {
-          currentLang = language.languages[detectLan(prompt)]
+          currentLang = language.languages[detectLan(prompt)].lc
         }
         else {
           const textFromPrompt = prompt.find(msg => typeof msg.text === 'string' || msg.text instanceof String).text
-          currentLang = language.languages[detectLan(textFromPrompt)]
+          currentLang = language.languages[detectLan(textFromPrompt)].lc
         }
        
         console.log(chalk.blue.bold(`prompt:(${currentLang})`), prompt);

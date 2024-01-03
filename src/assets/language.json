@@ -1,7 +1,19 @@
 {
     "languages": {
-      "en": "en-US",
-      "ja": "ja-JP",
-      "vi": "vi-VN"
+      "en": { 
+        "lt": "en-US", 
+        "cc": "us",
+        "lc": "en"
+      },
+      "ja": {
+        "lt": "ja-JP",
+        "cc": "jp",
+        "lc": "ja"
+      },
+      "vi": {
+        "lt": "vi-VN",
+        "cc": "vn",
+        "lc": "vi"
+      }
     }
 }

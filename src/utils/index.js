@@ -1,5 +1,4 @@
 const { encoding_for_model } = require ("@dqbd/tiktoken");
-const language = require('../assets/language.json');
 const LanguageDetect = require('languagedetect');
 const lngDetector = new LanguageDetect();
 
