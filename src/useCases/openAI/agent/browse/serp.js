@@ -1,24 +1,43 @@
 const axios = require("axios")
+const { DynamicStructuredTool } = require("langchain/tools");
+const { z } = require("zod")
 
-module.exports = () => {
+module.exports = ({currentLang}) => {
 
-    // const funcSpec = {
-    //     name: "search_google",
-    //     description: "The function for generating new image or editing the existing when having the prompt of the review of the image, when user request portrait or wide image then use model dall-e-3",
-    //     parameters: {
-    //         type: "object",
-    //         additionalProperties: false,
-    //         properties: {
-    //             q: {
-    //                 type: "string",
-    //                 description: "Base on the complexity prompt to choose the proper model, default model is 'dall-e-2' if user request a complexity image description or need a high quality image then use model 'dall-e-3' otherwise use 'dall-e-2'. Always include this parameter in the request.",
-    //                 enum: ["dall-e-3", "dall-e-2"]
-    //             }
-                
-    //         },
-    //     },
-    // }
-    const execute = async ({q}) => {
+    if(!currentLang) {
+        currentLang = { 
+            "lt": "en-US", 
+            "cc": "us",
+            "lc": "en"
+        }
+    }
+
+    // Define scrapeWebsite Schema
+    const googleSearchSchema = z.object({
+        q: z.string(),
+        lang: z.string(),
+    });
+    
+    // Define tool
+    class GoogleSearchTool extends DynamicStructuredTool {
+        constructor() {
+        super({
+            name: "search",
+            description:  `useful when you need to answer the questions about current events, data, you should ask targeted questions,
+            The input for this tool contain 1 argument "q"
+            "q" is the question that user want to know about the current events, data, news, ...
+            the the output will be a json string.`,
+            func: async ({q}) => {
+            console.log("q:", q)
+            console.log("lang:", currentLang)
+            return execute({q, currentLang});
+            },
+            schema: googleSearchSchema,
+        });
+        }
+    }
+
+    const execute = async ({q, currentLang}) => {
 
         try {
             const myHeaders = {
@@ -27,7 +46,9 @@ module.exports = () => {
             };
             
             const raw = {
-                q: q
+                q: q,
+                gl: currentLang.cc,
+                hl: currentLang.lc,
             };
               
     
@@ -52,5 +73,5 @@ module.exports = () => {
         }
     }
 
-    return { execute } 
+    return { execute, GoogleSearchTool } 
 }

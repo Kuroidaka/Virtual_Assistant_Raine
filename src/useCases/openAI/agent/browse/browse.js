@@ -5,9 +5,8 @@ const { OpenAIAgentTokenBufferMemory } = require( "langchain/agents/toolkits");
 const { ConversationSummaryBufferMemory } = require("langchain/memory");
 const { MessagesPlaceholder } = require("langchain/prompts");
 const { BufferMemory } = require( "langchain/memory");
-const { DynamicStructuredTool } = require("langchain/tools");
-const { z } = require("zod")
 
+const RainePrompt = require("../../../../assets/Raine_prompt_system.js")
 const scrape = require("./scrape")
 const serper = require("./serp")
 
@@ -33,53 +32,16 @@ module.exports = () => {
         const { q } = args
         const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
 
-        // Define scrapeWebsite Schema
-        const scrapeWebsiteSchema = z.object({
-            url: z.string(),
-            objective: z.string(),
-        });
-        
-        // Define tool
-        class ScrapeWebsiteTool extends DynamicStructuredTool {
-            constructor() {
-            super({
-                name: "scrape_website",
-                description: `Useful when you need to get data from a website url. The input for this tool contain 2 argument (url, objective) - The "objective" is the targeted questions you want to know - DO NOT make up any "url", the "url" should only be the link to the website from the search tool results. The the output will be a json string.`,
-                func: async ({url, objective}) => {
-                console.log("url:", url)
-                console.log("objective:", objective)
-                return scrape().execute({url, objective});
-                },
-                schema: scrapeWebsiteSchema,
-            });
-            }
-        }
+        // get system prompt for browse agent
+        const instructions = RainePrompt({currentLang})
+        const systemPrompt = instructions.tools.browse.instructions
 
-        const systemPrompt = `
-        You are a world class researcher, who can do detailed research on any topic and produce facts based results; 
-        you do not make things up, you will try as hard as possible to gather facts & data to back up the research.
-        The language response should be ${currentLang}.
-
-        Please make sure you complete the objective above with the following rules:
-        1/ You should do enough research to gather as much information as possible about the objective
-        2/ If there are url of relevant links & articles, you will scrape it to gather more information
-        3/ After scraping & search, you should think "is there any new things i should search & scraping based on the data I collected to increase research quality?" If answer is yes, continue; But don't do this more than 3 iteratins
-        4/ You should not make things up, you should only write facts & data that you have gathered
-        5/ In the final output, You should include all reference data & links to back up your research; You should include all reference data & links to back up your research
-        6/ In the final output, You should include all reference data & links to back up your research; You should include all reference data & links to back up your research
-        `
-
+        // defind tool
+        const scrapeTool = scrape().ScrapeWebsiteTool
+        const searchTool = serper({currentLang}).GoogleSearchTool
         const tools = [
-            new DynamicTool({
-                name: "search",
-                description:
-                  `useful when you need to answer the questions about current events, data, you should ask targeted questions,
-                  The input for this tool is the values of "q" in that order and the the output will be a json string.`,
-                func: async (q) => {
-                    return await serper().execute({q})
-                }
-              }),
-              new ScrapeWebsiteTool()
+            new searchTool(),
+            new scrapeTool()
         ];
 
         const agentArgs = { 
@@ -87,12 +49,6 @@ module.exports = () => {
             "extraPromptMessage": new MessagesPlaceholder("chat_history")
         }
 
-        // const memory = new ConversationSummaryBufferMemory({
-        //     memoryKey: "chat_history",
-        //     llm: model,
-        //     maxTokenLimit: 1000,
-        //     returnMessages: true,
-        //   });
 
         const memory = new OpenAIAgentTokenBufferMemory({
             llm: model,
@@ -101,13 +57,6 @@ module.exports = () => {
             maxTokenLimit: 1000,
             returnMessages: true,
           });
-
-        // const customMemory = new BufferMemory({
-        //     chatHistory: new ChatMessageHistory(history),
-        //     memoryKey: 'chat_history',
-        //     returnMessages: true,
-        //   });
-          
 
         const executor = await initializeAgentExecutorWithOptions(tools, model, {
             agentType: "openai-functions",
@@ -126,15 +75,14 @@ module.exports = () => {
                 content: result.output
             })
 
-              return {
+            return {
                 content: result.output,
                 conversation 
-              }
+            }
 
         } catch (error) {
             console.log(error)
             return error
-            
         }
     }
 
