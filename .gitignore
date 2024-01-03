@@ -106,3 +106,8 @@ $RECYCLE.BIN/
 .vscode-remote/
 
 # End of .gitignore
+
+/coding
+
+# python
+**/__pycache__
