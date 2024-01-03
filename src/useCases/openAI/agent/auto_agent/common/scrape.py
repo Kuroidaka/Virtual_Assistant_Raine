@@ -2,7 +2,11 @@ from ..common.summarize import summary
 from bs4 import BeautifulSoup
 import requests
 import json
+import asyncio
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def scrape(url:str):
     # scrape website, and also will summarize the content based on objective if the content is too large
@@ -22,7 +26,7 @@ def scrape(url:str):
 
     # Convert Python object to JSON string
     data_json = json.dumps(data)
-    browerless_token = 'd35fbeec-aed5-462b-9719-a6e1e4ad57e2'
+    browerless_token = os.getenv("BROWERLESS_API_KEY")
     # Send the POST request
     response = requests.post(
         f"https://chrome.browserless.io/content?token={browerless_token}", headers=headers, data=data_json)
@@ -42,5 +46,5 @@ def scrape(url:str):
 
 
 # Run the function
-# asyncio.run(scrape(url="https://daynghekimhoan.vn/mot-phan-vang-la-bao-nhieu-tien/"))
+asyncio.run(scrape(url="https://daynghekimhoan.vn/mot-phan-vang-la-bao-nhieu-tien/"))
 
