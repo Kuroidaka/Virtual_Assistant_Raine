@@ -4,7 +4,15 @@ const { OpenAI } = require("langchain/llms/openai");
 const { PromptTemplate } = require("langchain/prompts")
 const { loadSummarizationChain } = require("langchain/chains")
 
-module.exports = () => {
+module.exports = ({currentLang}) => {
+
+  if(!currentLang) {
+    currentLang = { 
+        "lt": "en-US", 
+        "cc": "us",
+        "lc": "en"
+    }
+  }
   const execute = async (text, objective) => {
 
     const model = new OpenAI({ temperature: 0, modelName: "gpt-3.5-turbo-16k-0613" });
@@ -19,7 +27,7 @@ module.exports = () => {
       ]);
 
     const promptTemplate = `
-    Write a summary of the following text for {objective}: 
+    Write a summary of the following text for {objective} in this language {currentLang}: 
     --------
     {text}
     --------
@@ -28,7 +36,7 @@ module.exports = () => {
     `
 
     const map_prompt_template = new PromptTemplate({
-        inputVariables: ["objective", "text"],
+        inputVariables: ["objective", "text", "currentLang"],
         template: promptTemplate,
     });
     
@@ -41,7 +49,8 @@ module.exports = () => {
       
     const summary = await summarizeChain.call({
         input_documents: docOutput, 
-        objective: objective
+        objective: objective,
+        currentLang: currentLang
     });
       
     return summary

@@ -3,7 +3,15 @@ const summary = require("./summarize")
 const { DynamicStructuredTool } = require("langchain/tools");
 const { z } = require("zod")
 
-module.exports = () => { 
+module.exports = ({currentLang}) => { 
+
+    if(!currentLang) {
+        currentLang = { 
+            "lt": "en-US", 
+            "cc": "us",
+            "lc": "en"
+        }
+    }
 
      // Define scrapeWebsite Schema
     const scrapeWebsiteSchema = z.object({
@@ -46,7 +54,7 @@ module.exports = () => {
             let text = await newTab.evaluate(() => document.body.innerText);
             
             if(text.length > 8000) {
-               text = await summary().execute(text, objective)
+               text = await summary({currentLang}).execute(text, objective)
             }
             return JSON.stringify(text)
             

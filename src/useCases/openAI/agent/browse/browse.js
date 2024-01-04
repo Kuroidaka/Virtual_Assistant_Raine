@@ -37,7 +37,7 @@ module.exports = () => {
         const systemPrompt = instructions.tools.browse.instructions
 
         // defind tool
-        const scrapeTool = scrape().ScrapeWebsiteTool
+        const scrapeTool = scrape({currentLang}).ScrapeWebsiteTool
         const searchTool = serper({currentLang}).GoogleSearchTool
         const tools = [
             new searchTool(),
@@ -67,7 +67,7 @@ module.exports = () => {
         });
 
         try {
-            const result = await executor.invoke({ input: q });
+            const result = await executor.invoke({ input: `${q} in language ${currentLang.lc}` });
 
             console.log(`Got output ${result.output}`);
             conversation.push({
@@ -90,4 +90,3 @@ module.exports = () => {
 }
 
 // test().execute({args:{q: " nhận xét về lượng khách du lịch đà lạt mùa đông năm 2023"}})
-
