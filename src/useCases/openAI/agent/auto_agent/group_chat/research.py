@@ -1,8 +1,8 @@
 import os
 from autogen import config_list_from_json
 import autogen
-from ..common.scrape import scrape
-from ..common.serp import search
+from common.scrape import scrape
+from common.serp import search
 
 
 def research(query):
@@ -51,9 +51,9 @@ def research(query):
     user_proxy = autogen.UserProxyAgent(
         name="User_proxy",
         code_execution_config={"last_n_messages": 2, "work_dir": "coding"},
-        is_termination_msg=lambda x: x.get("content", "") and x.get(
-            "content", "").rstrip().endswith("TERMINATE"),
-        human_input_mode="TERMINATE",
+        # is_termination_msg=lambda x: x.get("content", "") and x.get(
+        #     "content", "").rstrip().endswith("TERMINATE"),
+        human_input_mode="NEVER",
         max_consecutive_auto_reply=3,
         function_map={
             "search": search,
@@ -70,6 +70,3 @@ def research(query):
 
     # return the last message the expert received
     return user_proxy.last_message()["content"]
-
-
-print(research("giá vàng hôm nay"))

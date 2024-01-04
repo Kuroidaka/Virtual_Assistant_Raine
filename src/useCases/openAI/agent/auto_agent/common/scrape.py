@@ -1,4 +1,4 @@
-from ..common.summarize import summary
+from common.summarize import summary
 from bs4 import BeautifulSoup
 import requests
 import json
@@ -43,8 +43,3 @@ def scrape(url:str):
             return text
     else:
         print(f"HTTP request failed with status code {response.status_code}")
-
-
-# Run the function
-asyncio.run(scrape(url="https://daynghekimhoan.vn/mot-phan-vang-la-bao-nhieu-tien/"))
-
