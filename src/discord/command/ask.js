@@ -17,6 +17,17 @@ const getLatestMsg = async (message, id) => {
 	}
 }
 
+const reactIconList = [
+	{
+		name: "create_reminder",
+		icon: "⏱️"
+	},
+	{
+		name: "get_current_weather",
+		icon: "☁️"
+	},
+]
+
 module.exports = {
 	data: {
 		name: 'raine',
@@ -85,6 +96,16 @@ module.exports = {
 					type: "discord"
 				})
 				.then(res => {
+
+					if(res.data.func && res.data.func.length > 0) {
+						reaction.remove().catch(error => console.error('Failed to remove reactions: ', error));
+						res.data.func.map(func => {
+							const icon = reactIconList.find(item => item.name === func).icon
+							console.log(icon);
+							icon && interaction.react(icon)
+						})
+					}
+
 					if(Array.isArray(res.data.data)) {
 						res.data.data.map(msg => {
 							interaction.reply(msg)

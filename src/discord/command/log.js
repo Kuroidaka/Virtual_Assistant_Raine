@@ -1,12 +1,11 @@
-const chalk = require("chalk");
-const { EmbedBuilder } = require('discord.js');
-
+const axios = require('axios');
+const geoip = require('geoip-lite');
 
 module.exports = {
 	data: {
-		name: 'avatar',
+		name: 'ping',
 		check: (interaction) => {
-			let substringToCheck = "-avatar";
+			let substringToCheck = "ping";
 			if(interaction.content.toLowerCase().includes(substringToCheck.toLowerCase())) return true 
 			return false
 		}
@@ -14,15 +13,8 @@ module.exports = {
 	async execute(interaction) {
 		try {
 
-			const user = interaction.mentions.users.first() || interaction.author;
-			const url = user.displayAvatarURL({ dynamic: true, size: 1024 });
-
-			const embed = new EmbedBuilder()
-			.setImage(url)
-			.setTitle(`**${user.globalName || user.username}'s Avatar**`)
-			.setURL(url)
-			interaction.channel.send({ embeds: [embed] });
-
+			interaction.reply("pong")	  
+			
 		} catch (error) {
 			console.log(error)
 		}

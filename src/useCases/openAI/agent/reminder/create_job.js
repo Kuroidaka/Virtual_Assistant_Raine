@@ -27,6 +27,10 @@ module.exports = (dependencies) => {
         // send reminder to discord
         printDiscord(dependencies).execute({remindPrompt});
 
+        /*
+          Send reminder notification in other platform
+        */
+       
         if (!repeat) {
           await deleteJob(dependencies).execute({taskID})
         }

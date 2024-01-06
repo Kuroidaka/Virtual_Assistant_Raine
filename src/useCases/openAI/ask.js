@@ -70,13 +70,14 @@ module.exports = class askOpenAIUseCase {
         }
         
         // get function calling definition
-        const funcList = await funcCall()
+        const funcList = await funcCall({dependencies: this.dependencies})
         let model = "gpt-4"
         let isFuncCall = true
 
         // Log conversation
         console.log(chalk.blue.bold('ConversationPrompt'), this.promptMessageFunc)
 
+        let responseData = {func:[]}
         while(true) {
           
           console.log(chalk.green.bold("------------------------ REQUEST ------------------------"));
@@ -114,7 +115,7 @@ module.exports = class askOpenAIUseCase {
                 prepareKey: prepareKey,
                 currentLang: currentLang
               }
-
+              responseData.func.push(responseMessage.function_call.name)
               if(responseMessage.function_call?.name === "get_current_weather") {
                 this.promptMessageFunc = await funcList.func.weatherFunc.execute(funcArgs)
               } 
@@ -138,7 +139,12 @@ module.exports = class askOpenAIUseCase {
               }
             }
             else {
-              return ({ status: 200, data: completion.choices[0].message.content })
+              responseData = {
+                ...responseData,
+                status: 200,
+                data: completion.choices[0].message.content 
+              }
+              return responseData
             }
           }  
           console.log(chalk.green.bold("------------------------ END REQUEST ------------------------"));

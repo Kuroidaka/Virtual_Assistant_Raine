@@ -73,6 +73,7 @@ module.exports = (dependencies) => {
     
             console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
             if(result.status === 200) {
+                // add new response into redis
                 const redisAddData = {
                     role: "assistant",
                     content: result.data,
@@ -81,12 +82,12 @@ module.exports = (dependencies) => {
                 await redisAdd.execute(redisAddData)
 
                 let dataResponse = result.data
-                console.log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${result.data}`), "\n}")
+                console.log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${dataResponse}`), "\n}")
 
                 if(result.image_list && result.image_list.length > 0) {
                     dataResponse = result.image_list
                 }
-                return res.status(result.status).json({data: dataResponse})
+                return res.status(result.status).json({data: dataResponse, func: result.func})
             }
             else {
                 throw Error(result.error)

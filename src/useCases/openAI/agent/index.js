@@ -4,8 +4,7 @@ const generateImage = require("./generateImage")
 const browse = require("./browse/browse")
 const reminderClass = require("./reminder/reminder")
 
-module.exports = () => { 
-    const dependencies = require("../../../config/dependencies")
+module.exports = ({dependencies}) => { 
     const reminderFunc = new reminderClass(dependencies)
     const generateImageFunc = generateImage(dependencies)
     const browseFunc = browse(dependencies)
