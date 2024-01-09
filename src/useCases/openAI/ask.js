@@ -91,18 +91,25 @@ module.exports = class askOpenAIUseCase {
             systemMsgCount: countSystem,
             prepareKey: prepareKey,
             functionCall: isFuncCall,
-            listFunc: funcList.listFuncSpec
+            listFunc: funcList.listFuncSpec,
+            resource: "azure"
           }
           const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
           // process function calling from tools
           const responseMessage = completion.choices[0].message
-          if(completion.choices[0].finish_reason){
-            console.log(chalk.green.bold("Finish_reason"), completion.choices[0].finish_reason )
+          const finishReason = completion.choices[0].finish_reason || completion.choices[0].finishReason
+          if(finishReason){
+
+            console.log(
+              chalk.green.bold("Finish_reason"), finishReason
+            )
             
-            if(completion.choices[0].finish_reason !== "stop"){
+            if(finishReason !== "stop") {
               // prepare arguments
-              const args = JSON.parse(responseMessage.function_call.arguments)
+              const functionCall = responseMessage.function_call || responseMessage.functionCall
+
+              const args = JSON.parse(functionCall.arguments)
               Object.keys(args).forEach(key => {
                 console.log(`---> ${key}: ${args[key]}`)
               })
@@ -115,24 +122,24 @@ module.exports = class askOpenAIUseCase {
                 prepareKey: prepareKey,
                 currentLang: currentLang
               }
-              responseData.func.push(responseMessage.function_call.name)
-              if(responseMessage.function_call?.name === "get_current_weather") {
+              responseData.func.push(functionCall.name)
+              if(functionCall?.name === "get_current_weather") {
                 this.promptMessageFunc = await funcList.func.weatherFunc.execute(funcArgs)
               } 
-              else if(responseMessage.function_call?.name === "create_reminder") {
+              else if(functionCall?.name === "create_reminder") {
                 this.promptMessageFunc = await funcList.func.reminderFunc.execute(funcArgs)
               } 
-              else if(responseMessage.function_call?.name === "browse") {
+              else if(functionCall?.name === "browse") {
                 const { content, conversation } = await funcList.func.browseFunc.execute(funcArgs)
                 this.promptMessageFunc = conversation
                 return ({ status: 200, data: content })
               } 
-              else if(responseMessage.function_call?.name === "follow_up_image_in_chat") {
+              else if(functionCall?.name === "follow_up_image_in_chat") {
                 const { content, conversation } = await funcList.func.followUpImageFunc.execute(funcArgs)
                 this.promptMessageFunc = conversation
                 return ({ status: 200, data: content })
               }
-              else if(responseMessage.function_call?.name === "generate_image") {
+              else if(functionCall?.name === "generate_image") {
                 const { conversation, content, imgList } = await funcList.func.generateImageFunc.execute(funcArgs)
                 this.promptMessageFunc = conversation
                 return ({ status: 200, data: content, image_list: imgList })
