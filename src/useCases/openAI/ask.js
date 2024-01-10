@@ -28,7 +28,7 @@ module.exports = class askOpenAIUseCase {
           currentLang = language.languages[detectLan(textFromPrompt)]
         }
        
-        console.log(chalk.blue.bold(`prompt:(${currentLang})`), prompt);
+        console.log(chalk.blue.bold(`prompt:(${JSON.stringify(currentLang)})`), prompt);
         
         // prepare data system for conversation prompt
         const preparePrompt = common.prepareSystemPromptCommon(this.dependencies)
@@ -50,6 +50,7 @@ module.exports = class askOpenAIUseCase {
 
         let temperature = 0.5
   
+
         if(haveFile) {// Read file image
           const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
@@ -109,9 +110,15 @@ module.exports = class askOpenAIUseCase {
               // prepare arguments
               const functionCall = responseMessage.function_call || responseMessage.functionCall
 
+              // Log arguments
               const args = JSON.parse(functionCall.arguments)
               Object.keys(args).forEach(key => {
-                console.log(`---> ${key}: ${args[key]}`)
+                if (typeof args[key] === 'object' || Array.isArray(args[key])) {
+                  console.log(`---> ${key}:`, JSON.stringify(args[key]))
+                }
+                else { 
+                  console.log(`---> ${key}: ${args[key]}`)
+                }
               })
 
               const funcArgs = {

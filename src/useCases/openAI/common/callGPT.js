@@ -65,8 +65,6 @@ module.exports = (dependencies) => {
         }
       }
       completion = await azureOpenAi.getChatCompletions(deploymentId, conversation, callObj);
-
-      conversation.push(completion.choices[0].message)
     }
     else {
       if (functionCall) {
@@ -88,12 +86,21 @@ module.exports = (dependencies) => {
           max_tokens: maxToken,
         }
       }
-
       completion = await openAi.chat.completions.create(callObj)
-      
-      conversation.push(completion.choices[0].message)
     }
-    
+
+    // convert file content into string to prevent error when using other model gpt again
+    if (model === 'gpt-4-vision-preview') {
+      let lastMsg = conversation[conversation.length - 1];
+      lastMsg.content = lastMsg.content[0].text;
+      conversation.pop()
+      conversation.push(lastMsg)
+
+
+      // await mergeConversation(dependencies).execute(prepareKey, conversation)
+    }
+
+    conversation.push(completion.choices[0].message)
     return {
       conversation,
       completion,

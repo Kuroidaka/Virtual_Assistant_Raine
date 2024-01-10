@@ -6,10 +6,11 @@ const followUpImage = {
         const { prompt, image_list } = args
 
         let content = []
-        
+
+        // remove the function call msg from conversation because model gpt-4-vision-preview doesn't support function call
         conversation.pop()
 
-        if(image_list.length > 0) {
+        if(image_list && image_list.length > 0) {
           content = [{type: "text", text: prompt}]
           image_list.forEach(img => content.push({
             type: "image_url",
@@ -22,7 +23,7 @@ const followUpImage = {
                 content: content
             })
         }
-        else {
+        else { //still not reach llm, fix later
             conversation.push({
                 role: "assistant",
                 content: "not found any image"
@@ -56,15 +57,12 @@ const followUpImage = {
             "
             - You can get the specific image url by using the index of the array
             - Response to user by the language that user requested
+            - remember to put the comma between the properties in argument
         `,
         parameters: {
             type: "object",
             additionalProperties: false,
             properties: {
-                "prompt": {
-                    "type": "string",
-                    "description": "Detailed Description about the image or images or what user want to know about the image",
-                },
                 "image_list": {
                     "type": "array",
                     "description": "the list of image url from the conversation list, containing the first image url from the conversation list or the second image url base on user prompt",
@@ -77,7 +75,11 @@ const followUpImage = {
                             },
                         }
                     },         
-                }
+                },
+                "prompt": {
+                    "type": "string",
+                    "description": "Detailed Description about the image or images or what user want to know about the image",
+                },
             },
             required: ["image_list"]
         }
