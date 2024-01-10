@@ -4,7 +4,7 @@ const { OpenAI } = require("langchain/llms/openai");
 const { PromptTemplate } = require("langchain/prompts")
 const { loadSummarizationChain } = require("langchain/chains")
 
-module.exports = ({currentLang}) => {
+module.exports = ({currentLang, resource}) => {
 
   if(!currentLang) {
     currentLang = { 
@@ -14,8 +14,21 @@ module.exports = ({currentLang}) => {
     }
   }
   const execute = async (text, objective) => {
+    let model
+    if(resource === "azure") {
+      model = new OpenAI({ 
+          temperature: 0,
+          azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+          azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
+          azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
+          azureOpenAIApiDeploymentName: "GPT35TURBO16K",
+          // azureOpenAIBasePath: process.env.AZURE_OPENAI_API_URL,
 
-    const model = new OpenAI({ temperature: 0, modelName: "gpt-3.5-turbo-16k-0613" });
+      })
+    }
+    else {
+        model = new OpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
+    }
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 500,

@@ -52,7 +52,7 @@ module.exports = () => {
         const systemPrompt = instructions.tools.browse.instructions
 
         // defind tool
-        const scrapeTool = scrape({currentLang}).ScrapeWebsiteTool
+        const scrapeTool = scrape({currentLang, resource}).ScrapeWebsiteTool
         const searchTool = serper({currentLang}).GoogleSearchTool
         const tools = [
             new searchTool(),

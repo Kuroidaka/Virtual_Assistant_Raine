@@ -15,6 +15,12 @@ module.exports = (dependencies) => {
         let files
         let haveFile = false
         let isTask = false
+        let resource = ""
+
+        // Check if the project run on Azure
+        if(process.env.AZURE_OPENAI_API_KEY) {
+            resource = "azure"
+        }
 
         if(type === "discord") {// if the request is from discord
             prepareKey = data.prepareKey
@@ -69,7 +75,7 @@ module.exports = (dependencies) => {
                 prepareKey,
                 isTask,
                 haveFile,
-                resource: "azure"
+                resource: resource
             })
     
             console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)

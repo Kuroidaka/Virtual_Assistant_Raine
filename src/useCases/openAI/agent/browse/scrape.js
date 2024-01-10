@@ -3,7 +3,7 @@ const summary = require("./summarize")
 const { DynamicStructuredTool } = require("langchain/tools");
 const { z } = require("zod")
 
-module.exports = ({currentLang}) => { 
+module.exports = ({currentLang, resource}) => { 
 
     if(!currentLang) {
         currentLang = { 
@@ -54,7 +54,7 @@ module.exports = ({currentLang}) => {
             let text = await newTab.evaluate(() => document.body.innerText);
             
             if(text.length > 8000) {
-               text = await summary({currentLang}).execute(text, objective)
+               text = await summary({currentLang, resource}).execute(text, objective)
             }
             return JSON.stringify(text)
             
