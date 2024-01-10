@@ -1,22 +1,18 @@
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 // import { PineconeStore } from 'langchain/vectorstores/pinecone';
 // import { pinecone } from '@/utils/pinecone-client';
-const { DirectoryLoader } = require('langchain/document_loaders/fs/directory');
-const { PDFLoader } = require('langchain/document_loaders/fs/pdf')
-const { DocxLoader } = require("langchain/document_loaders/fs/docx")
-const { PPTXLoader } = require("langchain/document_loaders/fs/pptx")
 
 const { FaissStore } =require("langchain/vectorstores/faiss")
 const { OpenAIEmbeddings } = require("langchain/embeddings/openai");
 
 const { OpenAI } = require("langchain/llms/openai")
+const { ChatOpenAI } =require("langchain/chat_models/openai");
 const { loadQAMapReduceChain, RetrievalQAChain, loadQAStuffChain } = require("langchain/chains")
 const { PromptTemplate } = require("@langchain/core/prompts")
 
 
-const run = () => {
+module.exports = () => {
   const execute = async ({args, conversation, currentLang, resource}) => {
-
     const { q } = args;
     try {
       const directory = "src/assets/vector";
@@ -51,11 +47,11 @@ const run = () => {
           azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
           // azureOpenAIBasePath: process.env.AZURE_OPENAI_API_URL,
       }
-        llm = new OpenAI({...azureConfig, azureOpenAIApiDeploymentName: "GPT35TURBO16K"})
+        llm = new ChatOpenAI({ ...azureConfig, azureOpenAIApiDeploymentName: "GPT35TURBO16K", })
         embeddingsLlm = new OpenAIEmbeddings({...azureConfig, azureOpenAIApiDeploymentName: "ADA"})
       }
       else {
-        llm = new OpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
+        llm = new ChatOpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
         embeddingsLlm = new OpenAIEmbeddings()
       }
 
@@ -66,7 +62,7 @@ const run = () => {
   
       const chain = new RetrievalQAChain({
         // combineDocumentsChain: loadQAStuffChain(llm, { prompt }),
-        combineDocumentsChain: loadQAMapReduceChain(llm, { verbose : false } ),
+        combineDocumentsChain: loadQAMapReduceChain(llm, { verbose : true } ),
         retriever: loadedVectorStore.asRetriever(),
       });
 
@@ -79,21 +75,45 @@ const run = () => {
         query: q,
       });
       console.log(JSON.stringify(res, null, 2));
-
-      // console.log({ res });
+      
+      conversation.push({
+        role: "assistant",
+        content: res.text
+      })
+      return {
+        content: res.text,
+        conversation
+      }
   
     } catch (error) {
       console.log('error', error);
       throw new Error('Failed to ingest your data');
     }
   };
-
-  return { execute }
+  
+  const funcSpec = {
+    name: "ask_about_document",
+    description: "The function to ask about a document and provide information based on the user's prompt.",
+    parameters: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            q: {
+                type: "string",
+                description: "The question that the user wants to know about the uploaded document",
+            }
+        },
+        required: ["q"],
+    },
+  }
+  
+  return { execute, funcSpec }
 }
 
-(async () => {
-    const q = "Độ tuổi khảo sát nào chiếm % cao nhất";
-    const args = { q };
-    await run().execute({args});
-    console.log('ingestion complete');
-})();
+// // Usage:
+// (async () => {
+//     const q = "Độ tuổi khảo sát nào chiếm % cao nhất";
+//     const args = { q };
+//     await run().execute({args, resource:"azure"});
+//     console.log('ingestion complete');
+// })();
