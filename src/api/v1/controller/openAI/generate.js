@@ -68,7 +68,8 @@ module.exports = (dependencies) => {
                 conversation,
                 prepareKey,
                 isTask,
-                haveFile
+                haveFile,
+                resource: "azure"
             })
     
             console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)

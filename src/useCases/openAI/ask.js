@@ -15,7 +15,8 @@ module.exports = class askOpenAIUseCase {
       conversation,
       prepareKey,
       isTalk = false,
-      haveFile
+      haveFile,
+      resource = ""
     }) => {
       try {
         //check language from request
@@ -93,7 +94,7 @@ module.exports = class askOpenAIUseCase {
             prepareKey: prepareKey,
             functionCall: isFuncCall,
             listFunc: funcList.listFuncSpec,
-            resource: "azure"
+            resource: resource
           }
           const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
@@ -127,7 +128,8 @@ module.exports = class askOpenAIUseCase {
                 dependencies: this.dependencies,
                 countSystem: countSystem,
                 prepareKey: prepareKey,
-                currentLang: currentLang
+                currentLang: currentLang,
+                resource: resource
               }
               responseData.func.push(functionCall.name)
               if(functionCall?.name === "get_current_weather") {
