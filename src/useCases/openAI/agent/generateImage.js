@@ -23,6 +23,7 @@ module.exports = (dependencies) => {
                 n: { 
                     type: "string", 
                     description: "The number of images to generate. If the user does not specify a number, generate 1 image. If the user specifies a number, generate that many images, up to a maximum of 5.",
+                    default: 1
                 },
                 quality:  {
                     type: "string",
@@ -54,7 +55,7 @@ module.exports = (dependencies) => {
             prompt: prompt,
             size: size,
             quality: quality,
-            n: Number(n),
+            n: Number(n) || 1,
             style: style
         })
         
