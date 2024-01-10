@@ -27,10 +27,25 @@ module.exports = () => {
         },
     }
 
-    const execute = async  ({args, conversation, currentLang}) => {
+    const execute = async  ({args, conversation, currentLang, resource}) => {
 
         const { q } = args
-        const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
+
+        let model
+        if(resource === "azure") {
+            model = new ChatOpenAI({ 
+                temperature: 0,
+                azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+                azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
+                azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
+                azureOpenAIApiDeploymentName: "GPT35TURBO16K",
+                // azureOpenAIBasePath: process.env.AZURE_OPENAI_API_URL,
+    
+            })
+        }
+        else {
+            model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
+        }
 
         // get system prompt for browse agent
         const instructions = RainePrompt({currentLang})
