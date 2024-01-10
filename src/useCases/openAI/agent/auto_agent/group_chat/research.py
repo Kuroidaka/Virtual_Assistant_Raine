@@ -39,7 +39,8 @@ def research(query):
                 },
             },
         ],
-        "config_list": config_list
+        "config_list": config_list,
+        "timeout": 600,
     }
 
     researcher = autogen.AssistantAgent(

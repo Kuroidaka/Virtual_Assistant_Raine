@@ -1,5 +1,4 @@
 const axios = require('axios');
-const geoip = require('geoip-lite');
 
 module.exports = {
 	data: {

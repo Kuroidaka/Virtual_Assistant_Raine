@@ -21,19 +21,19 @@ module.exports = ({currentLang}) => {
     // Define tool
     class GoogleSearchTool extends DynamicStructuredTool {
         constructor() {
-        super({
-            name: "search",
-            description:  `useful when you need to answer the questions about current events, data, you should ask targeted questions,
-            The input for this tool contain 1 argument "q"
-            "q" is the question that user want to know about the current events, data, news, ...
-            the the output will be a json string.`,
-            func: async ({q}) => {
-            console.log("q:", q)
-            console.log("lang:", currentLang)
-            return execute({q, currentLang});
-            },
-            schema: googleSearchSchema,
-        });
+            super({
+                name: "search",
+                description:  `useful when you need to answer the questions about current events, data, you should ask targeted questions,
+                The input for this tool contain 1 argument "q"
+                "q" is the question that user want to know about the current events, data, news, ...
+                The output will be a json string.`,
+                func: async ({q}) => {
+                    console.log("q:", q)
+                    console.log("lang:", currentLang)
+                    return execute({q, currentLang});
+                },
+                schema: googleSearchSchema,
+            });
         }
     }
 

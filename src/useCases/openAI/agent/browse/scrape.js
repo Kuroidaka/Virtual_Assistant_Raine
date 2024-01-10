@@ -22,16 +22,16 @@ module.exports = ({currentLang}) => {
     // Define tool
     class ScrapeWebsiteTool extends DynamicStructuredTool {
         constructor() {
-        super({
-            name: "scrape_website",
-            description: `Useful when you need to get data from a website url. The input for this tool contain 2 argument (url, objective) - The "objective" is the targeted questions you want to know - DO NOT make up any "url", the "url" should only be the link to the website from the search tool results. The the output will be a json string.`,
-            func: async ({url, objective}) => {
-            console.log("url:", url)
-            console.log("objective:", objective)
-            return execute({url, objective});
-            },
-            schema: scrapeWebsiteSchema,
-        });
+            super({
+                name: "scrape_website",
+                description: `Useful when you need to get data from a website url. The input for this tool contain 2 argument (url, objective) - The "objective" is the targeted questions you want to know - DO NOT make up any "url", the "url" should only be the link to the website from the search tool results. The output will be a json string.`,
+                func: async ({url, objective}) => {
+                    console.log("url:", url)
+                    console.log("objective:", objective)
+                    return execute({url, objective});
+                },
+                schema: scrapeWebsiteSchema,
+            });
         }
     }
 

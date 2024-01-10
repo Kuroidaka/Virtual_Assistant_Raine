@@ -1,17 +1,17 @@
+// const { exec } = require('child_process');
+
 module.exports = async (dependencies) => {
 
     const { DB } = dependencies;
 
-// check if task is due in 1 hour
-    // const tasks = await DB.task.findMany({
-    //     where: {
-    //       time: {
-    //         lt: new Date(Date.now() + 60 * 60 * 1000) // adding 1 hour to current time
-    //       }
-    //     }
-    //   });
 
-    // console.log(tasks)
+    // // exec('osascript -e \'tell app "Terminal" to do script "ls"\'', (error, stdout, stderr) => {
+    // //     if (error) {
+    // //         console.error(`exec error: ${error}`);
+    // //         return;
+    // //     }
+    // //     console.log(`stdout: ${stdout}`);
+    // //     console.error(`stderr: ${stderr}`);
+    // // });
 
-      
 }

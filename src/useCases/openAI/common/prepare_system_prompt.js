@@ -47,7 +47,6 @@ module.exports = (dependencies) => {
       }
       conversation.push(dalle)
       conversation.push(taskRemind)
-
       countSystem +=3
     }
 
