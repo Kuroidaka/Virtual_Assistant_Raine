@@ -10,7 +10,8 @@ module.exports = (dependencies) => {
 
     const {
         generateController,
-        uploadFileController
+        uploadFileController,
+        deleteFileController
         // askForFunction,
         // generateForTTS,
         // generateImg,
@@ -24,6 +25,10 @@ module.exports = (dependencies) => {
     router  
         .route("/upload-file")
         .post(uploadFileController)
+    
+    router
+        .route("/del-file")
+        .post(deleteFileController)
 
     // router
     //     .route('/ask-for-tts')
