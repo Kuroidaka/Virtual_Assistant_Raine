@@ -80,6 +80,24 @@ module.exports = (data) => {
                 5/ In the final output, You should include all reference data & links to back up your research; You should include all reference data & links to back up your research
                 6/ In the final output, You should include all reference data & links to back up your research; You should include all reference data & links to back up your research
                 `
+            },
+            readDocs: {
+                instructions: `
+                ## ask_about_document
+
+                This function allows the AI to read and interpret the content of a file. It can handle various file formats, including .docx, .pdf, .pptx.
+                
+                namespace functions {
+                
+                type ask_about_document = (_: {
+                // The question that the user wants to know about the uploaded document
+                q: string,
+                }) => any;
+                
+                } // namespace functions
+                
+                When a user provides a file or ask about the information from file, you will use the "ask_about_document" function to read and interpret the content of the file. You will then use the information from the file to answer the user's questions. If the AI does not understand the content of the file, it will ask the user for clarification. The AI can handle various file formats, including .docx, .pdf, pptx.
+                `
             }
         },
     }

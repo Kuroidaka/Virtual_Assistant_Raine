@@ -28,14 +28,16 @@ module.exports = () => {
       //   textKey: 'text',
       // });
 
-      // const promptTemplate = `Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-      // {context}
-
-      // Question: {question}
-      // Answer in en:`;
-      // const prompt = PromptTemplate.fromTemplate(promptTemplate);
+      // const promptTemplateContent = `
+      // Using language {language} to answer the following question using the document content:
+      // --------
+      // {question}
+      // --------
+      // `;
+      // const prompt = PromptTemplate.fromTemplate(promptTemplateContent);
+      // const prompt = promptTemplate.format({question: q, language: currentLang});
       
+// config llm
       let llm
       let embeddingsLlm 
       if(resource === "azure") {
@@ -47,32 +49,46 @@ module.exports = () => {
           azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
           // azureOpenAIBasePath: process.env.AZURE_OPENAI_API_URL,
       }
-        llm = new ChatOpenAI({ ...azureConfig, azureOpenAIApiDeploymentName: "GPT35TURBO16K", })
+        llm = new ChatOpenAI({ 
+          ...azureConfig,
+          azureOpenAIApiDeploymentName: "GPT35TURBO16K"
+        })
         embeddingsLlm = new OpenAIEmbeddings({...azureConfig, azureOpenAIApiDeploymentName: "ADA"})
       }
       else {
-        llm = new ChatOpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
+        llm = new ChatOpenAI({
+          modelName: "gpt-3.5-turbo-16k-0613",
+          temperature: 0
+        });
         embeddingsLlm = new OpenAIEmbeddings()
       }
-
+// load vector store
       const loadedVectorStore = await FaissStore.load(
         directory,
         embeddingsLlm
       );
-  
+ 
+// load chain
       const chain = new RetrievalQAChain({
         // combineDocumentsChain: loadQAStuffChain(llm, { prompt }),
         combineDocumentsChain: loadQAMapReduceChain(llm, { verbose : true } ),
         retriever: loadedVectorStore.asRetriever(),
       });
 
-      // const chain = RetrievalQAChain.fromLLM(llm, loadedVectorStore.asRetriever(), {
-      //   returnSourceDocuments: true, // Can also be passed into the constructor
-      // });
+      // const chain = RetrievalQAChain.fromLLM(
+      //   llm, 
+      //   loadedVectorStore.asRetriever(),
+      //   {
+      //     prompt : prompt,
+      //     verbose: true
+      //     // returnSourceDocuments: true, // Can also be passed into the constructor
+      //   }
+      // );
       
 
       const res = await chain.call({
         query: q,
+        language: currentLang.lc,
       });
       console.log(JSON.stringify(res, null, 2));
       
@@ -114,6 +130,6 @@ module.exports = () => {
 // (async () => {
 //     const q = "Độ tuổi khảo sát nào chiếm % cao nhất";
 //     const args = { q };
-//     await run().execute({args, resource:"azure"});
+//     await run().execute({args, resource:"azure", currentLang: "en"});
 //     console.log('ingestion complete');
 // })();

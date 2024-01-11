@@ -37,6 +37,7 @@ module.exports = (dependencies) => {
     if (instructions) {
       const dalle = { role: 'system', content: tools.dalle }
       const taskRemind = { role: 'system', content: tools.task.instructions }
+      const readDocs = { role: 'system', content: tools.readDocs.instructions }
 
       conversation[0] = {
         role: 'system',
@@ -47,7 +48,8 @@ module.exports = (dependencies) => {
       }
       conversation.push(dalle)
       conversation.push(taskRemind)
-      countSystem +=3
+      conversation.push(readDocs)
+      countSystem +=4
     }
 
     // check user boss on Discord
