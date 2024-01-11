@@ -22,4 +22,4 @@ const isDirectoryEmpty = async (dir) => {
 module.exports = isDirectoryEmpty;
 
 // Usage:
-isDirectoryEmpty('src/assets/tmpDocs').then(isNotEmpty => console.log(isNotEmpty));
+// isDirectoryEmpty('src/assets/tmpDocs').then(isNotEmpty => console.log(isNotEmpty));

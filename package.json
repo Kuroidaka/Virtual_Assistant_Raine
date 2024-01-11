@@ -11,7 +11,7 @@
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.10",
     "@dqbd/tiktoken": "^1.0.7",
-    "@prisma/client": "^5.7.0",
+    "@prisma/client": "^5.8.0",
     "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
     "chalk": "^4.1.2",
@@ -40,9 +40,11 @@
     "officeparser": "^4.0.6",
     "openai": "^4.3.1",
     "pdf-parse": "^1.1.1",
-    "prisma": "^5.7.0",
     "puppeteer": "^19.11.1",
     "redis": "^4.6.8",
     "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "prisma": "^5.8.0"
   }
 }

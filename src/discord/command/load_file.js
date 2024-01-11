@@ -17,13 +17,10 @@ module.exports = {
                 // process file Input
                 for (const [key, value] of interaction.attachments) {
                     let fileName = value.name;
-                    let lastDotPosition = fileName.lastIndexOf(".");
-                    let fileExtension = fileName.substring(lastDotPosition + 1);
                     let fileURL = value.url
                     let fileSize = value.size
                     const fileObject = {
                         name: fileName,
-                        extension: fileExtension,
                         url: fileURL,
                         size: fileSize
                     }
