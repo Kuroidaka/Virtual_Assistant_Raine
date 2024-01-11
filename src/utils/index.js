@@ -1,6 +1,8 @@
 const { encoding_for_model } = require ("@dqbd/tiktoken");
 const LanguageDetect = require('languagedetect');
 const lngDetector = new LanguageDetect();
+const downloadFile = require('./download_file')
+const deleteFilesInDirectory = require('./delete_file_dir')
 
 //Returns the number of tokens in a text string
 const countToken = (message, model) => {
@@ -31,5 +33,7 @@ const detectLan = (lang) => {
 module.exports = {
     countToken,
     convertDates,
-    detectLan
+    detectLan,
+    deleteFilesInDirectory,
+    downloadFile
 }
