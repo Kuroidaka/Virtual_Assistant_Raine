@@ -2,9 +2,9 @@ const axios = require('axios');
 
 module.exports = {
 	data: {
-		name: 'ping',
+		name: 'delete_conversation',
 		check: (interaction) => {
-			let substringToCheck = "ping";
+			let substringToCheck = "-del_con";
 			if(interaction.content.toLowerCase().includes(substringToCheck.toLowerCase())) return true 
 			return false
 		}
@@ -13,17 +13,10 @@ module.exports = {
 		try {
 
 			const originURL = process.env.ORIGIN_URL || `http://localhost:${process.env.SERVER_PORT}`
-			await axios.post(`${originURL}/api/v1/conversation/create`, {
+			await axios.post(`${originURL}/api/v1/conversation/delete`, {
 				data: {
-					conversationId: "e751295a-82b8-4617-a27a-4f724e91b46c",
-					from: "discord",
-					messages: {
-						text: interaction.content,
-						sender: "user",
-						senderID: interaction.author.id
-					
-					},
-
+					conversationId: "82d46cfd-2a00-4a73-9353-8b3397d9c333",
+					from: "discord"
 				}
 				
 			})

@@ -27,3 +27,25 @@ model File {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Conversation {
+  id          String        @id @default(uuid())
+  name        String
+  from        String
+  lastMessage String
+  lastMessageAt DateTime    @default(now())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  messages    Message[]
+}
+
+model Message {
+  id              String        @id @default(uuid())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  text            String
+  sender          String        // 'user' or 'bot'
+  senderID        String
+  conversation    Conversation  @relation(fields: [conversationId], references: [id])
+  conversationId  String
+}

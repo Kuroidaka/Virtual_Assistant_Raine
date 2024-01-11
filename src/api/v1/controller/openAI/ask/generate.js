@@ -80,6 +80,7 @@ module.exports = (dependencies) => {
     
             console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
             if(result.status === 200) {
+                
                 // add new response into redis
                 const redisAddData = {
                     role: "assistant",
@@ -88,6 +89,8 @@ module.exports = (dependencies) => {
                 }
                 await redisAdd.execute(redisAddData)
 
+
+                // return response
                 let dataResponse = result.data
                 console.log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${dataResponse}`), "\n}")
 
