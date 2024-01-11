@@ -30,7 +30,7 @@ module.exports = (dependencies) => {
             // Load docs into vector store
             await loadFileIntoVector({docsPath, resource})
 
-            deleteFilesInDirectory(docsPath)
+            // deleteFilesInDirectory(docsPath)
 
         }
         try {
