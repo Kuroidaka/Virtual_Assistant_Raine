@@ -7,7 +7,16 @@ const getConversations = (dependencies) => {
 
     const execute = async () => {
         const conversations = await DB.conversation.findMany({
-            include: { messages: true }
+            orderBy: {
+                lastMessageAt: 'desc',
+            },
+            include: { 
+                messages: {
+                    orderBy: {
+                      createdAt: 'desc',
+                    }
+                } 
+            }
         });
         
         return conversations;
