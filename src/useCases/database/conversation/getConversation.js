@@ -5,8 +5,9 @@ const getConversations = (dependencies) => {
         throw new Error("DB should be exist in dependencies");
     }
 
-    const execute = async () => {
+    const execute = async ({ from, id }) => {
         const conversations = await DB.conversation.findMany({
+            where: { from: from, id: id },
             orderBy: {
                 lastMessageAt: 'desc',
             },

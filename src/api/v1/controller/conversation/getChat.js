@@ -9,12 +9,12 @@ module.exports = (dependencies) => {
     } } = dependencies;
 
     return async (req, res) => { 
-        const { data } = req.body;
+        const { from } = req.query;
         
   
         try {
             // Get all conversations from the database
-           const data = await getConversations(dependencies).execute()
+           const list = await getConversations(dependencies).execute({ from })
 
             // Prepare the sidebar list
             const conversationData = [
@@ -25,7 +25,7 @@ module.exports = (dependencies) => {
             ];
 
             // Iterate over each conversation
-            for (let conversation of data) {
+            for (let conversation of list) {
 
                 // Determine which dayRef the conversation belongs to
                 const now = new Date();

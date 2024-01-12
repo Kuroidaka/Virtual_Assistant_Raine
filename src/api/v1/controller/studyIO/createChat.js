@@ -4,9 +4,7 @@ const { askingAI } = require("../openAI/ask/generate");
 module.exports = (dependencies) => {
     const { useCases: { 
         DBUseCase: { conversationDB: { 
-            createConversation,
-            createMessage,
-            updateLastMsgCon
+            getConversations
          } }
     } } = dependencies;
 
@@ -45,9 +43,26 @@ module.exports = (dependencies) => {
                 haveFile: false, // check if the request has file attachment
                 isTask: false // false
             })
-
             const result = await Promise.all([storeDB, askAI])
-            return res.status(result[1].status).json({data: result[1].data, func: result[1].func})
+
+            const storeAIDB = await createConDB(dependencies).execute({
+                conversationId: result[0].message.conversationId,
+                from,
+                text: askAI.data,
+                sender: "bot",
+                senderID: "-2"
+            })
+
+            const newConversation = await getConversations(dependencies).execute({ from: "StudyIO", id: result[0].message.conversationId })
+
+            return res.status(result[1].status).json({
+                data: {
+                    bot: storeAIDB.message,
+                    user: result[0].message,
+                    title: result[0].title,
+                    newConversation: newConversation
+                },
+                func: result[1].func})
 
         } catch (error) {
          
