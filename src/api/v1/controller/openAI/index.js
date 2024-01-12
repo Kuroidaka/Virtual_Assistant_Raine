@@ -1,4 +1,4 @@
-const generateController = require("./ask/generate")
+const { generateController } = require("./ask/generate")
 const uploadFileController = require("./file/uploadFile")
 const deleteFileController = require("./file/deleteFile")
 const getFileController = require("./file/getFile")

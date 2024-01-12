@@ -1,7 +1,20 @@
-const { getFileExtension, downloadFile } = require("../../../../utils");
-const loadFileIntoVector = require("../../../../useCases/openAI/agent/read_file/load_file")
 
-module.exports = (dependencies) => {
+const createChatController = (dependencies) => {
+    return async (req, res) => { 
+        const { data } = req.body;
+        
+        try {            
+            await createConDB(dependencies).execute(data)
+            return res.status(200).json({ data: "created message successfully" });
+        } catch (error) {
+         
+            return res.status(500).json({ error: error });
+        }
+   
+    }
+}
+
+const createConDB = (dependencies) => {
     const { useCases: { 
         DBUseCase: { conversationDB: { 
             createConversation,
@@ -10,19 +23,17 @@ module.exports = (dependencies) => {
          } }
     } } = dependencies;
 
-    return async (req, res) => { 
-        const { data: { 
-            conversationId,
-            from,
-            messages: {
+    const execute = async (data) => {
+        try {
+            const { 
+                conversationId,
+                from,
                 text,
                 sender,
                 senderID
-            }
-        } } = req.body;
-        
-  
-        try {            
+            } = data
+    
+            if(conversationId === "" ) conversationId = null
             let conID = conversationId
             if(!conID) { 
                 // Create the conversation
@@ -39,19 +50,22 @@ module.exports = (dependencies) => {
                 sender: sender,
                 senderID: senderID
             });
-
+        
             // Update the last message of the conversation
             await updateLastMsgCon(dependencies).execute({
                 conversationId: conID,
                 lastMessage: text,
                 lastMessageAt: message.createdAt
             })
-
-            return res.status(200).json({ data: JSON.stringify(message) });
         } catch (error) {
-         
-            return res.status(500).json({ error: error });
+            throw new Error(error)
         }
    
     }
+
+    return { execute }
 }
+
+
+
+module.exports = { createChatController, createConDB };

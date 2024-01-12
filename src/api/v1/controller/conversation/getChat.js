@@ -15,7 +15,7 @@ module.exports = (dependencies) => {
         try {
             // Get all conversations from the database
            const data = await getConversations(dependencies).execute()
-           
+
             // Prepare the sidebar list
             const conversationData = [
                 { dayRef: "Today", conversationList: [] },

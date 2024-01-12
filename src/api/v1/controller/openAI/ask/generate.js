@@ -1,10 +1,6 @@
 const chalk = require("chalk")
 
-module.exports = (dependencies) => {
-    const { useCases: { 
-        openAiUseCase: { askOpenAIUseCase },
-        redisUseCase: { addToConversation, followUpConversation, popConversation }
-    } } = dependencies;
+const generateController = (dependencies) => {
 
     return async (req, res) => { 
         const { data, maxToken, currentUser, type } = req.body;
@@ -15,12 +11,6 @@ module.exports = (dependencies) => {
         let files
         let haveFile = false
         let isTask = false
-        let resource = ""
-
-        // Check if the project run on Azure
-        if(process.env.AZURE_OPENAI_API_KEY) {
-            resource = "azure"
-        }
 
         if(type === "discord") {// if the request is from discord
             prepareKey = data.prepareKey
@@ -51,65 +41,115 @@ module.exports = (dependencies) => {
             }
         }
         try {
-            // get the conversation from redis
-            const redisFollowUp = followUpConversation(dependencies)
-            const conversation = await redisFollowUp.execute({prepareKey})
-    
-            // add new prompt into redis
-
-            const redisAdd = addToConversation(dependencies)
-            const redisAddData = {
-                role: "user",
-                content: promptRedis,
-                prepareKey: prepareKey
-            }
-            await redisAdd.execute(redisAddData)
-    
-            // call GPT
-            const askOpenAi = new askOpenAIUseCase(dependencies)
-            const result = await askOpenAi.execute({
-                prompt,
-                maxToken,
-                curUser,
-                conversation,
-                prepareKey,
-                isTask,
-                haveFile,
-                resource: resource
+            const result = await askingAI(dependencies).execute({
+                prepareKey, // conversation key
+                promptRedis, // prompt for redis,
+                prompt, // prompt for openAI
+                maxToken, 
+                curUser, //{name, id}
+                haveFile, // check if the request has file attachment
+                isTask // false
             })
-    
-            console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
-            if(result.status === 200) {
-                
-                // add new response into redis
-                const redisAddData = {
-                    role: "assistant",
-                    content: result.data,
-                    prepareKey: prepareKey
-                }
-                await redisAdd.execute(redisAddData)
-
-
-                // return response
-                let dataResponse = result.data
-                console.log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${dataResponse}`), "\n}")
-
-                if(result.image_list && result.image_list.length > 0) {
-                    dataResponse = result.image_list
-                }
-                return res.status(result.status).json({data: dataResponse, func: result.func})
-            }
-            else {
-                throw Error(result.error)
-            }
-    
+            return res.status(result.status).json({data: result.data, func: result.func})
         } catch (error) {
-            console.log("Request OPENAI data: ", "{\n\terror: ", chalk.red.bold(`${error}`), "\n}")
-            const redisPop = popConversation(dependencies)
-            const redisPopData = {prepareKey: prepareKey}
-            await redisPop.execute(redisPopData)
             return res.status(500).json({ error: error });
         }
    
     }
 }
+
+
+const askingAI = (dependencies) => {
+    const { useCases: { 
+        openAiUseCase: { askOpenAIUseCase },
+        redisUseCase: { addToConversation, followUpConversation, popConversation }
+    } } = dependencies;
+
+
+    const execute = async (data) => {
+        try {
+            const { 
+                prepareKey,
+                promptRedis,
+                prompt,
+                maxToken,
+                curUser,
+                haveFile,
+                isTask
+            } = data
+
+        let resource = ""
+        // Check if the project run on Azure
+        if(process.env.AZURE_OPENAI_API_KEY) {
+            resource = "azure"
+        }
+            
+        // get the conversation from redis
+        const redisFollowUp = followUpConversation(dependencies)
+        const conversation = await redisFollowUp.execute({prepareKey})
+
+        // add new prompt into redis
+
+        const redisAdd = addToConversation(dependencies)
+        const redisAddData = {
+            role: "user",
+            content: promptRedis,
+            prepareKey: prepareKey
+        }
+        await redisAdd.execute(redisAddData)
+
+        // call GPT
+        const askOpenAi = new askOpenAIUseCase(dependencies)
+        const result = await askOpenAi.execute({
+            prompt,
+            maxToken,
+            curUser,
+            conversation,
+            prepareKey,
+            isTask,
+            haveFile,
+            resource: resource
+        })
+
+        console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
+        if(result.status === 200) {
+            
+            // add new response into redis
+            const redisAddData = {
+                role: "assistant",
+                content: result.data,
+                prepareKey: prepareKey
+            }
+            await redisAdd.execute(redisAddData)
+
+
+            // return response
+            let dataResponse = result.data
+
+            if(result.image_list && result.image_list.length > 0) {
+                dataResponse = result.image_list
+            }
+
+            console.log("Request OPENAI data: ", "{\n\tcontent: ", chalk.green.bold(`${dataResponse}`), "\n}")
+            return {
+                status: result.status,
+                data: dataResponse,
+                func: result.func
+            }
+
+        }
+        else {
+            throw Error(result.error)
+        }
+        } catch (error) {
+            const redisPop = popConversation(dependencies)
+            const redisPopData = {prepareKey: prepareKey}
+            await redisPop.execute(redisPopData)
+            console.log("Request OPENAI data: ", "{\n\terror: ", chalk.red.bold(`${error}`), "\n}")
+        }
+    }
+
+    return { execute }
+}
+
+module.exports = { generateController, askingAI }

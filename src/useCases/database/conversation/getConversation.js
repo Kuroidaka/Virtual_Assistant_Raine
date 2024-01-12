@@ -13,7 +13,7 @@ const getConversations = (dependencies) => {
             include: { 
                 messages: {
                     orderBy: {
-                      createdAt: 'desc',
+                      createdAt: 'asc',
                     }
                 } 
             }

@@ -1,4 +1,4 @@
-const createChatController = require("./createChat")
+const { createChatController } = require("./createChat")
 const delChatController = require("./delChat")
 const getChatController = require("./getChat")
 
