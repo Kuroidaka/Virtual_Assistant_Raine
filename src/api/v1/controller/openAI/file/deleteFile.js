@@ -12,27 +12,24 @@ module.exports = (dependencies) => {
         })
     }
 
-    const deleteFileFromLocal = async ({name, docsPath, resource, type}) => {
-        if(type === "discord") {// if the request is from discord
-            // Delete file from local
-            if(name) {
-                const isDeleted = await deleteFile(docsPath, name);
-                if (isDeleted) {
-                    const isNotEmpty = await isDirectoryEmpty(docsPath);
-                    if (isNotEmpty) {
-                        await loadFileIntoVector({docsPath, resource});
-                    }
+    const deleteFileFromLocal = async ({ name, docsPath, resource }) => {
+        // Delete file from local
+        if(name) {
+            const isDeleted = await deleteFile(docsPath, name);
+            if (isDeleted) {
+                const isNotEmpty = await isDirectoryEmpty(docsPath);
+                if (isNotEmpty) {
+                    await loadFileIntoVector({docsPath, resource});
                 }
             }
-            else {
-                deleteFilesInDirectory(docsPath)
-            } 
-
         }
+        else {
+            deleteFilesInDirectory(docsPath)
+        } 
     }
 
     return async (req, res) => { 
-        const { data: { name }, type } = req.body;
+        const { data: { name } } = req.body;
         const docsPath = 'src/assets/tmpDocs';
         let resource = ""
 
@@ -43,8 +40,8 @@ module.exports = (dependencies) => {
 
         try {
             
-            Promise.all([
-                deleteFileFromLocal({name, docsPath, resource, type}),// Delete file
+            await Promise.all([
+                deleteFileFromLocal({ name, docsPath, resource }),// Delete file
                 processDB(name)// Process with database
             ])
             return res.status(200).json({ data: "Deleted Successful" });

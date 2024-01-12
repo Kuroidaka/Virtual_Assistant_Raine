@@ -37,7 +37,10 @@ module.exports = (dependencies) => {
     
         } catch (error) {
             console.log(error)
-            throw error
+            return {
+                msg: error,
+                isError: true
+            }
         }
         })
     

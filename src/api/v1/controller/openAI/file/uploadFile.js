@@ -20,7 +20,9 @@ module.exports = (dependencies) => {
                 url: url
             }))
         })
-        await Promise.all(promise)
+        const result = await Promise.all(promise)
+
+        return result
     }
 
     const storeFile = async ({files, type, docsPath, resource}) => {
@@ -38,6 +40,9 @@ module.exports = (dependencies) => {
             await loadFileIntoVector({docsPath, resource})
 
             // deleteFilesInDirectory(docsPath)
+        } else if(type === "StudyOP") {// if the request is from web
+            // Load docs into vector store
+            await loadFileIntoVector({docsPath, resource})
         }
     }
     return async (req, res) => { 
@@ -50,15 +55,18 @@ module.exports = (dependencies) => {
             resource = "azure"
         }
         
-        try {            
-            Promise.all([
-                storeFile({files, type, docsPath, resource}),// Store file
-                processDB(files)// Process with database
-            ])
+        try {     
+
+            const resultDB = await processDB(files)// Process with database
             
-            return res.status(200).json({ data: JSON.stringify(files) });
+            if(resultDB.find(file => file.isError)) {
+                return res.status(200).json({ error: "File have already exist or error occur" });
+            }
+
+            await storeFile({files, type, docsPath, resource})// Store file
+            
+            return res.status(200).json({ data: JSON.stringify(resultDB)});
         } catch (error) {
-         
             return res.status(500).json({ error: error });
         }
    

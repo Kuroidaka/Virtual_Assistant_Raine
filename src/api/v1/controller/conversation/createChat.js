@@ -37,7 +37,7 @@ const createConDB = (dependencies) => {
                 senderID
             } = data
 
-            let newConversation = {}
+            let isNewConversation = false
             let title = ""
             let conID = conversationId
 
@@ -62,11 +62,12 @@ const createConDB = (dependencies) => {
 
 
                 // Create the conversation
-                newConversation = await createConversation(dependencies).execute({
+                const conversation = await createConversation(dependencies).execute({
                     name: title,
                     from: from,
                 });
-                conID = newConversation.id;
+                isNewConversation = true
+                conID = conversation.id;
             }
             // Create the message
             const message = await createMessage(dependencies).execute({
@@ -83,7 +84,7 @@ const createConDB = (dependencies) => {
                 lastMessageAt: message.createdAt
             })
 
-            return { message, title, newConversation };
+            return { message, title, isNewConversation };
         } catch (error) {
             throw new Error(error)
         }

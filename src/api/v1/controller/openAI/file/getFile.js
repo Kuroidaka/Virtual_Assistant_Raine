@@ -14,7 +14,7 @@ module.exports = (dependencies) => {
         try {            
             const file = await getFile(dependencies).execute()
             
-            return res.status(200).json({ data: JSON.stringify(file) });
+            return res.status(200).json({ data: file });
         } catch (error) {
          
             return res.status(500).json({ error: error });
