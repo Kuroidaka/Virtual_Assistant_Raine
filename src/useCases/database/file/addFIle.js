@@ -15,7 +15,7 @@ module.exports = (dependencies) => {
         path,
         extension,
         size,
-        url
+        url=""
     }) => {
 
         const fileData = {

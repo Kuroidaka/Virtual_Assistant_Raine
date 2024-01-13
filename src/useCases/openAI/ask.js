@@ -31,6 +31,10 @@ module.exports = class askOpenAIUseCase {
        
         console.log(chalk.blue.bold(`prompt:(${JSON.stringify(currentLang)})`), prompt);
         
+        if(haveFile.docs) { // must be here before prepare prompt and after detect language
+          prompt =`Please consider to check the file user attached to answer the question below:\n\tQuestion:\n-----------\n${prompt}\n----------- `   
+        }
+
         // prepare data system for conversation prompt
         const preparePrompt = common.prepareSystemPromptCommon(this.dependencies)
         const prepareData = {
@@ -52,7 +56,7 @@ module.exports = class askOpenAIUseCase {
         let temperature = 0.5
   
 
-        if(haveFile) {// Read file image
+        if(haveFile.img) {// Read file image 
           const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
             model: "gpt-4-vision-preview",
@@ -70,7 +74,7 @@ module.exports = class askOpenAIUseCase {
           console.log("Response:", completion.choices[0]);
           return ({ status: 200, data: completion.choices[0].message.content })
         }
-        
+
         // get function calling definition
         const funcList = await funcCall({dependencies: this.dependencies})
         let model = "gpt-4"

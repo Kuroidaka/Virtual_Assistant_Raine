@@ -35,14 +35,11 @@ module.exports = (dependencies) => {
                 promise.push(downloadFile(url, destinationPath))
             })
             await Promise.all(promise)
-
+            
             // Load docs into vector store
             await loadFileIntoVector({docsPath, resource})
 
             // deleteFilesInDirectory(docsPath)
-        } else if(type === "StudyOP") {// if the request is from web
-            // Load docs into vector store
-            await loadFileIntoVector({docsPath, resource})
         }
     }
     return async (req, res) => { 

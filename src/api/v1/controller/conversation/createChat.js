@@ -49,7 +49,7 @@ const createConDB = (dependencies) => {
                 const shortList = [
                     {
                         role: "user",
-                        content: `generate a short title represent for a future conversation base on the following text:
+                        content: `Summarize the following text in less than 5 words:
                         --------
                         text: ${text}
                         --------`,
@@ -69,7 +69,7 @@ const createConDB = (dependencies) => {
                 isNewConversation = true
                 conID = conversation.id;
             }
-            // Create the message
+            // Create the message in DB
             const message = await createMessage(dependencies).execute({
                 conversationId: conID,
                 text: text,
@@ -84,7 +84,7 @@ const createConDB = (dependencies) => {
                 lastMessageAt: message.createdAt
             })
 
-            return { message, title, isNewConversation };
+            return { message, title, isNewConversation, conversationId: conID };
         } catch (error) {
             throw new Error(error)
         }

@@ -9,7 +9,10 @@ const generateController = (dependencies) => {
         let promptRedis
         let curUser
         let files
-        let haveFile = false
+        let haveFile = {
+            img: false,
+            docs: false
+        }
         let isTask = false
 
         if(type === "discord") {// if the request is from discord
@@ -36,7 +39,7 @@ const generateController = (dependencies) => {
                         },
                     })
                 }); 
-                haveFile = true
+                haveFile.img = true
                 promptRedis = JSON.stringify(prompt)
             }
         }
@@ -89,7 +92,6 @@ const askingAI = (dependencies) => {
         const conversation = await redisFollowUp.execute({prepareKey})
 
         // add new prompt into redis
-
         const redisAdd = addToConversation(dependencies)
         const redisAddData = {
             role: "user",

@@ -18,12 +18,14 @@ module.exports = (dependencies) => {
                         senderID
                     },
                     maxToken,
+                    isAttachedFile=false
 
             } } = req.body;
         
   
         try {            
-            const storeDB = await createConDB(dependencies).execute({
+
+            const storeDB = await createConDB(dependencies).execute({ // store user message to DB
                 conversationId,
                 from,
                 text,
@@ -31,8 +33,8 @@ module.exports = (dependencies) => {
                 senderID
             })
 
-            const askAI = await askingAI(dependencies).execute({
-                prepareKey: conversationId, // conversation key
+            const askAI = await askingAI(dependencies).execute({ // ask AI
+                prepareKey: storeDB.conversationId, // conversation key
                 promptRedis: text, // prompt for redis,
                 prompt: text, // prompt for openAI
                 maxToken: maxToken, 
@@ -40,29 +42,58 @@ module.exports = (dependencies) => {
                     name: sender,
                     id: senderID
                 }, //{name, id}
-                haveFile: false, // check if the request has file attachment
+                haveFile: {
+                    img: false,
+                    docs: isAttachedFile
+                }, // check if the request has file attachment
                 isTask: false // false
             })
-            const result = await Promise.all([storeDB, askAI])
 
-            const storeAIDB = await createConDB(dependencies).execute({
-                conversationId: result[0].message.conversationId,
-                from,
-                text: askAI.data,
-                sender: "bot",
-                senderID: "-2"
-            })
+            let storeAiDBList = []
+            if(Array.isArray(askAI.data)) { // Image response
+                const promise = []
+                // store AI response(img) to DB
+                askAI.data.forEach((msg) => {
 
-            const newConversation = await getConversations(dependencies).execute({ from: "StudyIO", id: result[0].message.conversationId })
+                    promise.push(createConDB(dependencies).execute({
+                        conversationId: storeDB.message.conversationId,
+                        from,
+                        text: msg,
+                        sender: "bot",
+                        senderID: "-2"
+                    }))
+                })
 
-            return res.status(result[1].status).json({
+                const newStoreList = await Promise.all(promise)
+                storeAiDBList = newStoreList.map(store => store.message)
+
+
+            } else {
+
+                // store AI response to DB
+                const storeAIDB = await createConDB(dependencies).execute({
+                    conversationId: storeDB.message.conversationId,
+                    from,
+                    text: askAI.data,
+                    sender: "bot",
+                    senderID: "-2"
+                })
+                storeAiDBList[0] = storeAIDB.message
+            }
+
+
+            // get the whole conversation
+            const newConversation = await getConversations(dependencies).execute({ from: "StudyIO", id: storeDB.message.conversationId })
+
+            return res.status(askAI.status).json({
                 data: {
-                    bot: storeAIDB.message,
-                    user: result[0].message,
-                    title: result[0].title,
-                    newConversation: newConversation
+                    bot: storeAiDBList,
+                    user: storeDB.message,
+                    title: storeDB.title,
+                    newConversation: newConversation,
+                    isNewConversation: storeDB.isNewConversation
                 },
-                func: result[1].func})
+                func: askAI.func})
 
         } catch (error) {
          
