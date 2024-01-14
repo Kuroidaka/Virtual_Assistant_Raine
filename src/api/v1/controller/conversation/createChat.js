@@ -40,12 +40,14 @@ const createConDB = (dependencies) => {
             let isNewConversation = false
             let title = ""
             let conID = conversationId
+            let resource = ''
+
+            if(process.env.AZURE_OPENAI_API_KEY) {
+                resource = "azure"
+            }
 
             if(!conID || conID === null || conID === undefined || conID === "" || conID == -1) { 
-                callObj = {
-                    temperature: 1,
-                    max_tokens: 15,
-                }
+
                 const shortList = [
                     {
                         role: "user",
@@ -55,8 +57,22 @@ const createConDB = (dependencies) => {
                         --------`,
                     }
                 ]
-                
-                completion = await azureOpenAi.getChatCompletions("GPT35TURBO16K", shortList, callObj);
+                if(resource === "azure") {
+                    callObj = {
+                        temperature: 1,
+                        max_tokens: 15,
+                    }
+                    completion = await azureOpenAi.getChatCompletions("GPT35TURBO16K", shortList, callObj);
+                }
+                else {
+                    callObj = {
+                        model: "gpt-4",
+                        messages: shortList,
+                        temperature: 1,
+                        max_tokens: 15,
+                      }
+                    completion = await openAi.chat.completions.create(callObj)
+                }
 
                 title = completion.choices[0].message.content
 

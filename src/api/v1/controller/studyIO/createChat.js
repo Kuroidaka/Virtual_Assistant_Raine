@@ -24,6 +24,7 @@ module.exports = (dependencies) => {
         
   
         try {            
+            
 
             const storeDB = await createConDB(dependencies).execute({ // store user message to DB
                 conversationId,

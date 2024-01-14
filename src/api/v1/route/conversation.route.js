@@ -8,13 +8,18 @@ module.exports = (dependencies) => {
     const {
         createChatController,
         delChatController,
-        getChatController
+        getChatController,
+        createConversationController
 
     } = conversationController(dependencies)
 
     router  
         .route("/create")
         .post(createChatController)
+    
+    router  
+        .route("/create/new")
+        .post(createConversationController)
     
     router  
         .route("/delete")
