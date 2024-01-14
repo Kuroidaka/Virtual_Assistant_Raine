@@ -63,6 +63,13 @@ typings/
 .env.test
 .env
 
+# file upload
+src/assets/vector/
+src/assets/tmpDocs/
+
+# autogen key
+OAI_CONFIG_LIST
+
 # next.js build output
 .next
 
