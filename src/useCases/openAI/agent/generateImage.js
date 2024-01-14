@@ -50,7 +50,7 @@ module.exports = (dependencies) => {
 
     const generate = async ({ model="dall-e-2", prompt, quality="standard", size="1024x1024", n, style }) => {
 
-        response = await openAi.images.generate({
+        let response = await openAi.images.generate({
             model: model,
             prompt: prompt,
             size: size,
@@ -64,7 +64,7 @@ module.exports = (dependencies) => {
     }
 
     const execute = async({args, conversation}) => {
-        const { model, prompt, size, n, style } = args
+        const { model, prompt, size, n=1, style } = args
 
         // take 1 image each request if the chain want to use dall-e-3
         let num = args.model === "dall-e-3" ? 1 : Number(n)
@@ -82,7 +82,7 @@ module.exports = (dependencies) => {
         try {
               if(args.model === "dall-e-3") {
                   let promises = [];
-                  for(let i = 0; i < args.n; i++) {
+                  for(let i = 0; i < n; i++) {
                       promises.push(generate(dalleData));
                   }
       
