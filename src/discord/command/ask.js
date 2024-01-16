@@ -62,7 +62,9 @@ module.exports = {
 			if(
 				(
 					interaction.content.toLowerCase() === botName.toLowerCase() || 
-					interaction.content.toLowerCase() === substringToCheck.toLowerCase()
+					interaction.content.toLowerCase() === substringToCheck.toLowerCase() ||
+					interaction.mentions?.users?.first()?.id === process.env.RAINE_ID
+
 				) &&
 				interaction.attachments.size === 0
 			) {

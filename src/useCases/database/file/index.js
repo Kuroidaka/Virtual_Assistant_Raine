@@ -1,4 +1,4 @@
-const addFile = require('./addFile');
+const addFile = require('./addingFIle');
 const delFile = require('./delFile');
 const getFile = require('./getFile');
 
