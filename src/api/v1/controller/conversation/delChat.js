@@ -5,7 +5,8 @@ module.exports = (dependencies) => {
     const { useCases: { 
         DBUseCase: { conversationDB: { 
             delConversation
-         } }
+         } },
+        redisUseCase: { clearConversation }
     } } = dependencies;
 
     return async (req, res) => { 
@@ -16,6 +17,11 @@ module.exports = (dependencies) => {
                 conversationId: conversationId,
                 from: from
             });
+
+            const isSuccesed = await clearConversation(dependencies).execute({prepareKey: conversationId})
+            if(!isSuccesed) {
+                throw new Error("Clear conversation failed")
+            }
 
             return res.status(200).json({ data: JSON.stringify(message) });
         } catch (error) {

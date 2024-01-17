@@ -44,6 +44,7 @@ const generateController = (dependencies) => {
             }
         }
         try {
+
             const result = await askingAI(dependencies).execute({
                 prepareKey, // conversation key
                 promptRedis, // prompt for redis,
@@ -53,6 +54,9 @@ const generateController = (dependencies) => {
                 haveFile, // check if the request has file attachment
                 isTask // false
             })
+
+
+            
             return res.status(result.status).json({data: result.data, func: result.func})
         } catch (error) {
             return res.status(500).json({ error: error });

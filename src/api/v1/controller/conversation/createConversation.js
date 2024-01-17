@@ -9,12 +9,9 @@ const createConDB = (dependencies) => {
 
     const execute = async (from) => {
         try {
-
-
-
             // Create the conversation
             const conversation = await createConversation(dependencies).execute({
-                name: '',
+                name: '', 
                 from: from,
             });
 

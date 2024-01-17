@@ -42,6 +42,7 @@ module.exports = {
 			return false
 		}
 	},
+	
 	async execute(interaction, user) {
 		try {
 			const { redisClient } = dependencies
