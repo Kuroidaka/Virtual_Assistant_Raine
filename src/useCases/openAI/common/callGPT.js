@@ -40,7 +40,7 @@ module.exports = (dependencies) => {
     conversation = newConversation
     if (newFlag) {
       const conMerge = mergeConversation(dependencies)
-      await conMerge.execute(prepareKey, conversation)
+      await conMerge.execute(prepareKey, conversation, systemMsgCount)
     }
 
     let completion

@@ -88,10 +88,10 @@ module.exports = (dependencies) => {
     }
     const { newFlag, conversation: newConversation } = await checkValidToken().execute(tokenCheckData)
     conversation = newConversation
-    // if (newFlag) {
-    //   const conMerge = mergeConversation(dependencies)
-    //   await conMerge.execute(prepareKey, conversation)
-    // }
+    if (newFlag) {
+      const conMerge = mergeConversation(dependencies)
+      await conMerge.execute(prepareKey, conversation, countSystem)
+    }
 
     // push final conversation
     conversation.push(newMsg)
