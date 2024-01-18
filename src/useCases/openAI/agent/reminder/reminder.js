@@ -17,9 +17,8 @@ module.exports = class reminderFunc {
                   "type": "string",
                   "description": `
                   - The specific time that user want to remind. 
-                  - The specific time must be in english
-                  - The specific time format is like 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)', when user want to be reminded at a specific time, please take the time in this format, the year time will be automatically set to ${new Date().getFullYear()}
-                  - If user request to remind after a period of time, please convert the time in this format 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)' base on the current time: ${new Date()}
+                  - Must be GMT+0700 (Indochina Time) base on current GMT+0700 (Indochina Time): ${new Date()}, example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)'
+                  - If user request to remind after a period of time, please convert into GMT+0700 (Indochina Time): base on the current time: : ${new Date()} example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)
                   `
               },
               

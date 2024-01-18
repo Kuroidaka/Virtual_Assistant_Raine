@@ -1,5 +1,5 @@
 const schedule = require('node-schedule');
-const reminderClass = require("../useCases/openAI/agent/reminder/reminder")
+const cronSchedule = require("../useCases/openAI/agent/reminder/cron_schedule")
 
 module.exports = (dependencies) => {
 
@@ -19,13 +19,19 @@ module.exports = (dependencies) => {
         const getTaskReminder = getTask(dependencies)
         const tasks = await getTaskReminder.execute({ id: "", hours: 1000 })
 
-        const reminderFunc = new reminderClass(dependencies)
 
         if(tasks.length > 0) {
             const promise = []
             tasks.forEach(task => {
                 const { id, title, time, repeat } = task
-                promise.push(reminderFunc.scheduleJobPromise(id, title, time, repeat))
+                const cronJob = cronSchedule(dependencies)
+
+                promise.push(cronJob.execute({
+                    taskID: id,
+                    remindPrompt: title,
+                    finalTime: time,
+                    repeat: repeat
+                }))
             })
 
             await Promise.all(promise)

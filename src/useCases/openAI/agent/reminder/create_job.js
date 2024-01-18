@@ -3,6 +3,7 @@ const chalk = require("chalk")
 const { nanoid } = require('nanoid');
 
 const deleteJob = require("./delete_job")
+const cronSchedule = require("./cron_schedule")
 const printDiscord = require("./discord_print")
 
 module.exports = (dependencies) => {
@@ -67,9 +68,10 @@ module.exports = (dependencies) => {
     try {
       const { addTask } = taskDB;
       const createTask = addTask(dependencies);
+      
 
       // Promise all to insert task into database and setup cron job
-      const [idInserted] = await Promise.all([createTask.execute(dataTask), scheduleJobPromise({taskID, remindPrompt, finalTime, repeat})]);
+      const [idInserted] = await Promise.all([createTask.execute(dataTask), cronSchedule(dependencies).execute({taskID, remindPrompt, finalTime, repeat})]);
 
       return ({ status: 200, data: `Reminder set successful with ID: ${idInserted}` });
     } catch (error) {
