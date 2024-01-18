@@ -44,7 +44,6 @@ const generateController = (dependencies) => {
             }
         }
         try {
-
             const result = await askingAI(dependencies).execute({
                 prepareKey, // conversation key
                 promptRedis, // prompt for redis,

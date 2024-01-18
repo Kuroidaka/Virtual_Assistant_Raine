@@ -152,6 +152,11 @@ module.exports = class askOpenAIUseCase {
                 this.promptMessageFunc = conversation
                 return ({ status: 200, data: content })
               } 
+              else if(functionCall?.name === "database_chat") {
+                const { content, conversation } = await funcList.func.dbChatFunc.execute(funcArgs)
+                this.promptMessageFunc = conversation
+                return ({ status: 200, data: content })
+              } 
               else if(functionCall?.name === "follow_up_image_in_chat") {
                 const { content, conversation } = await funcList.func.followUpImageFunc.execute(funcArgs)
                 this.promptMessageFunc = conversation

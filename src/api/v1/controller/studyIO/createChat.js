@@ -26,13 +26,13 @@ module.exports = (dependencies) => {
         try {            
             
 
-            const storeDB = await createConDB(dependencies).execute({ // store user message to DB
-                conversationId,
-                from,
-                text,
-                sender,
-                senderID
-            })
+            // const storeDB = await createConDB(dependencies).execute({ // store user message to DB
+            //     conversationId,
+            //     from,
+            //     text,
+            //     sender,
+            //     senderID
+            // })
 
             const askAI = await askingAI(dependencies).execute({ // ask AI
                 prepareKey: storeDB.conversationId, // conversation key

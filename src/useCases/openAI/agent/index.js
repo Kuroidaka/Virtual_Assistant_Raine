@@ -3,6 +3,7 @@ const followUpImageFunc = require("./follow_up_image")
 const generateImage = require("./generateImage")
 const askAboutDocs = require("./read_file/QA_file")
 const browse = require("./browse/browse")
+const dbChat = require("./db_chat")
 const reminderClass = require("./reminder/reminder")
 
 module.exports = ({dependencies}) => { 
@@ -10,6 +11,8 @@ module.exports = ({dependencies}) => {
     const generateImageFunc = generateImage(dependencies)
     const browseFunc = browse(dependencies)
     const askAboutDocsFunc = askAboutDocs(dependencies)
+    const dbChatFunc = dbChat(dependencies)
+
 
     const listFuncSpec = [
         weatherFunc.funcSpec,
@@ -17,7 +20,8 @@ module.exports = ({dependencies}) => {
         followUpImageFunc.funcSpec,
         generateImageFunc.funcSpec,
         browseFunc.funcSpec,
-        askAboutDocsFunc.funcSpec
+        askAboutDocsFunc.funcSpec,
+        dbChatFunc.funcSpec
     ]
     return {
         func: {
@@ -26,7 +30,8 @@ module.exports = ({dependencies}) => {
             followUpImageFunc,
             generateImageFunc,
             browseFunc,
-            askAboutDocsFunc
+            askAboutDocsFunc,
+            dbChatFunc
         },
         listFuncSpec
     }

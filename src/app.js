@@ -56,6 +56,6 @@ module.exports = {
 		tools(dependencies)
 
 		// test 
-		test(dependencies)
+		// test(dependencies)
 	},
 }
