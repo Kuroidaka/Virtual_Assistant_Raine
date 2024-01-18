@@ -1,6 +1,9 @@
+const fs = require("fs")
 const axios = require("axios");
+
 const { sliceString } = require("../format/length");
 const dependencies = require("../../config/dependencies")
+const { downloadFile } = require("../../utils") 
 
 const getLatestMsg = async (message, id) => {
 
@@ -77,9 +80,43 @@ module.exports = {
 			}
 
 			if(interaction.attachments.size > 0) {
-				// user attached files		
+				// user attached files
 				for (const [key, value] of interaction.attachments) {
-					files.push(value)
+					if(value.contentType === "text/plain; charset=utf-8" && value.name === "message.txt") {
+						// getting content from file text message(when input content length is longer than the discord message limit)
+						const fileUrl = value.url
+						const destinationPath = 'src/assets/message.txt'
+						await downloadFile(fileUrl, destinationPath)
+						.then(() => {
+							fs.readFile(destinationPath, 'utf8' , (err, data) => {
+							if (err) {
+								console.error(err);
+								return;
+							}
+							// console.log(data);
+							prompt += `\n${data}`
+
+							// delete the temporary file
+							fs.unlink(destinationPath, (err) => {
+								if (err) {
+									console.error(err);
+									return;
+								}
+								// File deleted successfully
+								console.log("Temporary file deleted");
+							});
+
+							
+							});
+						})
+						.catch((error) => {
+							console.error('Error:', error);
+						});
+					}
+					else {
+						// use for the image file
+						files.push(value)
+					}
 				}
 			}
 			else {
