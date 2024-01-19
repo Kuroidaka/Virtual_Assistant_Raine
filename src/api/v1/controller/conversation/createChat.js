@@ -34,7 +34,8 @@ const createConDB = (dependencies) => {
                 from,
                 text,
                 sender,
-                senderID
+                senderID,
+                imageList
             } = data
 
             let isNewConversation = false
@@ -90,7 +91,8 @@ const createConDB = (dependencies) => {
                 conversationId: conID,
                 text: text,
                 sender: sender,
-                senderID: senderID
+                senderID: senderID,
+                imageList: imageList
             });
         
             // Update the last message of the conversation

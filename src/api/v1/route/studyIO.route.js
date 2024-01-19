@@ -45,7 +45,7 @@ module.exports = (dependencies) => {
     
     router  
         .route("/file/img/upload")
-        .post(uploadImg.array('images'), uploadImageController)
+        .post(uploadImg.array('files'), uploadImageController)
     
 
     return router

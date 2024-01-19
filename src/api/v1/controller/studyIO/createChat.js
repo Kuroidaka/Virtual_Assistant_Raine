@@ -54,7 +54,8 @@ module.exports = (dependencies) => {
                 from,
                 text: text,
                 sender,
-                senderID
+                senderID,
+                imageList: imgFiles
             })
 
             const askAI = await askingAI(dependencies).execute({ // ask AI

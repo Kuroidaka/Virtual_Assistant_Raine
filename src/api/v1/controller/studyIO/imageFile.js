@@ -8,8 +8,8 @@ module.exports = (dependencies) => {
     } } = dependencies;
 
     return async (req, res) => { 
-        const { data } = req.body;
-        
+        const file = req.files;
+        console.log(file)
         try {            
             let directoryPath = 'src/assets/img';
             const imgList = await fileDirToUrl(dependencies).execute({ directoryPath })

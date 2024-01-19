@@ -15,6 +15,9 @@ const getConversations = (dependencies) => {
                 messages: {
                     orderBy: {
                       createdAt: 'asc',
+                    },
+                    include: {
+                        imgList: true
                     }
                 } 
             }
