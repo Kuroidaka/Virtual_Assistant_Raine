@@ -53,8 +53,6 @@ const generateController = (dependencies) => {
                 haveFile, // check if the request has file attachment
                 isTask // false
             })
-
-
             
             return res.status(result.status).json({data: result.data, func: result.func})
         } catch (error) {
