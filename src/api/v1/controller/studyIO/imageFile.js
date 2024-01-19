@@ -1,4 +1,4 @@
-const { fileDirToUrl } = require('../../../../utils');
+const { fileDirToUrl, deleteFilesInDirectory } = require('../../../../utils');
 
 module.exports = (dependencies) => {
     const { useCases: { 
@@ -13,6 +13,7 @@ module.exports = (dependencies) => {
         try {            
             let directoryPath = 'src/assets/img';
             const imgList = await fileDirToUrl(dependencies).execute({ directoryPath })
+            await deleteFilesInDirectory(directoryPath)
             return res.status(200).json({ data: imgList });
 
         } catch (error) {

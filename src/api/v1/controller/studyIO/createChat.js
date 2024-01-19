@@ -18,35 +18,55 @@ module.exports = (dependencies) => {
                         senderID
                     },
                     maxToken,
-                    isAttachedFile=false
-
+                    isAttachedFile=false,
+                    imgFiles=[]
             } } = req.body;
         
   
         try {            
-            
+            let prompt = text
+            let promptRedis = text
+            let haveFile = {
+                img: false,
+                docs: isAttachedFile
+            }
+
+            if(imgFiles.length > 0) {// prepare prompt data for file image attachment
+                prompt = [{
+                    type: "text",
+                    text: prompt
+                }]
+
+                imgFiles.forEach(file => {
+                    prompt.push({
+                        type: "image_url",
+                        image_url: {
+                          "url": file,
+                        },
+                    })
+                }); 
+                haveFile.img = true
+                promptRedis = JSON.stringify(prompt)
+            }
 
             const storeDB = await createConDB(dependencies).execute({ // store user message to DB
                 conversationId,
                 from,
-                text,
+                text: text,
                 sender,
                 senderID
             })
 
             const askAI = await askingAI(dependencies).execute({ // ask AI
                 prepareKey: storeDB.conversationId, // conversation key
-                promptRedis: text, // prompt for redis,
-                prompt: text, // prompt for openAI
+                promptRedis: promptRedis, // prompt for redis,
+                prompt: prompt, // prompt for openAI
                 maxToken: maxToken, 
                 curUser: {
                     name: sender,
                     id: senderID
                 }, //{name, id}
-                haveFile: {
-                    img: false,
-                    docs: isAttachedFile
-                }, // check if the request has file attachment
+                haveFile: haveFile, // check if the request has file attachment
                 isTask: false // false
             })
 
