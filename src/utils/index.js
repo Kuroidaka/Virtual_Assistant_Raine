@@ -6,6 +6,7 @@ const deleteFilesInDirectory = require('./delete_file_dir')
 const deleteFile = require('./del_spec_file')
 const isDirectoryEmpty = require('./is_dir_empty')
 const getFileExtension = require('./getFileExtension')
+const fileDirToUrl = require('./dirFile_into_discordUrl')
 
 //Returns the number of tokens in a text string
 const countToken = (message, model) => {
@@ -41,5 +42,6 @@ module.exports = {
     deleteFile,
     downloadFile,
     isDirectoryEmpty,
-    getFileExtension
+    getFileExtension,
+    fileDirToUrl
 }

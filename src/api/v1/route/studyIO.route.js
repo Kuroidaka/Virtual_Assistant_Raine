@@ -1,12 +1,22 @@
 const express = require('express')
 const multer = require('multer');
-const storage = require("../middleware/storeFile")
+const { storageDocs, storageImg } = require("../middleware/storeFile")
 const studyIOController = require('../controller/studyIO')
 
-const upload = multer({
-    storage: storage,
+const uploadDocs = multer({
+    storage: storageDocs,
     fileFilter: function (req, file, cb) {
         console.log("file", file)
+        cb(null, true);
+    },
+    limits: {
+    //   fileSize: 2 * 1024 * 1024, // Limit file size to 2MB
+    },
+});
+const uploadImg = multer({
+    storage: storageImg,
+    fileFilter: function (req, file, cb) {
+        console.log("file-img", file)
         cb(null, true);
     },
     limits: {
@@ -20,7 +30,8 @@ module.exports = (dependencies) => {
 
     const {
         createChatController,
-        uploadFileController
+        uploadFileController,
+        uploadImageController
 
     } = studyIOController(dependencies)
 
@@ -30,7 +41,11 @@ module.exports = (dependencies) => {
     
     router  
         .route("/file/upload")
-        .post(upload.array('files'), uploadFileController)
+        .post(uploadDocs.array('files'), uploadFileController)
+    
+    router  
+        .route("/file/img/upload")
+        .post(uploadImg.array('images'), uploadImageController)
     
 
     return router

@@ -119,3 +119,6 @@ $RECYCLE.BIN/
 
 # python
 **/__pycache__
+
+# img assert file
+src/assets/img
