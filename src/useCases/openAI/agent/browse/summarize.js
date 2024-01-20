@@ -21,7 +21,7 @@ module.exports = ({currentLang, resource}) => {
           azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
           azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
           azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
-          azureOpenAIApiDeploymentName: "GPT35TURBO16K",
+          azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_API_GPT35,
           // azureOpenAIBasePath: process.env.AZURE_OPENAI_API_URL,
 
       })

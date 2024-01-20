@@ -51,7 +51,7 @@ module.exports = () => {
       }
         llm = new ChatOpenAI({ 
           ...azureConfig,
-          azureOpenAIApiDeploymentName: "GPT35TURBO16K"
+          azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_API_GPT35,
         })
         embeddingsLlm = new OpenAIEmbeddings({...azureConfig, azureOpenAIApiDeploymentName: "ADA"})
       }
@@ -93,8 +93,9 @@ module.exports = () => {
       console.log(JSON.stringify(res, null, 2));
       
       conversation.push({
-        role: "assistant",
-        content: res.text
+        role: "user",
+        content: `Based on the following document search results to answer user: 
+        result: ${res.text}`
       })
       return {
         content: res.text,

@@ -4,7 +4,7 @@ module.exports = (dependencies) => {
 
     const funcSpec = {
         name: "database_chat",
-        description: "The function to process with the database",
+        description: "The function to process with the database, just for when user mention about the database",
         parameters: {
             type: "object",
             additionalProperties: false,
@@ -67,8 +67,9 @@ module.exports = (dependencies) => {
                 console.log(returnedObject.sql_query)
 
                 conversation.push({
-                    role: "assistant",
-                    content: returnedObject.response
+                    role: "user",
+                    content: `Based on the following reponse results from database to answer user: 
+                    result:${returnedObject.response}`
                 })
             
                 return {

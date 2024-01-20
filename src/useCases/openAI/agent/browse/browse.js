@@ -38,7 +38,7 @@ module.exports = () => {
                 azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
                 azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
                 azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
-                azureOpenAIApiDeploymentName: "GPT35TURBO16K",
+                azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_API_GPT35,
                 // azureOpenAIBasePath: process.env.AZURE_OPENAI_API_URL,
     
             })
@@ -86,8 +86,9 @@ module.exports = () => {
 
             console.log(`Got output ${result.output}`);
             conversation.push({
-                role: "assistant",
-                content: result.output
+                role: "user",
+                content: `Based on the following search results to answer user: 
+                result: ${result.output}`
             })
 
             return {

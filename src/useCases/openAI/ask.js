@@ -159,17 +159,17 @@ module.exports = class askOpenAIUseCase {
               else if(functionCall?.name === "browse") {
                 const { content, conversation } = await funcList.func.browseFunc.execute(funcArgs)
                 this.promptMessageFunc = conversation
-                return ({ status: 200, data: content })
+                // return ({ status: 200, data: content })
               } 
               else if(functionCall?.name === "ask_about_document") {
                 const { content, conversation } = await funcList.func.askAboutDocsFunc.execute(funcArgs)
                 this.promptMessageFunc = conversation
-                return ({ status: 200, data: content })
+                // return ({ status: 200, data: content })
               } 
               else if(functionCall?.name === "database_chat") {
                 const { content, conversation } = await funcList.func.dbChatFunc.execute(funcArgs)
                 this.promptMessageFunc = conversation
-                return ({ status: 200, data: content })
+                // return ({ status: 200, data: content })
               } 
               else if(functionCall?.name === "follow_up_image_in_chat") {
                 const { content, conversation } = await funcList.func.followUpImageFunc.execute(funcArgs)

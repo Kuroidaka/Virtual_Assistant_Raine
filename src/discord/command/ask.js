@@ -29,6 +29,18 @@ const reactIconList = [
 		name: "get_current_weather",
 		icon: "☁️"
 	},
+	{
+		name: "browse",
+		icon: "🌐"
+	},
+	{
+		name: "ask_about_document",
+		icon: "📁"
+	},
+	{
+		name: "database_chat",
+		icon: "🛢️"
+	},
 ]
 
 module.exports = {
