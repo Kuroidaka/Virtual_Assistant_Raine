@@ -21,6 +21,15 @@ module.exports = class askOpenAIUseCase {
       try {
         //check language from request
         let currentLang = {lc: "en"}
+        let model 
+        
+        if(resource === "azure") { //use gpt3.5 for azure
+          model = "gpt-3.5-turbo"
+        }
+        else { //user gpt4 for openai
+          model = "gpt-4"
+        }
+
         if(typeof prompt === 'string' || prompt instanceof String) {
           currentLang = language.languages[detectLan(prompt)]
         }
@@ -44,7 +53,7 @@ module.exports = class askOpenAIUseCase {
           curUser: curUser,
           isTalk : false,
           lang: currentLang.lc,
-          model: "gpt-4",
+          model: model,
           prepareKey: prepareKey,
         }
         const { 
@@ -59,13 +68,14 @@ module.exports = class askOpenAIUseCase {
         if(haveFile.img) {// Read file image 
           const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
-            model: "gpt-4-vision-preview",
+            model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT4_V : "gpt-4-vision-preview",
             temperature: temperature,
             conversation: this.promptMessageFunc,
             maxToken: maxToken,
             systemMsgCount: countSystem,
             prepareKey: prepareKey,
-            functionCall: false
+            functionCall: false,
+            resource: resource
           }
           const { conversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
@@ -77,7 +87,6 @@ module.exports = class askOpenAIUseCase {
 
         // get function calling definition
         const funcList = await funcCall({dependencies: this.dependencies})
-        let model = "gpt-4"
         let isFuncCall = true
 
         // Log conversation
@@ -90,7 +99,7 @@ module.exports = class askOpenAIUseCase {
           // OPENAI asking
           const callGpt = common.callGPTCommon(this.dependencies)
           const gptData = {
-            model: model,
+            model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT35 : model,
             temperature: temperature,
             conversation: this.promptMessageFunc,
             maxToken: maxToken,

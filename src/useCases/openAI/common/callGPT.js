@@ -25,9 +25,12 @@ module.exports = (dependencies) => {
     resource = ""
   }) => {
     let modelCountToken
-    if (model === 'gpt-4-vision-preview') {
+    if (model === 'gpt-4-vision-preview' || model === process.env.AZURE_OPENAI_API_GPT4_V) {
       modelCountToken = 'gpt-4'
-    } else {
+    } else if (model === process.env.AZURE_OPENAI_API_GPT35) {
+      modelCountToken = "gpt-3.5-turbo"
+    }
+    else {
       modelCountToken = model
     }
 
@@ -47,7 +50,6 @@ module.exports = (dependencies) => {
     let callObj = {}
 
     if(resource === "azure") {
-      const deploymentId = "GPT35TURBO16K"
 
       if (functionCall) {
         // Ask OpenAI function
@@ -64,7 +66,19 @@ module.exports = (dependencies) => {
           max_tokens: maxToken,
         }
       }
-      completion = await azureOpenAi.getChatCompletions(deploymentId, conversation, callObj);
+      // let tmp = [{
+      //   role: "user",
+      //   content: [
+      //     { type: 'text', text: 'what do you see from this image raine' },
+      //     {
+      //       type: 'image_url',
+      //       image_url: {
+      //         url: 'https://cdn.discordapp.com/attachments/1146752980599705681/1198222479118827592/img-NfVwvLMwnzIRl9DAvwqi05T8.png?ex=65be1ea4&is=65aba9a4&hm=df79db0a56dcb4de9dfd225ceebf6a02976285aa699d2ca985c870143ef250a2&'
+      //       }
+      //     }
+      //   ]
+      // }]
+      completion = await azureOpenAi.getChatCompletions(model, conversation, callObj);
     }
     else {
       if (functionCall) {
@@ -90,7 +104,7 @@ module.exports = (dependencies) => {
     }
 
     // convert file content into string to prevent error when using other model gpt again
-    if (model === 'gpt-4-vision-preview') {
+    if (model === 'gpt-4-vision-preview' || model ===  process.env.AZURE_OPENAI_API_GPT4_V) {
       let lastMsg = conversation[conversation.length - 1];
       lastMsg.content = lastMsg.content[0].text;
       conversation.pop()
