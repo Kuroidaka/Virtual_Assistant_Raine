@@ -20,6 +20,9 @@ module.exports = (dependencies) => {
                 const isNotEmpty = await isDirectoryEmpty(docsPath);
                 if (isNotEmpty) {
                     await loadFileIntoVector({docsPath, resource});
+                } else {
+                    deleteFilesInDirectory("src/assets/vector")
+                
                 }
             }
         }
