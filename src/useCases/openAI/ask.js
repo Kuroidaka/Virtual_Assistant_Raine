@@ -51,7 +51,7 @@ module.exports = class askOpenAIUseCase {
           redisConversation: conversation,
           userPrompt: prompt,
           curUser: curUser,
-          isTalk : false,
+          isTalk : isTalk,
           lang: currentLang.lc,
           model: model,
           prepareKey: prepareKey,
@@ -77,10 +77,15 @@ module.exports = class askOpenAIUseCase {
             functionCall: false,
             resource: resource
           }
-          const { conversation, completion } = await callGpt.execute(gptData)
+          const { conversation, completion, error=null } = await callGpt.execute(gptData)
           this.promptMessageFunc = conversation
 
           // send the response data back to user
+
+          if(error) {
+            console.log(error)
+            return ({ status: 200, data: "error occur" })
+          }
           console.log("Response:", completion.choices[0]);
           return ({ status: 200, data: completion.choices[0].message.content })
         }

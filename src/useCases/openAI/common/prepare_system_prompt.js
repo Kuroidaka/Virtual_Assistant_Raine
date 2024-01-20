@@ -22,16 +22,12 @@ module.exports = (dependencies) => {
     prepareKey
   }) => {
 
-    const instructions = RainePrompt()
+    const instructions = RainePrompt({lang})
     const {loyal:loyalPrompt, tools} = instructions
     let countSystem = 0
     const loyalSystem = { role: 'system', content: loyalPrompt }
     const systemTTS = { role: 'system', content: instructions.system_tts.instructions }
-
-
-
-    // get current date
-    const date = new Date()
+    const system = { role: 'system', content: instructions.system.instructions }  
     
     // check instructions
     if (instructions) {
@@ -39,13 +35,7 @@ module.exports = (dependencies) => {
       const taskRemind = { role: 'system', content: tools.task.instructions }
       const readDocs = { role: 'system', content: tools.readDocs.instructions }
 
-      conversation[0] = {
-        role: 'system',
-        content: `
-          {Current time}: ${new Date()}
-          Response to user by this language: ${lang}
-          ${instructions.system.instructions}`,
-      }
+      conversation[0] = system
       conversation.push(dalle)
       conversation.push(taskRemind)
       conversation.push(readDocs)
@@ -70,8 +60,7 @@ module.exports = (dependencies) => {
 
     // if user is talking with Raine
     if (isTalk) {
-      conversation.push(systemTTS)
-      ++countSystem
+      conversation[0] = systemTTS
     }
 
     // prepare data for conversation

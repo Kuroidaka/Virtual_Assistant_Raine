@@ -48,7 +48,7 @@ module.exports = () => {
         }
 
         // get system prompt for browse agent
-        const instructions = RainePrompt({currentLang})
+        const instructions = RainePrompt({lang: currentLang.lc})
         const systemPrompt = instructions.tools.browse.instructions
 
         // defind tool

@@ -22,8 +22,8 @@ const createMessage = (dependencies) => {
         if (Array.isArray(imageList) && imageList.length > 0) {
             data.imgList = {
                 create: imageList.map((imageUrl) => ({ 
-                    id: nanoid(),
-                    url: imageUrl 
+                    id: imageUrl.id || nanoid(),
+                    url: imageUrl.url
                 }))
             };
         }

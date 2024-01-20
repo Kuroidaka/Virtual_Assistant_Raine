@@ -63,7 +63,7 @@ const createConDB = (dependencies) => {
                         temperature: 1,
                         max_tokens: 15,
                     }
-                    completion = await azureOpenAi.getChatCompletions("GPT35TURBO16K", shortList, callObj);
+                    completion = await azureOpenAi.getChatCompletions(process.env.AZURE_OPENAI_API_GPT35, shortList, callObj);
                 }
                 else {
                     callObj = {

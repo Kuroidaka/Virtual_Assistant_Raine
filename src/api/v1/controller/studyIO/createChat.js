@@ -19,7 +19,8 @@ module.exports = (dependencies) => {
                     },
                     maxToken,
                     isAttachedFile=false,
-                    imgFiles=[]
+                    imgFiles=[],
+                    isTalk=false
             } } = req.body;
         
   
@@ -41,7 +42,7 @@ module.exports = (dependencies) => {
                     prompt.push({
                         type: "image_url",
                         image_url: {
-                          "url": file,
+                          "url": file.url,
                         },
                     })
                 }); 
@@ -68,7 +69,7 @@ module.exports = (dependencies) => {
                     id: senderID
                 }, //{name, id}
                 haveFile: haveFile, // check if the request has file attachment
-                isTask: false // false
+                isTask: isTalk // false
             })
 
             let storeAiDBList = []
