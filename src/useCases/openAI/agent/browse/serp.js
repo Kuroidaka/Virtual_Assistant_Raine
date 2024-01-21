@@ -14,8 +14,7 @@ module.exports = ({currentLang}) => {
 
     // Define scrapeWebsite Schema
     const googleSearchSchema = z.object({
-        q: z.string(),
-        lang: z.string(),
+        q: z.string()
     });
     
     // Define tool

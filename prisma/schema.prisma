@@ -10,7 +10,7 @@ datasource db {
 
 model Task {
   id            String   @id
-  title         String
+  title         String   @db.LongText
   time          DateTime
   repeat        Boolean
   createdAt     DateTime @default(now())

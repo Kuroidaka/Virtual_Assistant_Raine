@@ -25,10 +25,11 @@ with the table name when needed.
 IMPORTANT NOTE: Always use CONVERT_TZ(time,'+00:00','+07:00')  for the time for every table that has time column.
 
 When there are a request to show the pending or the upcoming reminder task, please use the following query:
-SELECT CONVERT_TZ(Task.time,'+00:00','+07:00'), NOW()
+
+SELECT CONVERT_TZ(Task.time,'+00:00','+07:00'), Task.title, Task.repeat
 FROM Task
-WHERE time < DATE_ADD(NOW(), INTERVAL 1 HOUR)
-	AND CONVERT_TZ(time,'+00:00','+07:00') > NOW();
+WHERE CONVERT_TZ(time,'+00:00','+07:00') > NOW();
+
 
 
 You are required to use the following format, \
@@ -54,7 +55,7 @@ This table represents Reminder Tasks. Each row contains the following columns:
 id: Unique identifier of the task
 title: Title of the task
 time: The time when the task is scheduled
-repeat: Boolean value indicating whether the task is repetitive
+repeat: Boolean value indicating whether the task is repetitive, 1 for True and 0 for False
 createdAt: The time when the task was created
 updatedAt: The time when the task was last updated
 """

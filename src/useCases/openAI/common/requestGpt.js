@@ -16,9 +16,11 @@ module.exports = (dependencies) => {
     temperature,
     conversation,
     maxToken,
-    functionCall = false,
-    listFunc = () => {},
-    resource = ""
+    functionCall=false,
+    listFunc=() => {},
+    resource="",
+    stream=false,
+    res=null
   }) => {
       
     try {
@@ -42,10 +44,74 @@ module.exports = (dependencies) => {
                 callObj.functions = listFunc;
                 callObj.function_call = 'auto';
             }
-            completion = await openAi.chat.completions.create(callObj);
+            if(stream) {
+              callObj.stream = stream;
+              completion = await openAi.chat.completions.create(callObj, { responseType: 'stream' });
+
+              let funcCall = {
+                "name": null,
+                "arguments": "",
+              };
+              let responseContent = ""
+              let newCompletion ={ choices: [] }
+
+              for await (let chunk of completion) {
+                  let delta = chunk.choices[0].delta;
+                  if ('function_call' in delta) {
+                      if ('name' in delta.function_call) {
+                          funcCall.name = delta.function_call.name;
+                      }
+                      if ('arguments' in delta.function_call) {
+                          funcCall.arguments += delta.function_call.arguments;
+                      }
+                  }
+                  if (chunk.choices[0].finish_reason === 'function_call') {
+                    newCompletion.choices[0] = {
+                          "message": {
+                            "function_call": funcCall,
+                            "role": "assistant",
+                            "content": null,
+                          },
+                          "finish_reason": "function_call",
+                    }
+                    completion = newCompletion
+
+                    // res.write function console.log(funcCall.name)
+                    res.write(`${funcCall.name}`)
+                    res.end()
+                  }
+                  else if(chunk.choices[0].finish_reason === 'stop') {
+                    newCompletion = {
+                      choices: [
+                        {
+                          "message": {
+                            "role": "user",
+                            "content": responseContent,
+                          },
+                          "finish_reason": "stop",
+                        }
+                      ]
+                    }
+                    completion = newCompletion
+                  }
+                  if (!delta.content) {
+                      continue;
+                  }
+                  console.log(delta.content)
+                  const content = delta.content
+                  res.write(content)
+                  res.end()
+                  responseContent += delta.content
+                  // process.stdout.write(delta.content);
+              }
+            }
+            else {
+                completion = await openAi.chat.completions.create(callObj);
+            }
         }
     
         conversation.push(completion.choices[0].message)
+        // conversation.push(objectContent)
         return {
             conversation,
             completion,
