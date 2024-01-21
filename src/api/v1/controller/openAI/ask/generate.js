@@ -51,7 +51,8 @@ const generateController = (dependencies) => {
                 maxToken, 
                 curUser, //{name, id}
                 haveFile, // check if the request has file attachment
-                isTask // false
+                isTask, // false
+                res: res
             })
             
             return res.status(result.status).json({data: result.data, func: result.func})
@@ -79,7 +80,9 @@ const askingAI = (dependencies) => {
                 maxToken,
                 curUser,
                 haveFile,
-                isTask
+                isTask,
+                stream,
+                res = null
             } = data
 
         let resource = ""
@@ -111,7 +114,9 @@ const askingAI = (dependencies) => {
             prepareKey,
             isTask,
             haveFile,
-            resource: resource
+            resource: resource,
+            res: res,
+            stream: stream
         })
 
         console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)

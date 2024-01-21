@@ -30,6 +30,8 @@ module.exports = (dependencies) => {
             max_tokens: maxToken,
         };
         let completion
+        let responseContent = ""
+
         // Add specific properties based on resource and functionCall
         if (resource === "azure") {
             if (functionCall) {
@@ -52,7 +54,7 @@ module.exports = (dependencies) => {
                 "name": null,
                 "arguments": "",
               };
-              let responseContent = ""
+
               let newCompletion ={ choices: [] }
 
               for await (let chunk of completion) {
@@ -77,8 +79,8 @@ module.exports = (dependencies) => {
                     completion = newCompletion
 
                     // res.write function console.log(funcCall.name)
-                    res.write(`${funcCall.name}`)
-                    res.end()
+                    res.write(JSON.stringify(funcCall))
+                    res.write("\n\n")
                   }
                   else if(chunk.choices[0].finish_reason === 'stop') {
                     newCompletion = {
@@ -93,16 +95,18 @@ module.exports = (dependencies) => {
                       ]
                     }
                     completion = newCompletion
+                    res.write("\n\n");
                   }
                   if (!delta.content) {
                       continue;
                   }
-                  console.log(delta.content)
-                  const content = delta.content
-                  res.write(content)
-                  res.end()
+
                   responseContent += delta.content
-                  // process.stdout.write(delta.content);
+                  res.write(delta.content);
+
+                  // Log Terminal
+                  // console.clear()
+                  // console.log(responseContent)
               }
             }
             else {

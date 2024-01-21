@@ -23,7 +23,9 @@ module.exports = (dependencies) => {
     prepareKey,
     functionCall = false,
     listFunc = () => {},
-    resource = ""
+    resource = "",
+    stream = false,
+    res = null
   }) => {
       
     try {
@@ -56,7 +58,9 @@ module.exports = (dependencies) => {
           maxToken,
           functionCall,
           listFunc,
-          resource
+          resource,
+          stream,
+          res
       })
 
       console.log(completion)

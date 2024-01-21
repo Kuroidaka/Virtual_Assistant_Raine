@@ -9,19 +9,18 @@ module.exports = (dependencies) => {
     } } = dependencies;
 
     return async (req, res) => { 
-        const { data: {
-                    conversationId,
-                    from,
-                    messages: {
-                        text,
-                        sender,
-                        senderID
-                    },
-                    maxToken,
-                    isAttachedFile=false,
-                    imgFiles=[],
-                    isTalk=false
-            } } = req.body;
+        const { 
+                conversationId,
+                from,
+                text,
+                sender,
+                senderID,
+                maxToken,
+                isAttachedFile=false,
+                imgFiles=[],
+                isTalk=false
+
+            } = req.query;
         
   
         try {            
@@ -31,6 +30,23 @@ module.exports = (dependencies) => {
                 img: false,
                 docs: isAttachedFile
             }
+            // const emitSSE= (res, id, data) =>{
+            //     res.write('id: ' + id + '\n');
+            //     res.write("data: " + data + '\n\n');
+            //   }
+
+            res.writeHead(200, {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive'
+            });
+            // const id = (new Date()).toLocaleTimeString();
+            // // Sends a SSE every 3 seconds on a single connection.
+            // setInterval(function() {
+            // emitSSE(res, id, (new Date()).toLocaleTimeString());
+            // }, 3000);
+        
+            // emitSSE(res, id, (new Date()).toLocaleTimeString());
 
             if(imgFiles.length > 0) {// prepare prompt data for file image attachment
                 prompt = [{
@@ -63,13 +79,15 @@ module.exports = (dependencies) => {
                 prepareKey: storeDB.conversationId, // conversation key
                 promptRedis: promptRedis, // prompt for redis,
                 prompt: prompt, // prompt for openAI
-                maxToken: maxToken, 
+                maxToken: Number(maxToken), 
                 curUser: {
                     name: sender,
                     id: senderID
                 }, //{name, id}
                 haveFile: haveFile, // check if the request has file attachment
-                isTask: isTalk // false
+                isTask: isTalk, // false
+                stream: true,
+                res: res // for streaming
             })
 
             let storeAiDBList = []
@@ -108,7 +126,8 @@ module.exports = (dependencies) => {
             // get the whole conversation
             const newConversation = await getConversations(dependencies).execute({ from: "StudyIO", id: storeDB.message.conversationId })
 
-            return res.status(askAI.status).json({
+            res.status(askAI.status);
+            await res.write(JSON.stringify({
                 data: {
                     bot: storeAiDBList,
                     user: storeDB.message,
@@ -116,11 +135,13 @@ module.exports = (dependencies) => {
                     newConversation: newConversation,
                     isNewConversation: storeDB.isNewConversation
                 },
-                func: askAI.func})
-
+                func: askAI.func
+            }));
+            res.end();
         } catch (error) {
-         
-            return res.status(500).json({ error: error });
+            // return res.status(500).json({ error: error });
+            console.log(error)
+            res.end() 
         }
    
     }

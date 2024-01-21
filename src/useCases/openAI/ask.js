@@ -16,10 +16,12 @@ module.exports = class askOpenAIUseCase {
       prepareKey,
       isTalk = false,
       haveFile,
-      resource = ""
+      resource = "",
+      stream = false,
+      res = null
     }) => {
       try {
-        const { openAi, azureOpenAi } = this.dependencies
+        // const { openAi, azureOpenAi } = this.dependencies
 
         //check language from request
         let currentLang = {lc: "en"}
@@ -42,7 +44,7 @@ module.exports = class askOpenAIUseCase {
        
         console.log(chalk.blue.bold(`prompt:(${JSON.stringify(currentLang)})`), prompt);
         
-        if(haveFile.docs) { // must be here before prepare prompt and after detect language
+        if(haveFile.docs == "true" || haveFile.docs === true) { // must be here before prepare prompt and after detect language
           prompt =`Please consider to check the file user attached to answer the question below:\n\tQuestion:\n-----------\n${prompt}\n----------- `   
         }
 
@@ -67,7 +69,7 @@ module.exports = class askOpenAIUseCase {
         let temperature = 0.5
   
 
-        if(haveFile.img) {// Read file image 
+        if(haveFile.img == true || haveFile.img == "true") {// Read file image 
           const callGpt = common.handleCallGPTCommon(this.dependencies)
           const gptData = {
             model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT4_V : "gpt-4-vision-preview",
@@ -114,7 +116,9 @@ module.exports = class askOpenAIUseCase {
             prepareKey: prepareKey,
             functionCall: isFuncCall,
             listFunc: funcList.listToolsSpec,
-            resource: resource
+            resource: resource,
+            stream: stream,
+            res: res
           }
           const { conversation:newConversation, completion } = await callGpt.execute(gptData)
           this.promptMessageFunc = newConversation
@@ -194,7 +198,7 @@ module.exports = class askOpenAIUseCase {
   
             }
             else {
-              console.log("reason why stop", completion.choices[0])
+              console.log("reason why stop", completion.choices)
               responseData = {
                 ...responseData,
                 status: 200,
