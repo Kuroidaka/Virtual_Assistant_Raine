@@ -52,7 +52,7 @@ const createConDB = (dependencies) => {
                 const shortList = [
                     {
                         role: "user",
-                        content: `Summarize the following text in less than 5 words:
+                        content: `Summarize the following text for 5 year old child in less than 5 words :
                         --------
                         text: ${text}
                         --------`,
@@ -60,7 +60,7 @@ const createConDB = (dependencies) => {
                 ]
                 if(resource === "azure") {
                     callObj = {
-                        temperature: 1,
+                        temperature: 0.5,
                         max_tokens: 15,
                     }
                     completion = await azureOpenAi.getChatCompletions(process.env.AZURE_OPENAI_API_GPT35, shortList, callObj);

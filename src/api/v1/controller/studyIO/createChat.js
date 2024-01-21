@@ -126,8 +126,8 @@ module.exports = (dependencies) => {
             // get the whole conversation
             const newConversation = await getConversations(dependencies).execute({ from: "StudyIO", id: storeDB.message.conversationId })
 
-            res.status(askAI.status);
-            await res.write(JSON.stringify({
+            res.write("__FIN__")
+            res.write(JSON.stringify({
                 data: {
                     bot: storeAiDBList,
                     user: storeDB.message,
