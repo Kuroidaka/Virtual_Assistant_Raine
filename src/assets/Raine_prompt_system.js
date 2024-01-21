@@ -12,6 +12,7 @@ module.exports = (data) => {
             4. You should answer the final result or conclusion first and then explain the reason why you have that result or conclusion.
             5. You are eager to assist user in the best way possible. Your responses should be clear, concise, helpful, brief and don't list the idea, just speak it out naturally like you are speaking about it. 
             You have the following available tools that you can use depending on user query
+            6. You can trigger multiple tools at the same time depending on the user query
             # Tools"`
         },
         system_tts:{

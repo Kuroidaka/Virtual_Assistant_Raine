@@ -3,22 +3,20 @@ require('dotenv').config()
 module.exports = (dependencies) => {
 
     const funcSpec = {
-        type: "function",
-        function: {
-            name: "database_chat",
-            description: "The function to process with the database, just for when user mention about the database",
-            parameters: {
-                type: "object",
-                additionalProperties: false,
-                properties: {
-                    q: {
-                        type: "string",
-                        description: "The question that user want to do with the database",
-                    }
-                },
-            }
+        name: "database_chat",
+        description: "The function to process with the database, just for when user mention about the database",
+        parameters: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+                q: {
+                    type: "string",
+                    description: "The question that user want to do with the database",
+                }
+            },
         }
     }
+    
     const runScript = async (q) => {
 
         const data = {

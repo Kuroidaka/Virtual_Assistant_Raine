@@ -31,16 +31,16 @@ module.exports = (dependencies) => {
         // Add specific properties based on resource and functionCall
         if (resource === "azure") {
             if (functionCall) {
-                callObj.tools = listFunc;
-                callObj.toolChoice = 'auto';
+                callObj.functions = listFunc;
+                callObj.functionCall = 'auto';
             }
             completion = await azureOpenAi.getChatCompletions(model, conversation, callObj);
         } else {
             callObj.model = model;
             callObj.messages = conversation;
             if (functionCall) {
-                callObj.tools = listFunc;
-                callObj.tool_choice = 'auto';
+                callObj.functions = listFunc;
+                callObj.function_call = 'auto';
             }
             completion = await openAi.chat.completions.create(callObj);
         }

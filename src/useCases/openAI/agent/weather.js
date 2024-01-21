@@ -99,31 +99,28 @@ const weatherFunc = {
     return { content: contentReturn }
   },
   funcSpec: {
-    type: "function",
-    function: {
-      name: "get_current_weather",
-      description: "Get the current weather in a given location",
-      parameters: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-              location: {
-                  type: "string",
-                  description: "The city and state, e.g. Ho Chi Minh",
-                  pattern: "^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$", // regex for city name
-              },
-              time: { 
-                  type: "string", 
-                  description: "The specific time of the day, format: 0-23, the morning zone is from 0-11, the afternoon zone is from 12-23, this a optional field",
-                  enum: ["current", "0", "1",  "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]
-              },
-              date: {
-                  type: "string", 
-                  description: "tomorrow, today, default is today or any day of the week, the day must be in the future",
-              },
-          },
-          required: ["location", "date"],
-      }
+    name: "get_current_weather",
+    description: "Get the current weather in a given location",
+    parameters: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            location: {
+                type: "string",
+                description: "The city and state, e.g. Ho Chi Minh",
+                pattern: "^[a-zA-Z]+(?:[\\s-][a-zA-Z]+)*$", // regex for city name
+            },
+            time: { 
+                type: "string", 
+                description: "The specific time of the day, format: 0-23, the morning zone is from 0-11, the afternoon zone is from 12-23, this a optional field",
+                enum: ["current", "0", "1",  "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]
+            },
+            date: {
+                type: "string", 
+                description: "tomorrow, today, default is today or any day of the week, the day must be in the future",
+            },
+        },
+        required: ["location", "date"],
     }
   }
 }

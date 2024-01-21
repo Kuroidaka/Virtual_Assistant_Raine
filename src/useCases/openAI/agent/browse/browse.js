@@ -13,20 +13,17 @@ const serper = require("./serp")
 module.exports = () => {
 
     const funcSpec = {
-        type: "function",
-        function: {
-            name: "browse",
-            description: "The function getting the realtime events, data, news, ... from the internet.",
-            parameters: {
-                type: "object",
-                additionalProperties: false,
-                properties: {
-                    q: {
-                        type: "string",
-                        description: "The question that user want to know about the current events, data, news, ...",
-                    }
-                },
-            }
+        name: "browse",
+        description: "The function getting the realtime events, data, news, ... from the internet.",
+        parameters: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+                q: {
+                    type: "string",
+                    description: "The question that user want to know about the current events, data, news, ...",
+                }
+            },
         }
     }
 

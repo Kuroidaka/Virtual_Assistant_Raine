@@ -108,24 +108,20 @@ module.exports = () => {
     }
   };
   
-  const funcSpec = {
-    type: "function",
-    function: {  
-      name: "ask_about_document",
-      description: "The function to ask about a document and provide information based on the user's prompt.",
-      parameters: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-              q: {
-                  type: "string",
-                  description: "The question that the user wants to know about the uploaded document",
-              }
-          },
-          required: ["q"],
-      }
+  const funcSpec = { 
+    name: "ask_about_document",
+    description: "The function to ask about a document and provide information based on the user's prompt.",
+    parameters: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            q: {
+                type: "string",
+                description: "The question that the user wants to know about the uploaded document",
+            }
+        },
+        required: ["q"],
     }
-
   }
   
   return { execute, funcSpec }
