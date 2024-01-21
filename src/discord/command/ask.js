@@ -41,7 +41,18 @@ const reactIconList = [
 		name: "database_chat",
 		icon: "🛢️"
 	},
+	{
+		name: "generate_image",
+		icon: "🖼️"
+	},
+	{
+		name: "follow_up_image_in_chat",
+		icon: "👁️"
+	},
 ]
+
+// "": followUpImageFunc,
+//             "
 
 module.exports = {
 	data: {

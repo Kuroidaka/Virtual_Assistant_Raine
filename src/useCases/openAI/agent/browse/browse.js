@@ -13,18 +13,21 @@ const serper = require("./serp")
 module.exports = () => {
 
     const funcSpec = {
-        name: "browse",
-        description: "The function getting the realtime events, data, news, ... from the internet.",
-        parameters: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-                q: {
-                    type: "string",
-                    description: "The question that user want to know about the current events, data, news, ...",
-                }
-            },
-        },
+        type: "function",
+        function: {
+            name: "browse",
+            description: "The function getting the realtime events, data, news, ... from the internet.",
+            parameters: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                    q: {
+                        type: "string",
+                        description: "The question that user want to know about the current events, data, news, ...",
+                    }
+                },
+            }
+        }
     }
 
     const execute = async  ({args, conversation, currentLang, resource}) => {
@@ -32,6 +35,8 @@ module.exports = () => {
         const { q } = args
 
         let model
+        let contentReturn = ""
+
         if(resource === "azure") {
             model = new ChatOpenAI({ 
                 temperature: 0,
@@ -85,20 +90,18 @@ module.exports = () => {
             const result = await executor.invoke({ input: `${q} in language ${currentLang.lc}` });
 
             console.log(`Got output ${result.output}`);
-            conversation.push({
-                role: "user",
-                content: `Based on the following search results to answer user: 
+            contentReturn = `Based on the following search results to answer user: 
                 result: ${result.output}`
-            })
 
             return {
-                content: result.output,
-                conversation 
+                content: contentReturn, 
             }
 
         } catch (error) {
             console.log(error)
-            return error
+            return {
+                content: `Error: ${error}`, 
+            }
         }
     }
 

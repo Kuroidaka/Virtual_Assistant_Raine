@@ -1,4 +1,6 @@
 const express = require('express')
+const multer  = require('multer');
+const upload = multer();
 
 const openAIController = require('../controller/openAI')
 
@@ -12,7 +14,8 @@ module.exports = (dependencies) => {
         generateController,
         uploadFileController,
         deleteFileController,
-        getFileController
+        getFileController,
+        speechToTextController
         // askForFunction,
         // generateForTTS,
         // generateImg,
@@ -34,6 +37,10 @@ module.exports = (dependencies) => {
     router
         .route("/get-file")
         .get(getFileController)
+    
+    router
+        .route("/stt")
+        .post(upload.any(), speechToTextController)
 
     // router
     //     .route('/ask-for-tts')

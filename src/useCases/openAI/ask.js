@@ -19,6 +19,8 @@ module.exports = class askOpenAIUseCase {
       resource = ""
     }) => {
       try {
+        const { openAi, azureOpenAi } = this.dependencies
+
         //check language from request
         let currentLang = {lc: "en"}
         let model 
@@ -66,7 +68,7 @@ module.exports = class askOpenAIUseCase {
   
 
         if(haveFile.img) {// Read file image 
-          const callGpt = common.callGPTCommon(this.dependencies)
+          const callGpt = common.handleCallGPTCommon(this.dependencies)
           const gptData = {
             model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT4_V : "gpt-4-vision-preview",
             temperature: temperature,
@@ -77,8 +79,8 @@ module.exports = class askOpenAIUseCase {
             functionCall: false,
             resource: resource
           }
-          const { conversation, completion, error=null } = await callGpt.execute(gptData)
-          this.promptMessageFunc = conversation
+          const { conversation:newCon, completion, error=null } = await callGpt.execute(gptData)
+          this.promptMessageFunc = newCon
 
           // send the response data back to user
 
@@ -87,7 +89,7 @@ module.exports = class askOpenAIUseCase {
             return ({ status: 200, data: "error occur" })
           }
           console.log("Response:", completion.choices[0]);
-          return ({ status: 200, data: completion.choices[0].message.content })
+          // return ({ status: 200, data: completion.choices[0].message.content })
         }
 
         // get function calling definition
@@ -98,11 +100,9 @@ module.exports = class askOpenAIUseCase {
         console.log(chalk.blue.bold('ConversationPrompt'), this.promptMessageFunc)
 
         let responseData = {func:[]}
-        while(true) {
-          
-          console.log(chalk.green.bold("------------------------ REQUEST ------------------------"));
+          console.log(chalk.green.bold("------------------------ START REQUEST ------------------------"));
           // OPENAI asking
-          const callGpt = common.callGPTCommon(this.dependencies)
+          const callGpt = common.handleCallGPTCommon(this.dependencies)
           const gptData = {
             model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT35 : model,
             temperature: temperature,
@@ -111,78 +111,92 @@ module.exports = class askOpenAIUseCase {
             systemMsgCount: countSystem,
             prepareKey: prepareKey,
             functionCall: isFuncCall,
-            listFunc: funcList.listFuncSpec,
+            listFunc: funcList.listToolsSpec,
             resource: resource
           }
-          const { conversation, completion } = await callGpt.execute(gptData)
-          this.promptMessageFunc = conversation
+          const { conversation:newConversation, completion } = await callGpt.execute(gptData)
+          this.promptMessageFunc = newConversation
           // process function calling from tools
           const responseMessage = completion.choices[0].message
           const finishReason = completion.choices[0].finish_reason || completion.choices[0].finishReason
           if(finishReason){
-
+  
+            const toolCalls = responseMessage.tool_calls || responseMessage.toolCalls;
+  
+            // Log tools and arguments
             console.log(
               chalk.green.bold("Finish_reason"), finishReason
             )
             
             if(finishReason !== "stop") {
               // prepare arguments
-              const functionCall = responseMessage.function_call || responseMessage.functionCall
-
-              // Log arguments
-              const args = JSON.parse(functionCall.arguments)
-              Object.keys(args).forEach(key => {
-                if (typeof args[key] === 'object' || Array.isArray(args[key])) {
-                  console.log(`---> ${key}:`, JSON.stringify(args[key]))
+  
+              if (toolCalls) {
+                for (const toolCall of toolCalls) {
+                  const toolName = toolCall.function.name
+                  const toolToCall = funcList.tools[toolName];
+                  const toolArgs = JSON.parse(toolCall.function.arguments)
+                  // Log tools and arguments
+                  console.log(
+                    chalk.green.bold("Tool name:"), toolName
+                  )
+                  Object.keys(toolArgs).forEach((key) => {
+                    if (typeof toolArgs[key] === 'object' || Array.isArray(toolArgs[key])) {
+                      console.log(`---> ${key}:`, JSON.stringify(toolArgs[key]))
+                    }
+                    else { 
+                      console.log(`---> ${key}: ${toolArgs[key]}`)
+                    }
+                  })
+                  
+                  const funcArgs = {
+                    args: toolArgs,
+                    conversation: this.promptMessageFunc,
+                    dependencies: this.dependencies,
+                    countSystem: countSystem,
+                    prepareKey: prepareKey,
+                    currentLang: currentLang,
+                    resource: resource
+                  }
+                  // push tools be triggered to response
+                  responseData.func.push(toolName)
+  
+                  // trigger tools
+                  const toolResponse = await toolToCall.execute(funcArgs)
+  
+                  if(toolResponse?.imgList) {
+                    responseData.image_list = toolResponse?.imgList
+                  }
+  
+                  this.promptMessageFunc.push({
+                    tool_call_id: toolCall.id,
+                    role: "tool",
+                    name: toolName,
+                    content: toolResponse.content,
+                  });
                 }
-                else { 
-                  console.log(`---> ${key}: ${args[key]}`)
-                }
-              })
 
-              const funcArgs = {
-                args: args,
-                conversation: this.promptMessageFunc,
-                dependencies: this.dependencies,
-                countSystem: countSystem,
-                prepareKey: prepareKey,
-                currentLang: currentLang,
-                resource: resource
+                let { conversation:secondCon, completion } = await common.requestGptCommon(this.dependencies).execute({
+                  model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT35 : model,
+                  temperature: temperature,
+                  conversation: this.promptMessageFunc,
+                  maxToken: maxToken,
+                  functionCall: false,
+                  resource: resource
+                })
+                this.promptMessageFunc = secondCon
+
+                console.log(completion.choices[0])
+                return {
+                  status: 200,
+                  data: completion.choices[0].message.content,
+                  ...responseData
+                }
               }
-              responseData.func.push(functionCall.name)
-              if(functionCall?.name === "get_current_weather") {
-                this.promptMessageFunc = await funcList.func.weatherFunc.execute(funcArgs)
-              } 
-              else if(functionCall?.name === "create_reminder") {
-                this.promptMessageFunc = await funcList.func.reminderFunc.execute(funcArgs)
-              } 
-              else if(functionCall?.name === "browse") {
-                const { content, conversation } = await funcList.func.browseFunc.execute(funcArgs)
-                this.promptMessageFunc = conversation
-                // return ({ status: 200, data: content })
-              } 
-              else if(functionCall?.name === "ask_about_document") {
-                const { content, conversation } = await funcList.func.askAboutDocsFunc.execute(funcArgs)
-                this.promptMessageFunc = conversation
-                // return ({ status: 200, data: content })
-              } 
-              else if(functionCall?.name === "database_chat") {
-                const { content, conversation } = await funcList.func.dbChatFunc.execute(funcArgs)
-                this.promptMessageFunc = conversation
-                // return ({ status: 200, data: content })
-              } 
-              else if(functionCall?.name === "follow_up_image_in_chat") {
-                const { content, conversation } = await funcList.func.followUpImageFunc.execute(funcArgs)
-                this.promptMessageFunc = conversation
-                return ({ status: 200, data: content })
-              }
-              else if(functionCall?.name === "generate_image") {
-                const { conversation, content, imgList } = await funcList.func.generateImageFunc.execute(funcArgs)
-                this.promptMessageFunc = conversation
-                return ({ status: 200, data: content, image_list: imgList })
-              }
+  
             }
             else {
+              console.log("reason why stop", completion.choices[0])
               responseData = {
                 ...responseData,
                 status: 200,
@@ -192,8 +206,11 @@ module.exports = class askOpenAIUseCase {
             }
           }  
           console.log(chalk.green.bold("------------------------ END REQUEST ------------------------"));
-        }  
+    
+
+
       } catch(error) {
+        console.log(error)
         return ({status: 500, error: `at File: ${__filename}\n\t${error}`})
       }
   

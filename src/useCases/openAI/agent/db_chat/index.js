@@ -3,18 +3,21 @@ require('dotenv').config()
 module.exports = (dependencies) => {
 
     const funcSpec = {
-        name: "database_chat",
-        description: "The function to process with the database, just for when user mention about the database",
-        parameters: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-                q: {
-                    type: "string",
-                    description: "The question that user want to do with the database",
-                }
-            },
-        },
+        type: "function",
+        function: {
+            name: "database_chat",
+            description: "The function to process with the database, just for when user mention about the database",
+            parameters: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                    q: {
+                        type: "string",
+                        description: "The question that user want to do with the database",
+                    }
+                },
+            }
+        }
     }
     const runScript = async (q) => {
 
@@ -54,27 +57,24 @@ module.exports = (dependencies) => {
         });
     }
 
-    const execute = async  ({args, conversation, currentLang, resource}) => {
+    const execute = async  ({args, currentLang, resource}) => {
 
         const { q } = args
       
         try {
-          
+            let contentReturn = ""
+
             const result = await runScript(q)
             .then(res => {
                 console.log(`stdout: ${res}`)
                 const returnedObject = JSON.parse(res)
                 console.log(returnedObject.sql_query)
 
-                conversation.push({
-                    role: "user",
-                    content: `Based on the following reponse results from database to answer user: 
-                    result:${returnedObject.response}`
-                })
+                contentReturn = `Based on the following reponse results from database to answer user: 
+                result:${returnedObject.response}`
             
                 return {
-                    content: returnedObject.response,
-                    conversation 
+                    content: contentReturn
                 }
             
             })
@@ -88,7 +88,9 @@ module.exports = (dependencies) => {
       
         } catch (error) {
           console.log(error)
-          return error
+          return {
+            content: `Error: ${error}`
+          }
         }
       }
 

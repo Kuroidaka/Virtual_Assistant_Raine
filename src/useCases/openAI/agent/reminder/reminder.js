@@ -4,68 +4,60 @@ module.exports = class reminderFunc {
   constructor(dependencies) {
     this.dependencies = dependencies
     this.funcSpec = {
-      "name": "create_reminder",
-      "description": "Useful for setup reminder for user, please follow the { Reminder's instruction } to setup reminder",
-      "parameters": {
-          "type": "object",
-          "properties": {
-              "remindPrompt": {
-                  "type": "string",
-                  "description": "The task that AI will remind the user about. This will be based on the user's prompt, and will be enhanced to provide a more engaging reminder and will attached with some icon relate to the task. For example, if the user says 'remind me to drink water...', the 'remindPrompt' could be 'Just a friendly reminder, it's time to drink some water. Stay hydrated!'"
-              },
-              "time": {
-                  "type": "string",
-                  "description": `
-                  - The specific time that user want to remind. 
-                  - Must be GMT+0700 (Indochina Time) base on current GMT+0700 (Indochina Time): ${new Date()}, example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)'
-                  - If user request to remind after a period of time, please convert into GMT+0700 (Indochina Time): base on the current time: : ${new Date()} example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)
-                  `
-              },
-              
-              "repeat": {
-                  "type": "boolean",
-                  "description": "repeating the reminder or not"
-              }
-          },
-          "required": ["task", "time"]
+      type: "function",
+      function: {
+        name: "create_reminder",
+        description: "Useful for setup reminder for user, please follow the { Reminder's instruction } to setup reminder",
+        parameters: {
+            type: "object",
+            properties: {
+                remindPrompt: {
+                    type: "string",
+                    description: "The task that AI will remind the user about. This will be based on the user's prompt, and will be enhanced to provide a more engaging reminder and will attached with some icon relate to the task. For example, if the user says 'remind me to drink water...', the 'remindPrompt' could be 'Just a friendly reminder, it's time to drink some water. Stay hydrated!'"
+                },
+                time: {
+                    type: "string",
+                    description: `
+                    - The specific time that user want to remind. 
+                    - Must be GMT+0700 (Indochina Time) base on current GMT+0700 (Indochina Time): ${new Date()}, example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)'
+                    - If user request to remind after a period of time, please convert into GMT+0700 (Indochina Time): base on the current time: : ${new Date()} example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)
+                    `
+                },
+                repeat: {
+                    type: "boolean",
+                    description: "repeating the reminder or not"
+                }
+            },
+            required: ["task", "time"]
+        }
       }
     }
   }
   
-  async execute ({args, conversation}) {
+  async execute ({args}) {
     const { 
       remindPrompt,
       time,
       repeat
     } = args
        
+    let contentReturn = ""
+    
     if(!remindPrompt) {
-      conversation.push({
-        role: "user",
-        content: "user must provide what to do"
-      })
+      contentReturn =  "user must provide what to do"
     } else if(!time) {
-      conversation.push({
-        role: "user",
-        content: "user must provide time"
-      })
+      contentReturn = "user must provide time"
     } else {
       const result = await createJob(this.dependencies).execute({remindPrompt, time, repeat})
       if(result?.status === 500) {
-        conversation.push({
-          role: "assistant",
-          content: `Error occur while trying to setup reminder, let user know about this bug in create_reminder function: ${result.error}`
-        })
+        contentReturn = `Error occur while trying to setup reminder, let user know about this bug in create_reminder function: ${result.error}`
         throw new Error(result.error)
       }
       else {
-        conversation.push({
-          role: "assistant",
-          content: result.data
-        })
+        contentReturn = result.data
       }
     }
-    return conversation
+    return { content: contentReturn }
   }
 }
 

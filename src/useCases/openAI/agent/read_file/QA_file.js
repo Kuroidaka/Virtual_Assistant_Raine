@@ -12,9 +12,10 @@ const { PromptTemplate } = require("@langchain/core/prompts")
 
 
 module.exports = () => {
-  const execute = async ({args, conversation, currentLang, resource}) => {
+  const execute = async ({args, currentLang, resource}) => {
     const { q } = args;
     try {
+      let contentReturn = ""
       const directory = "src/assets/vector";
     
       // console.log('creating vector store...');
@@ -92,36 +93,39 @@ module.exports = () => {
       });
       console.log(JSON.stringify(res, null, 2));
       
-      conversation.push({
-        role: "user",
-        content: `Based on the following document search results to answer user: 
-        result: ${res.text}`
-      })
+      contentReturn = `Based on the following document search results to answer user: 
+      result: ${res.text}`
+      
       return {
-        content: res.text,
-        conversation
+        content: contentReturn,
       }
   
     } catch (error) {
       console.log('error', error);
-      throw new Error('Failed to ingest your data');
+      return {
+        content: `Error: ${error}`
+      }
     }
   };
   
   const funcSpec = {
-    name: "ask_about_document",
-    description: "The function to ask about a document and provide information based on the user's prompt.",
-    parameters: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-            q: {
-                type: "string",
-                description: "The question that the user wants to know about the uploaded document",
-            }
-        },
-        required: ["q"],
-    },
+    type: "function",
+    function: {  
+      name: "ask_about_document",
+      description: "The function to ask about a document and provide information based on the user's prompt.",
+      parameters: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+              q: {
+                  type: "string",
+                  description: "The question that the user wants to know about the uploaded document",
+              }
+          },
+          required: ["q"],
+      }
+    }
+
   }
   
   return { execute, funcSpec }

@@ -24,7 +24,12 @@ with the table name when needed.
 
 IMPORTANT NOTE: Always use CONVERT_TZ(time,'+00:00','+07:00')  for the time for every table that has time column.
 
-When there are a request to show reminder task, please add CONVERT_TZ(time,'+00:00','+07:00')  in the query.
+When there are a request to show the pending or the upcoming reminder task, please use the following query:
+SELECT CONVERT_TZ(Task.time,'+00:00','+07:00'), NOW()
+FROM Task
+WHERE time < DATE_ADD(NOW(), INTERVAL 1 HOUR)
+	AND CONVERT_TZ(time,'+00:00','+07:00') > NOW();
+
 
 You are required to use the following format, \
 each taking one line:

@@ -7,7 +7,7 @@ module.exports = (dependencies) => {
   } = dependencies
 
   const execute = async ({remindPrompt}) => {
-    const channelID = process.env.CHANNEL_ID
+    const channelID = process.env.CHANNEL_NOTIFY_ID
 
     const channel = discordClient.channels.cache.get(channelID);
 

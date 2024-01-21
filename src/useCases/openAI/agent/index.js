@@ -14,7 +14,7 @@ module.exports = ({dependencies}) => {
     const dbChatFunc = dbChat(dependencies)
 
 
-    const listFuncSpec = [
+    const listToolsSpec = [
         weatherFunc.funcSpec,
         reminderFunc.funcSpec,
         followUpImageFunc.funcSpec,
@@ -24,15 +24,22 @@ module.exports = ({dependencies}) => {
         dbChatFunc.funcSpec
     ]
     return {
-        func: {
-            weatherFunc,
-            reminderFunc,
-            followUpImageFunc,
-            generateImageFunc,
-            browseFunc,
-            askAboutDocsFunc,
-            dbChatFunc
+        tools: {
+            "get_current_weather": weatherFunc,
+            "create_reminder": reminderFunc,
+            "browse": browseFunc,
+            "ask_about_document": askAboutDocsFunc,
+            "database_chat": dbChatFunc,
+            "follow_up_image_in_chat": followUpImageFunc,
+            "generate_image": generateImageFunc,
         },
-        listFuncSpec
+        listToolsSpec
     }
 }
+
+
+
+
+
+
+
