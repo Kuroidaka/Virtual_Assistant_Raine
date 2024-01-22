@@ -73,13 +73,15 @@ module.exports = class askOpenAIUseCase {
           const callGpt = common.handleCallGPTCommon(this.dependencies)
           const gptData = {
             model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT4_V : "gpt-4-vision-preview",
-            temperature: temperature,
             conversation: this.promptMessageFunc,
-            maxToken: maxToken,
             systemMsgCount: countSystem,
+            temperature: temperature,
             prepareKey: prepareKey,
             functionCall: false,
-            resource: resource
+            maxToken: maxToken,
+            resource: resource,
+            stream: stream,
+            res: res
           }
           const { conversation:newCon, completion, error=null } = await callGpt.execute(gptData)
           this.promptMessageFunc = newCon
@@ -88,10 +90,12 @@ module.exports = class askOpenAIUseCase {
 
           if(error) {
             console.log(error)
-            return ({ status: 200, data: "error occur" })
+            res.statusCode = 500;
+            res.end()
+            return 
           }
           console.log("Response:", completion.choices[0]);
-          // return ({ status: 200, data: completion.choices[0].message.content })
+          return ({ status: 200, data: completion.choices[0].message.content })
         }
 
         // get function calling definition
@@ -109,13 +113,13 @@ module.exports = class askOpenAIUseCase {
           const callGpt = common.handleCallGPTCommon(this.dependencies)
           const gptData = {
             model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT35 : model,
-            temperature: temperature,
             conversation: this.promptMessageFunc,
-            maxToken: maxToken,
-            systemMsgCount: countSystem,
-            prepareKey: prepareKey,
-            functionCall: isFuncCall,
             listFunc: funcList.listToolsSpec,
+            systemMsgCount: countSystem,
+            functionCall: isFuncCall,
+            temperature: temperature,
+            prepareKey: prepareKey,
+            maxToken: maxToken,
             resource: resource,
             stream: stream,
             res: res
@@ -213,7 +217,8 @@ module.exports = class askOpenAIUseCase {
 
       } catch(error) {
         console.log(error)
-        return ({status: 500, error: `at File: ${__filename}\n\t${error}`})
+        res.statusCode = 500;
+        return res.end()
       }
   
     }

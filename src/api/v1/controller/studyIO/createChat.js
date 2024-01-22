@@ -1,6 +1,7 @@
 const { createConDB } = require("../conversation/createChat");
 const { askingAI } = require("../openAI/ask/generate");
 
+
 module.exports = (dependencies) => {
     const { useCases: { 
         DBUseCase: { conversationDB: { 
@@ -8,6 +9,16 @@ module.exports = (dependencies) => {
         } },
         redisUseCase: { updateKeyforConversation }
     } } = dependencies;
+
+    const checkValidData = (str) => {
+        try {
+            if(JSON.parse(str)) {
+                return JSON.parse(str)
+            }
+        } catch (error) {
+            return false
+        }
+    }
 
     return async (req, res) => { 
         const { 
@@ -18,7 +29,7 @@ module.exports = (dependencies) => {
                 senderID,
                 maxToken,
                 isAttachedFile=false,
-                imgFiles=[],
+                imgFiles="",
                 isTalk=false
 
             } = req.query;
@@ -31,40 +42,36 @@ module.exports = (dependencies) => {
                 img: false,
                 docs: isAttachedFile
             }
-            // const emitSSE= (res, id, data) =>{
-            //     res.write('id: ' + id + '\n');
-            //     res.write("data: " + data + '\n\n');
-            //   }
+            let newImgFiles = []
 
             res.writeHead(200, {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive'
             });
-            // const id = (new Date()).toLocaleTimeString();
-            // // Sends a SSE every 3 seconds on a single connection.
-            // setInterval(function() {
-            // emitSSE(res, id, (new Date()).toLocaleTimeString());
-            // }, 3000);
-        
-            // emitSSE(res, id, (new Date()).toLocaleTimeString());
 
-            if(imgFiles.length > 0) {// prepare prompt data for file image attachment
-                prompt = [{
-                    type: "text",
-                    text: prompt
-                }]
+            // check data type of imgFiles is valid for array type
+            const isValidDataImg = checkValidData(imgFiles)
+            if(isValidDataImg) {
+                newImgFiles = isValidDataImg
 
-                imgFiles.forEach(file => {
-                    prompt.push({
-                        type: "image_url",
-                        image_url: {
-                          "url": file.url,
-                        },
-                    })
-                }); 
-                haveFile.img = true
-                promptRedis = JSON.stringify(prompt)
+                if(Array.isArray(newImgFiles) && newImgFiles.length > 0 ) {// prepare prompt data for file image attachment
+                    prompt = [{
+                        type: "text",
+                        text: prompt
+                    }]
+    
+                    newImgFiles.forEach(file => {
+                        prompt.push({
+                            type: "image_url",
+                            image_url: {
+                              "url": file.url,
+                            },
+                        })
+                    }); 
+                    haveFile.img = true
+                    promptRedis = JSON.stringify(prompt)
+                }
             }
 
             let conID = conversationId ? conversationId : "-1"
@@ -80,7 +87,7 @@ module.exports = (dependencies) => {
                     text: text,
                     sender,
                     senderID,
-                    imageList: imgFiles
+                    imageList: newImgFiles
                 }),
                 askAIFunc.execute({ // ask AI
                     prepareKey: conID, // conversation key
