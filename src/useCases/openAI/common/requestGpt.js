@@ -87,7 +87,7 @@ module.exports = (dependencies) => {
                       choices: [
                         {
                           "message": {
-                            "role": "user",
+                            "role": "assistant",
                             "content": responseContent,
                           },
                           "finish_reason": "stop",

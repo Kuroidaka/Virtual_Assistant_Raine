@@ -172,9 +172,8 @@ module.exports = class askOpenAIUseCase {
               }
 
               this.promptMessageFunc.push({
-                role: "user",
-                content: `This is the result from the previous function: 
-                result: ${toolResponse.content}`,
+                role: "assistant",
+                content: toolResponse.content,
               });
 
 
