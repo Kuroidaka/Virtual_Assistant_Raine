@@ -10,6 +10,147 @@ module.exports = (dependencies) => {
   if (!mergeConversation) {
 		throw new Error("mergeConversation should be exist in dependencies");
 	}
+
+  const streamResponse = async ({res, callObj}) => {
+    callObj.stream = true;
+    let completion = await openAi.chat.completions.create(callObj, { responseType: 'stream' });
+
+    let funcCall = {
+      "name": null,
+      "arguments": "",
+    };
+
+    let newCompletion ={ choices: [] }
+    let responseContent = ""
+
+    for await (let chunk of completion) {
+        let delta = chunk.choices[0]?.delta;
+        if (!delta) {
+            continue;
+        }
+        if ('function_call' in delta) {
+            if ('name' in delta.function_call) {
+                funcCall.name = delta.function_call.name;
+            }
+            if ('arguments' in delta.function_call) {
+                funcCall.arguments += delta.function_call.arguments;
+            }
+        }
+        if (chunk.choices[0].finish_reason === 'function_call') {
+          newCompletion.choices[0] = {
+                "message": {
+                  "function_call": funcCall,
+                  "role": "assistant",
+                  "content": null,
+                },
+                "finish_reason": "function_call",
+          }
+          completion = newCompletion
+
+          // res.write function console.log(funcCall.name)
+          res.write(JSON.stringify(funcCall))
+          res.write("\n\n")
+        }
+        else if(chunk.choices[0].finish_reason === 'stop') {
+          newCompletion = {
+            choices: [
+              {
+                "message": {
+                  "role": "assistant",
+                  "content": responseContent,
+                },
+                "finish_reason": "stop",
+              }
+            ]
+          }
+          completion = newCompletion
+          res.write("\n\n");
+        }
+        if (!delta.content) {
+            continue;
+        }
+
+        responseContent += delta.content
+        res.write(delta.content);
+
+        // Log Terminal
+        // console.clear()
+        // console.log(responseContent)
+    }
+
+    return completion
+  }
+
+  const streamAzureResponse = async ({res, callObj, model, conversation }) => {
+    callObj.stream = true;
+    let completion = await azureOpenAi.streamChatCompletions(model, conversation, callObj);
+
+    let funcCall = {
+      "name": null,
+      "arguments": "",
+    };
+
+    let newCompletion ={ choices: [] }
+    let responseContent = ""
+
+    for await (let chunk of completion) {
+      console.log("chunk:", chunk.choices)
+        let delta = chunk.choices[0]?.delta;
+        if (!delta) {
+            continue;
+        }
+        if ('functionCall' in delta) {
+            if ('name' in delta.functionCall) {
+                funcCall.name = delta.functionCall.name;
+            }
+            if ('arguments' in delta.functionCall) {
+                funcCall.arguments += delta.functionCall.arguments;
+            }
+        }
+        if (chunk.choices[0].finishReason === 'function_call') {
+          newCompletion.choices[0] = {
+                "message": {
+                  "functionCall": funcCall,
+                  "role": "assistant",
+                  "content": null,
+                },
+                "finishReason": "function_call",
+          }
+          completion = newCompletion
+
+          // res.write function console.log(funcCall.name)
+          res.write(JSON.stringify(funcCall))
+          res.write("\n\n")
+        }
+        else if(chunk.choices[0].finishReason === 'stop') {
+          newCompletion = {
+            choices: [
+              {
+                "message": {
+                  "role": "assistant",
+                  "content": responseContent,
+                },
+                "finishReason": "stop",
+              }
+            ]
+          }
+          completion = newCompletion
+          res.write("\n\n");
+        }
+        if (!delta.content) {
+            continue;
+        }
+
+        responseContent += delta.content
+        res.write(delta.content);
+
+        // Log Terminal
+        // console.clear()
+        // console.log(responseContent)
+    }
+
+    return completion
+  }
   
   const execute = async ({
     model,
@@ -30,7 +171,6 @@ module.exports = (dependencies) => {
             max_tokens: maxToken,
         };
         let completion
-        let responseContent = ""
 
         // Add specific properties based on resource and functionCall
         if (resource === "azure") {
@@ -38,7 +178,12 @@ module.exports = (dependencies) => {
                 callObj.functions = listFunc;
                 callObj.functionCall = 'auto';
             }
-            completion = await azureOpenAi.getChatCompletions(model, conversation, callObj);
+            if(stream) {
+              completion = await streamAzureResponse({ res, callObj, model, conversation })
+            }
+            else {
+                completion = await azureOpenAi.getChatCompletions(model, conversation, callObj);
+            }
         } else {
             callObj.model = model;
             callObj.messages = conversation;
@@ -47,67 +192,7 @@ module.exports = (dependencies) => {
                 callObj.function_call = 'auto';
             }
             if(stream) {
-              callObj.stream = stream;
-              completion = await openAi.chat.completions.create(callObj, { responseType: 'stream' });
-
-              let funcCall = {
-                "name": null,
-                "arguments": "",
-              };
-
-              let newCompletion ={ choices: [] }
-
-              for await (let chunk of completion) {
-                  let delta = chunk.choices[0].delta;
-                  if ('function_call' in delta) {
-                      if ('name' in delta.function_call) {
-                          funcCall.name = delta.function_call.name;
-                      }
-                      if ('arguments' in delta.function_call) {
-                          funcCall.arguments += delta.function_call.arguments;
-                      }
-                  }
-                  if (chunk.choices[0].finish_reason === 'function_call') {
-                    newCompletion.choices[0] = {
-                          "message": {
-                            "function_call": funcCall,
-                            "role": "assistant",
-                            "content": null,
-                          },
-                          "finish_reason": "function_call",
-                    }
-                    completion = newCompletion
-
-                    // res.write function console.log(funcCall.name)
-                    res.write(JSON.stringify(funcCall))
-                    res.write("\n\n")
-                  }
-                  else if(chunk.choices[0].finish_reason === 'stop') {
-                    newCompletion = {
-                      choices: [
-                        {
-                          "message": {
-                            "role": "assistant",
-                            "content": responseContent,
-                          },
-                          "finish_reason": "stop",
-                        }
-                      ]
-                    }
-                    completion = newCompletion
-                    res.write("\n\n");
-                  }
-                  if (!delta.content) {
-                      continue;
-                  }
-
-                  responseContent += delta.content
-                  res.write(delta.content);
-
-                  // Log Terminal
-                  // console.clear()
-                  // console.log(responseContent)
-              }
+                completion = await streamResponse({ res, callObj })
             }
             else {
                 completion = await openAi.chat.completions.create(callObj);

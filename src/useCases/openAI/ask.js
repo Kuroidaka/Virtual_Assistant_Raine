@@ -127,7 +127,7 @@ module.exports = class askOpenAIUseCase {
           const finishReason = completion.choices[0].finish_reason || completion.choices[0].finishReason
           if(finishReason){
   
-            const toolCalls = responseMessage.function_call || responseMessage.functionCall;
+            const toolCalls = responseMessage.function_call || responseMessage.functionCall
   
             // Log tools and arguments
             console.log(
