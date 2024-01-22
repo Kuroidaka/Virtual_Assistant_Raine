@@ -4,6 +4,7 @@ const countFromConversation = require('./countFromConversation');
 const followUpConversation = require('./followUpConversation');
 const mergeConversation = require('./mergeConversation');
 const popConversation = require('./popConversation');
+const updateKeyforConversation = require('./updateKeyforConversation');
 
 module.exports = {
     addToConversation,
@@ -11,5 +12,6 @@ module.exports = {
     countFromConversation,
     followUpConversation,
     mergeConversation,
-    popConversation
+    popConversation,
+    updateKeyforConversation
 }

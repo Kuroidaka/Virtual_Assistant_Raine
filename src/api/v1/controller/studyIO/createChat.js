@@ -5,7 +5,8 @@ module.exports = (dependencies) => {
     const { useCases: { 
         DBUseCase: { conversationDB: { 
             getConversations
-         } }
+        } },
+        redisUseCase: { updateKeyforConversation }
     } } = dependencies;
 
     return async (req, res) => { 
@@ -66,29 +67,46 @@ module.exports = (dependencies) => {
                 promptRedis = JSON.stringify(prompt)
             }
 
-            const storeDB = await createConDB(dependencies).execute({ // store user message to DB
-                conversationId,
-                from,
-                text: text,
-                sender,
-                senderID,
-                imageList: imgFiles
-            })
+            let conID = conversationId ? conversationId : "-1"
 
-            const askAI = await askingAI(dependencies).execute({ // ask AI
-                prepareKey: storeDB.conversationId, // conversation key
-                promptRedis: promptRedis, // prompt for redis,
-                prompt: prompt, // prompt for openAI
-                maxToken: Number(maxToken), 
-                curUser: {
-                    name: sender,
-                    id: senderID
-                }, //{name, id}
-                haveFile: haveFile, // check if the request has file attachment
-                isTask: isTalk, // false
-                stream: true,
-                res: res // for streaming
-            })
+            const storeDBFunc = createConDB(dependencies)
+
+            const askAIFunc = askingAI(dependencies)
+
+            const [storeDB, askAI] = await Promise.all([
+                storeDBFunc.execute({ // store user message to DB
+                    conversationId: conID,
+                    from,
+                    text: text,
+                    sender,
+                    senderID,
+                    imageList: imgFiles
+                }),
+                askAIFunc.execute({ // ask AI
+                    prepareKey: conID, // conversation key
+                    promptRedis: promptRedis, // prompt for redis,
+                    prompt: prompt, // prompt for openAI
+                    maxToken: Number(maxToken), 
+                    curUser: {
+                        name: sender,
+                        id: senderID
+                    }, //{name, id}
+                    haveFile: haveFile, // check if the request has file attachment
+                    isTask: isTalk, // false
+                    stream: true,
+                    res: res // for streaming
+                })
+            ])
+
+            // update prepareKey for redis if this request is new conversation
+            if(conID === "-1") {
+                conID = storeDB.message.conversationId
+                await updateKeyforConversation(dependencies).execute({
+                    prepareKey: "-1",
+                    newKeyUpdate: conID
+                })
+            }
+
 
             let storeAiDBList = []
             if(Array.isArray(askAI.data)) { // Image response
