@@ -3,7 +3,7 @@ const chalk = require("chalk")
 const generateController = (dependencies) => {
 
     return async (req, res) => { 
-        const { data, maxToken, currentUser, type } = req.body;
+        const { data, maxToken, currentUser, type, isTalking=false } = req.body;
         let prepareKey
         let prompt
         let promptRedis
@@ -13,7 +13,6 @@ const generateController = (dependencies) => {
             img: false,
             docs: false
         }
-        let isTask = false
 
         if(type === "discord") {// if the request is from discord
             prepareKey = data.prepareKey
@@ -51,7 +50,7 @@ const generateController = (dependencies) => {
                 maxToken, 
                 curUser, //{name, id}
                 haveFile, // check if the request has file attachment
-                isTask, // false
+                isTalking,
                 res: res
             })
             
@@ -80,7 +79,7 @@ const askingAI = (dependencies) => {
                 maxToken,
                 curUser,
                 haveFile,
-                isTask,
+                isTalking=false,
                 stream,
                 res = null
             } = data
@@ -106,18 +105,19 @@ const askingAI = (dependencies) => {
 
         // call GPT
         const askOpenAi = new askOpenAIUseCase(dependencies)
-        const result = await askOpenAi.execute({
+        const dataAskAI = {
             prompt,
             maxToken,
             curUser,
             conversation,
             prepareKey,
-            isTask,
             haveFile,
             resource: resource,
             res: res,
-            stream: stream
-        })
+            stream: stream,
+            isTalking: isTalking,
+        }
+        const result = await askOpenAi.execute(dataAskAI)
 
         console.log("Request OPENAI status: ", `${result.status === 200 ? chalk.green.bold(`${result.status}`) : chalk.red.bold(`${result.status}`)}`)
         if(result.status === 200) {

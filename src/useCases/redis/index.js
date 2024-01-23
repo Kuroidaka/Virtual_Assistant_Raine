@@ -5,6 +5,7 @@ const followUpConversation = require('./followUpConversation');
 const mergeConversation = require('./mergeConversation');
 const popConversation = require('./popConversation');
 const updateKeyforConversation = require('./updateKeyforConversation');
+const deleteConversationWithId = require('./deleteConversationWithId');
 
 module.exports = {
     addToConversation,
@@ -13,5 +14,6 @@ module.exports = {
     followUpConversation,
     mergeConversation,
     popConversation,
-    updateKeyforConversation
+    updateKeyforConversation,
+    deleteConversationWithId
 }

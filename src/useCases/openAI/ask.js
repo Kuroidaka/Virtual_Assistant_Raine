@@ -14,11 +14,11 @@ module.exports = class askOpenAIUseCase {
       curUser,
       conversation,
       prepareKey,
-      isTalk = false,
       haveFile,
       resource = "",
       stream = false,
-      res = null
+      res = null,
+      isTalking,
     }) => {
       try {
         // const { openAi, azureOpenAi } = this.dependencies
@@ -26,7 +26,7 @@ module.exports = class askOpenAIUseCase {
         //check language from request
         let currentLang = {lc: "en"}
         let model 
-        
+        let responseComplete = ""
         if(resource === "azure") { //use gpt3.5 for azure
           model = "gpt-3.5-turbo"
         }
@@ -55,7 +55,7 @@ module.exports = class askOpenAIUseCase {
           redisConversation: conversation,
           userPrompt: prompt,
           curUser: curUser,
-          isTalk : isTalk,
+          isTalking : isTalking,
           lang: currentLang.lc,
           model: model,
           prepareKey: prepareKey,
@@ -70,6 +70,7 @@ module.exports = class askOpenAIUseCase {
   
 
         if(haveFile.img == true || haveFile.img == "true") {// Read file image 
+          console.log(chalk.blue.bold('ConversationPrompt for asking IMAGEs'), this.promptMessageFunc)
           const callGpt = common.handleCallGPTCommon(this.dependencies)
           const gptData = {
             model: resource === "azure" ? process.env.AZURE_OPENAI_API_GPT4_V : "gpt-4-vision-preview",
@@ -138,7 +139,7 @@ module.exports = class askOpenAIUseCase {
               chalk.green.bold("Finish_reason"), finishReason
             )
             
-            if(finishReason !== "stop") {
+            if(finishReason === "function_call") {
               // prepare arguments
               const toolName = toolCalls.name
               const toolToCall = funcList.tools[toolName];
@@ -173,11 +174,20 @@ module.exports = class askOpenAIUseCase {
 
               if(toolResponse?.imgList) {
                 responseData.image_list = toolResponse?.imgList
+                responseComplete = completion
+                break
               }
 
               this.promptMessageFunc.push({
                 role: "assistant",
-                content: toolResponse.content,
+                content: `
+                The content below is the result of calling function ${toolName} with arguments: ${JSON.stringify(toolArgs)}\n
+
+                If the function is no longer called, just respond with the exact same {content} as follows (don't change anything):\n: 
+                ---------------------------
+                {content}: ${toolResponse.content}
+                ---------------------------
+                `,
               });
 
 
@@ -201,18 +211,19 @@ module.exports = class askOpenAIUseCase {
   
             }
             else {
-              console.log("reason why stop", completion.choices)
-              responseData = {
-                ...responseData,
-                status: 200,
-                data: completion.choices[0].message.content 
-              }
-              return responseData
+              responseComplete = completion
+              break
             }
           }  
           console.log(chalk.green.bold("------------------------ END REQUEST ------------------------"));
         }
-    
+        console.log("reason why stop", responseComplete.choices)
+        responseData = {
+          ...responseData,
+          status: 200,
+          data: responseComplete.choices[0].message.content 
+        }
+        return responseData
 
 
       } catch(error) {

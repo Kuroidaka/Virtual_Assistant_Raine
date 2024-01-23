@@ -30,10 +30,10 @@ module.exports = (dependencies) => {
                 maxToken,
                 isAttachedFile=false,
                 imgFiles="",
-                isTalk=false
-
+                isTalking=false,
+                stream=false
             } = req.query;
-        
+        console.log("query data", req.query)
   
         try {            
             let prompt = text
@@ -99,8 +99,8 @@ module.exports = (dependencies) => {
                         id: senderID
                     }, //{name, id}
                     haveFile: haveFile, // check if the request has file attachment
-                    isTask: isTalk, // false
-                    stream: true,
+                    isTalking: (isTalking === "true" || isTalking === true) ? true : false, // false
+                    stream: stream,
                     res: res // for streaming
                 })
             ])
@@ -136,7 +136,7 @@ module.exports = (dependencies) => {
 
             } else {
 
-                // store AI response to DB
+                // store AI response tostreamAzureResponse DB
                 const storeAIDB = await createConDB(dependencies).execute({
                     conversationId: storeDB.message.conversationId,
                     from,

@@ -17,7 +17,7 @@ module.exports = (dependencies) => {
     userPrompt,
     curUser,
     lang,
-    isTalk = false,
+    isTalking = false,
     model,
     prepareKey
   }) => {
@@ -25,44 +25,44 @@ module.exports = (dependencies) => {
     const instructions = RainePrompt({lang})
     const {loyal:loyalPrompt, tools} = instructions
     let countSystem = 0
-    const loyalSystem = { role: 'system', content: loyalPrompt }
     const systemTTS = { role: 'system', content: instructions.system_tts.instructions }
-    const system = { role: 'system', content: instructions.system.instructions }  
-    
-    // check instructions
-    if (instructions) {
-      const dalle = { role: 'system', content: tools.dalle }
-      const taskRemind = { role: 'system', content: tools.task.instructions }
-      const readDocs = { role: 'system', content: tools.readDocs.instructions }
-
-      conversation[0] = system
-      conversation.push(dalle)
-      conversation.push(taskRemind)
-      conversation.push(readDocs)
-      countSystem +=4
-    }
-
-    // check user boss on Discord
-    if (curUser) {
-      const userResponse = {
-        role: 'system',
-        content: `You know who you are talking to, and this is the person's name talking to you: ${curUser.name}`,
-      }
-
-      if (curUser.id === process.env.OWNER_ID) {
-        conversation.push(loyalSystem)
-        ++countSystem
-      }
-
-      conversation.push(userResponse)
-      ++countSystem
-    }
 
     // if user is talking with Raine
-    if (isTalk) {
+    if (isTalking) {
       conversation[0] = systemTTS
+      countSystem++
+    } else {
+      const loyalSystem = { role: 'system', content: loyalPrompt }
+      const system = { role: 'system', content: instructions.system.instructions }  
+      // check instructions
+      if (instructions) {
+        const dalle = { role: 'system', content: tools.dalle }
+        const taskRemind = { role: 'system', content: tools.task.instructions }
+        const readDocs = { role: 'system', content: tools.readDocs.instructions }
+  
+        conversation[0] = system
+        conversation.push(dalle)
+        conversation.push(taskRemind)
+        conversation.push(readDocs)
+        countSystem +=4
+      }
+      // check user boss on Discord
+      if (curUser) {
+        const userResponse = {
+          role: 'system',
+          content: `You know who you are talking to, and this is the person's name talking to you: ${curUser.name}`,
+        }
+  
+        if (curUser.id === process.env.OWNER_ID) {
+          conversation.push(loyalSystem)
+          ++countSystem
+        }
+  
+        conversation.push(userResponse)
+        ++countSystem
+      }
     }
-
+    
     // prepare data for conversation
     const newMsg = { role: 'user', content: userPrompt }
     if (redisConversation && redisConversation.length > 0) {

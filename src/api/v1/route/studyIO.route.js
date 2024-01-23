@@ -31,13 +31,22 @@ module.exports = (dependencies) => {
     const {
         createChatController,
         uploadFileController,
-        uploadImageController
-
+        uploadImageController,
+        camChatController,
+        deleteCamChatCon
     } = studyIOController(dependencies)
 
     router  
         .route("/create")
         .post(createChatController)
+
+    router  
+        .route("/cam")
+        .post(camChatController)
+
+    router  
+        .route("/cam/delete")
+        .post(deleteCamChatCon)
     
     router  
         .route("/file/upload")
