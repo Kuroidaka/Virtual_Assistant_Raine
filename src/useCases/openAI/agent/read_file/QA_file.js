@@ -18,17 +18,6 @@ module.exports = () => {
       let contentReturn = ""
       const directory = "src/assets/vector";
     
-      // console.log('creating vector store...');
-      // const embeddings = new OpenAIEmbeddings();
-      // const index = pinecone.Index(PINECONE_INDEX_NAME); //change to your own index name
-  
-      // //embed the PDF documents
-      // await PineconeStore.fromDocuments(docs, embeddings, {
-      //   pineconeIndex: index,
-      //   namespace: PINECONE_NAME_SPACE,
-      //   textKey: 'text',
-      // });
-
       // const promptTemplateContent = `
       // Using language {language} to answer the following question using the document content:
       // --------
@@ -68,6 +57,18 @@ module.exports = () => {
         directory,
         embeddingsLlm
       );
+
+      // const retriever = ScoreThresholdRetriever.fromVectorStore(loadedVectorStore, {
+      //   minSimilarityScore: 0.9, // Finds results with at least this similarity score
+      //   maxK: 100, // The maximum K value to use. Use it based to your chunk size to make sure you don't run out of tokens
+      //   kIncrement: 2, // How much to increase K by each time. It'll fetch N results, then N + kIncrement, then N + kIncrement * 2, etc.
+      // });
+      
+      // const result = await retriever.getRelevantDocuments(
+      //   "What are buildings made out of?"
+      // );
+      
+      // console.log(result);
  
 // load chain
       const chain = new RetrievalQAChain({

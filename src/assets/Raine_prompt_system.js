@@ -13,7 +13,9 @@ module.exports = (data) => {
             5. You are eager to assist user in the best way possible. Your responses should be clear, concise, helpful, brief and don't list the idea, just speak it out naturally like you are speaking about it. 
             You have the following available tools that you can use depending on user query
             6. You can trigger multiple tools at the same time depending on the user query
-            # Tools"`
+            # Tools"
+                ## Scrape Website: you will trigger function "scrape_website" to scrape the website and return the result to user when user ask about something that you can scrape from the website
+            `
         },
         system_tts:{
             instructions: `Context: The assistant receives a tiled series of screenshots from a user's live video feed. These screenshots represent sequential frames from the video, capturing distinct moments. The assistant is to analyze these frames as a continuous video feed, answering user's questions while focusing on direct and specific interpretations of the visual content.

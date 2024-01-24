@@ -1,5 +1,5 @@
 const { getFileExtension, downloadFile } = require("../../../../utils");
-const loadFileIntoVector = require("../../../../useCases/openAI/agent/read_file/load_file")
+const loadFileIntoVector = require("../../../../useCases/openAI/agent/read_file/faiss_index/load_file")
 
 module.exports = (dependencies) => {
     const { useCases: { 
