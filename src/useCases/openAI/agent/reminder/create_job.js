@@ -44,7 +44,7 @@ module.exports = (dependencies) => {
     
   };
 
-  const execute = async ({remindPrompt, time, repeat = false}) => {
+  const execute = async ({remindPrompt, time, repeat = false, reminderInterval, cronTime=null}) => {
     const taskID = nanoid();
     let finalTime;
 
@@ -53,6 +53,7 @@ module.exports = (dependencies) => {
         title: remindPrompt,
         repeat,
         id: taskID,
+        reminderInterval
     };
 
     // Process time
@@ -71,7 +72,7 @@ module.exports = (dependencies) => {
       
 
       // Promise all to insert task into database and setup cron job
-      const [idInserted] = await Promise.all([createTask.execute(dataTask), cronSchedule(dependencies).execute({taskID, remindPrompt, finalTime, repeat})]);
+      const [idInserted] = await Promise.all([createTask.execute(dataTask), cronSchedule(dependencies).execute({taskID, remindPrompt, finalTime, repeat, reminderInterval, cronTime})]);
 
       return ({ status: 200, data: `Reminder set successful with ID: ${idInserted}` });
     } catch (error) {

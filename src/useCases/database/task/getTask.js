@@ -29,6 +29,9 @@ module.exports = (dependencies) => {
                                     time: {
                                       gt: UTCNow // current time
                                     }
+                                },
+                                {
+                                    repeat: true
                                 }
                             ]
                         }

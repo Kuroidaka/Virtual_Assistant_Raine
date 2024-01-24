@@ -16,14 +16,27 @@ module.exports = class reminderFunc {
               time: {
                   type: "string",
                   description: `
+                  - if user want to remind repeatedly please use the CURRENT TIME ${new Date()} 
                   - The specific time that user want to remind. 
                   - Must be GMT+0700 (Indochina Time) base on current GMT+0700 (Indochina Time): ${new Date()}, example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)'
                   - If user request to remind after a period of time, please convert into GMT+0700 (Indochina Time): base on the current time: : ${new Date()} example 'Sat Nov 25 2023 00:08:02 GMT+0700 (Indochina Time)
                   `
               },
+              cronTime: {
+                  type: "string",
+                  description: `
+                  - time can in cron format, example: for every 5 minutes: */5 * * * *, when user want to remind every number of minutes, 
+                  - Only use this when user want to be reminded repeatedly
+                  `
+              },
+              reminderInterval: {
+                  type: "string",
+                  description: "The interval that user want to remind. Should be only in minutes. Example: '5' means remind every 5 minutes"
+              },
               repeat: {
                   type: "boolean",
-                  description: "repeating the reminder or not"
+                  description: "repeating the reminder or not",
+                  default: false
               }
           },
           required: ["task", "time"]
@@ -36,7 +49,9 @@ module.exports = class reminderFunc {
     const { 
       remindPrompt,
       time,
-      repeat
+      repeat,
+      reminderInterval=0,
+      cronTime
     } = args
        
     let contentReturn = ""
@@ -46,7 +61,7 @@ module.exports = class reminderFunc {
     } else if(!time) {
       contentReturn = "user must provide time"
     } else {
-      const result = await createJob(this.dependencies).execute({remindPrompt, time, repeat})
+      const result = await createJob(this.dependencies).execute({remindPrompt, time, repeat, reminderInterval, cronTime})
       if(result?.status === 500) {
         contentReturn = `Error occur while trying to setup reminder, let user know about this bug in create_reminder function: ${result.error}`
         throw new Error(result.error)

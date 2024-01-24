@@ -13,7 +13,8 @@ module.exports = (dependencies) => {
         title,
         time,
         repeat,
-        id=nanoid() 
+        id=nanoid(),
+        reminderInterval=0
     }) => {
 
         time = new Date(time).toISOString()
@@ -22,7 +23,8 @@ module.exports = (dependencies) => {
             id: id,
             title: title,
             time: time,
-            repeat: repeat
+            repeat: repeat,
+            "interval": Number(reminderInterval)
         }
 
         const transaction = await DB.$transaction(async (prisma) => {

@@ -4,58 +4,63 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  // url      = env("DATABASE_URL")
   url      = "mysql://root:Idaka123@127.0.0.1:3306/raine_DB"
 }
 
 model Task {
-  id            String   @id
-  title         String   @db.LongText
-  time          DateTime
-  repeat        Boolean
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id
+  title     String   @db.LongText
+  time      DateTime
+  repeat    Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  interval  Int?
 }
 
 model File {
-  id            String  @id
-  name          String  @unique
-  path          String
-  extension     String
-  size          Int
-  url           String   @db.LongText
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id
+  name      String   @unique
+  path      String
+  extension String
+  size      Int
+  url       String   @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Conversation {
-  id          String        @id @default(uuid())
-  name        String
-  from        String
-  lastMessage String        @db.LongText
-  lastMessageAt DateTime    @default(now())
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  messages    Message[]
+  id            String    @id @default(uuid())
+  name          String
+  from          String
+  lastMessage   String    @db.LongText
+  lastMessageAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  messages      Message[]
 }
 
 model Message {
-  id              String        @id @default(uuid())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  text            String        @db.LongText
-  sender          String        // 'user' or 'bot'
-  senderID        String
-  conversation    Conversation  @relation(fields: [conversationId], references: [id])
-  conversationId  String
-  imgList         ImageFile[]          
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  text           String       @db.LongText
+  sender         String
+  senderID       String
+  functionList   String?      @db.LongText
+  conversationId String
+  imgList        ImageFile[]
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  @@index([conversationId], map: "Message_conversationId_fkey")
 }
 
 model ImageFile {
-  id            String  @id
-  url           String   @db.LongText
-  messageId     String
-  message       Message @relation(fields: [messageId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id
+  url       String   @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id])
+
+  @@index([messageId], map: "ImageFile_messageId_fkey")
 }

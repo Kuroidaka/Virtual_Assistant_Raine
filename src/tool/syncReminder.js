@@ -23,14 +23,15 @@ module.exports = (dependencies) => {
         if(tasks.length > 0) {
             const promise = []
             tasks.forEach(task => {
-                const { id, title, time, repeat } = task
+                const { id, title, time, repeat, interval } = task
                 const cronJob = cronSchedule(dependencies)
 
                 promise.push(cronJob.execute({
                     taskID: id,
                     remindPrompt: title,
                     finalTime: time,
-                    repeat: repeat
+                    repeat: repeat,
+                    reminderInterval: interval
                 }))
             })
 
