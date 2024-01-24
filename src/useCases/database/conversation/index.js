@@ -3,6 +3,7 @@ const createMessage = require('./createMessage');
 const delConversation = require('./delConversation');
 const getConversations = require('./getConversation');
 const updateLastMsgCon = require('./updateLastMsgCon');
+const updateFuncIntoMsg = require('./updateFuncIntoMsg');
 
 
 module.exports = {
@@ -10,5 +11,6 @@ module.exports = {
     delConversation,
     createMessage,
     getConversations,
-    updateLastMsgCon
+    updateLastMsgCon,
+    updateFuncIntoMsg
 }

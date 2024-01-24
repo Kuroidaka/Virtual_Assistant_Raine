@@ -100,7 +100,7 @@ module.exports = class askOpenAIUseCase {
         }
 
         // get function calling definition
-        const funcList = await funcCall({dependencies: this.dependencies})
+        const funcList = await funcCall({dependencies: this.dependencies, currentLang: currentLang.lc, resource: resource})
         let isFuncCall = true
 
         // Log conversation

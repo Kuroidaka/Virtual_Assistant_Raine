@@ -28,23 +28,43 @@ module.exports = ({currentLang, resource}) => {
                 func: async ({url, objective}) => {
                     console.log("url:", url)
                     console.log("objective:", objective)
-                    return execute({url, objective});
+                    args = {url, objective}
+                    return execute({args}).content;
                 },
                 schema: scrapeWebsiteSchema,
             });
         }
     }
 
-    const execute = async ({url, objective}) => {
-    
+    const funcSpec = {
+        name: "scrape_website",
+        description: `Useful when you need to get data from a website url or a link.`,
+        parameters: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+                url: {
+                    type: "string",
+                    description: "The url of the website that the user wants to scrape",
+                },
+                objective: {
+                    type: "string",
+                    description: "The objective that the user wants to know about the website",
+                }
+            },
+        }
+    }
+
+    const execute = async ({args}) => {
+        const {url, objective} = args;
         const headlessBrowser = await puppeteer.launch({ 
             headless: 'new',
-            executablePath: "/usr/bin/google-chrome",
+            executablePath: "/opt/homebrew/bin/chromium",
             args: ['--no-sandbox'],
         });
+        let result = {};
         
         try {
-        
             const newTab = await headlessBrowser.newPage();
             
             await newTab.goto(url);
@@ -53,14 +73,28 @@ module.exports = ({currentLang, resource}) => {
         
             let text = await newTab.evaluate(() => document.body.innerText);
             
-            if(text.length > 8000) {
-               text = await summary({currentLang, resource}).execute(text, objective)
+            if(text !== undefined) {
+                if(text.length > 8000) {
+                text = await summary({currentLang, resource}).execute(text, objective)
+                }
+                result = {
+                    content: JSON.stringify(text)
+                }
             }
-            return JSON.stringify(text)
+            else {
+                result = {
+                    content: "No content found"
+                }
+            }
+            console.log("scrape result:", result)
+            return result;
             
         } catch (error) {
             console.log(error)
-            return error
+            result = {
+                content: "Error: " + error
+            }
+            return result;
         }
         finally {
             headlessBrowser.close();
@@ -68,5 +102,5 @@ module.exports = ({currentLang, resource}) => {
     
     }
     
-    return { execute, ScrapeWebsiteTool }
+    return { execute, ScrapeWebsiteTool, funcSpec }
 }

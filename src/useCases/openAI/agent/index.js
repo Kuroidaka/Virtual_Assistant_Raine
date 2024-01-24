@@ -3,15 +3,17 @@ const followUpImageFunc = require("./follow_up_image")
 const generateImage = require("./generateImage")
 const askAboutDocs = require("./read_file/QA_file")
 const browse = require("./browse/browse")
+const scrape = require("./browse/scrape")
 const dbChat = require("./db_chat")
 const reminderClass = require("./reminder/reminder")
 
-module.exports = ({dependencies}) => { 
+module.exports = ({dependencies, currentLang, resource}) => { 
     const reminderFunc = new reminderClass(dependencies)
     const generateImageFunc = generateImage(dependencies)
     const browseFunc = browse(dependencies)
     const askAboutDocsFunc = askAboutDocs(dependencies)
     const dbChatFunc = dbChat(dependencies)
+    const scrapeFunc = scrape({dependencies, currentLang, resource})
 
 
     const listToolsSpec = [
@@ -21,7 +23,8 @@ module.exports = ({dependencies}) => {
         generateImageFunc.funcSpec,
         browseFunc.funcSpec,
         askAboutDocsFunc.funcSpec,
-        dbChatFunc.funcSpec
+        dbChatFunc.funcSpec,
+        scrapeFunc.funcSpec,
     ]
     return {
         tools: {
@@ -32,6 +35,7 @@ module.exports = ({dependencies}) => {
             "database_chat": dbChatFunc,
             "follow_up_image_in_chat": followUpImageFunc,
             "generate_image": generateImageFunc,
+            "scrape_website": scrapeFunc,
         },
         listToolsSpec
     }

@@ -7,11 +7,12 @@ const createMessage = (dependencies) => {
         throw new Error("DB should be exist in dependencies");
     }
 
-    const execute = async ({ conversationId, text, sender, senderID, imageList }) => {
+    const execute = async ({ conversationId, text, sender, senderID, imageList, functionList="" }) => {
         const data = {
             text: text,
             sender: sender,
             senderID: senderID,
+            functionList: functionList,
             conversation: {
                 connect: {
                     id: conversationId

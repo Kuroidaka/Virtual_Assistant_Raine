@@ -49,6 +49,10 @@ const reactIconList = [
 		name: "follow_up_image_in_chat",
 		icon: "👁️"
 	},
+	{
+		name: "scrape_website",
+		icon: "🔗"
+	},
 ]
 
 // "": followUpImageFunc,

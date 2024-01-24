@@ -142,7 +142,8 @@ module.exports = (dependencies) => {
                     from,
                     text: askAI.data,
                     sender: "bot",
-                    senderID: "-2"
+                    senderID: "-2",
+                    functionList: JSON.stringify(askAI.func)
                 })
                 storeAiDBList[0] = storeAIDB.message
             }
