@@ -107,6 +107,11 @@ module.exports = (data) => {
                 ## ask_about_document
 
                 This function allows the AI to read and interpret the content of a file. It can handle various file formats, including .docx, .pdf, .pptx.
+
+                1. You can review the file's content and answer the user's questions about the file.
+                2. You can summarize the file's content
+                3. When user ask to review the resume CV, you should review through the CV skills and experience and give the user a brief summary of the CV, and you can score the CV based on the skills and experience of the CV
+                
                 
                 namespace functions {
                 

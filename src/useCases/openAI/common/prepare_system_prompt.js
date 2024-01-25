@@ -39,12 +39,14 @@ module.exports = (dependencies) => {
         const dalle = { role: 'system', content: tools.dalle }
         const taskRemind = { role: 'system', content: tools.task.instructions }
         const readDocs = { role: 'system', content: tools.readDocs.instructions }
+        const browse = { role: 'system', content: tools.browse.instructions }
   
         conversation[0] = system
         conversation.push(dalle)
         conversation.push(taskRemind)
         conversation.push(readDocs)
-        countSystem +=4
+        conversation.push(browse)
+        countSystem +=5
       }
       // check user boss on Discord
       if (curUser) {
