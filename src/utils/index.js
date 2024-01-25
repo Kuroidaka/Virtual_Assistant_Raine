@@ -28,6 +28,7 @@ const detectLan = (lang) => {
 
   let found = data.find(([language]) => languages.includes(language));
 
+  if(!found) return "en"
   console.log(`The first matching language found: ${found ? found[0] : 'None'}`);
   console.log(found[0][0]+found[0][1]);
 
