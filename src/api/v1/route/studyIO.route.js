@@ -33,7 +33,9 @@ module.exports = (dependencies) => {
         uploadFileController,
         uploadImageController,
         camChatController,
-        deleteCamChatCon
+        deleteCamChatCon,
+        storeDataCamChatController,
+        getDataCamChatController
     } = studyIOController(dependencies)
 
     router  
@@ -43,6 +45,14 @@ module.exports = (dependencies) => {
     router  
         .route("/cam")
         .post(camChatController)
+
+    router  
+        .route("/cam/store")
+        .post(storeDataCamChatController)
+    
+    router  
+        .route("/cam/get")
+        .get(getDataCamChatController)
 
     router  
         .route("/cam/delete")

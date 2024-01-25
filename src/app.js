@@ -30,6 +30,9 @@ async function checkDatabaseConnection(DB) {
 
 module.exports = {
 	start: () => {
+		// test 
+		test(dependencies)
+
 		// Middlewares
 		app.use(express.json())
 		app.use(bodyParser.json())
@@ -55,7 +58,6 @@ module.exports = {
 		// Run tools
 		tools(dependencies)
 
-		// test 
-		// test(dependencies)
+
 	},
 }

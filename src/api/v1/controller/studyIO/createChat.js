@@ -119,14 +119,15 @@ module.exports = (dependencies) => {
             if(Array.isArray(askAI.data)) { // Image response
                 const promise = []
                 // store AI response(img) to DB
-                askAI.data.forEach((msg) => {
+                askAI.data.forEach((msg, idx) => {
 
                     promise.push(createConDB(dependencies).execute({
                         conversationId: storeDB.message.conversationId,
                         from,
                         text: msg,
                         sender: "bot",
-                        senderID: "-2"
+                        senderID: "-2",
+                        functionList: JSON.stringify(askAI.func)
                     }))
                 })
 
