@@ -1,0 +1,52 @@
+{
+    "assistant": {
+      "role": "assistant",
+      "content": null,
+      "function_call": {
+        "name": "create_reminder",
+        "arguments": "{\n  \"remindPrompt\": \"Just a friendly reminder, it's time to drink some water. Stay hydrated!\",\n  \"time\": \"Sun Jan 21 2024 17:08:15 GMT+0700 (GMT+07:00)\",\n  \"repeat\": false\n}"
+      }
+    },
+    "completion": {
+      "id": "chatcmpl-8jOsqFWQir6yIwe2hawtV2P3TmWsU",
+      "object": "chat.completion",
+      "created": 1705831104,
+      "model": "gpt-4-0613",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "function_call": {
+              "name": "create_reminder",
+              "arguments": "{\n  \"remindPrompt\": \"Just a friendly reminder, it's time to drink some water. Stay hydrated!\",\n  \"time\": \"Sun Jan 21 2024 17:08:15 GMT+0700 (GMT+07:00)\",\n  \"repeat\": false\n}"
+            }
+          },
+          "logprobs": null,
+          "finish_reason": "function_call"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2846,
+        "completion_tokens": 67,
+        "total_tokens": 2913
+      },
+      "system_fingerprint": null
+    },
+    "azure":  {
+      "finish": [
+          {
+              "index": 0,
+              "finishDetails": {
+                  "type": "stop",
+                  "stop": "<|fim_suffix|>"
+              },
+              "delta": {
+                  "toolCalls": []
+              },
+              "contentFilterResults": {}
+          }
+      ]
+    }
+  }

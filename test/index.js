@@ -1,17 +1,15 @@
 // const { exec } = require('child_process');
+// const storeDataCamChat = require("../src/api/v1/controller/studyIO/storeDataCamChat.js")
 
 module.exports = async (dependencies) => {
 
-    const { DB } = dependencies;
+    // const { DB } = dependencies;
 
+    // const dataBody = {
+    //     prompt: "Hello, how are you?",
+    // }
 
-    // // exec('osascript -e \'tell app "Terminal" to do script "ls"\'', (error, stdout, stderr) => {
-    // //     if (error) {
-    // //         console.error(`exec error: ${error}`);
-    // //         return;
-    // //     }
-    // //     console.log(`stdout: ${stdout}`);
-    // //     console.error(`stderr: ${stderr}`);
-    // // });
+    // const { data } = await storeDataCamChat(dependencies).execute(dataBody)
 
+    // console.log(data )
 }
