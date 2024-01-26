@@ -80,6 +80,7 @@ module.exports = () => {
             verbose: true,
             returnIntermediateSteps: true,
             agentArgs: agentArgs,
+            maxIterations: 4,
             memory: memory
         });
 

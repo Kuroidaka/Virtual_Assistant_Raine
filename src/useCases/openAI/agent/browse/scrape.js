@@ -28,7 +28,7 @@ module.exports = ({currentLang, resource}) => {
                 func: async ({url, objective}) => {
                     console.log("url:", url)
                     console.log("objective:", objective)
-                    args = {url, objective}
+                    const args = {url, objective}
                     return execute({args}).content;
                 },
                 schema: scrapeWebsiteSchema,
