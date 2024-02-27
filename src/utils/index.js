@@ -22,7 +22,7 @@ const convertDates = (dateStr) => {
     return date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate();
 }
 
-const openAIApiKey= "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"
+const openAIApiKey= "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"
 
 const detectLan = (lang) => {
   const data = lngDetector.detect(lang)
