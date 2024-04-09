@@ -2,13 +2,14 @@ const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 // import { PineconeStore } from 'langchain/vectorstores/pinecone';
 // import { pinecone } from '@/utils/pinecone-client';
 
-const { FaissStore } =require("langchain/vectorstores/faiss")
+const { FaissStore } = require("langchain/vectorstores/faiss")
 const { OpenAIEmbeddings } = require("langchain/embeddings/openai");
 
 const { OpenAI } = require("langchain/llms/openai")
 const { ChatOpenAI } =require("langchain/chat_models/openai");
 const { loadQAMapReduceChain, RetrievalQAChain, loadQAStuffChain } = require("langchain/chains")
-const { PromptTemplate } = require("@langchain/core/prompts")
+const { PromptTemplate } = require("@langchain/core/prompts");
+const { z } = require('zod');
 
 
 module.exports = () => {
@@ -18,15 +19,6 @@ module.exports = () => {
       let contentReturn = ""
       const directory = "src/assets/vector";
     
-      // const promptTemplateContent = `
-      // Using language {language} to answer the following question using the document content:
-      // --------
-      // {question}
-      // --------
-      // `;
-      // const prompt = PromptTemplate.fromTemplate(promptTemplateContent);
-      // const prompt = promptTemplate.format({question: q, language: currentLang});
-      
 // config llm
       let llm
       let embeddingsLlm 
@@ -34,7 +26,7 @@ module.exports = () => {
 
         const azureConfig = { 
           temperature: 0,
-          azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+          azureOpenAIApiKey: process.env.AZURE_OPENAI_API,
           azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
           azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
           // azureOpenAIBasePath: process.env.AZURE_OPENAI_API_URL,
@@ -58,35 +50,12 @@ module.exports = () => {
         embeddingsLlm
       );
 
-      // const retriever = ScoreThresholdRetriever.fromVectorStore(loadedVectorStore, {
-      //   minSimilarityScore: 0.9, // Finds results with at least this similarity score
-      //   maxK: 100, // The maximum K value to use. Use it based to your chunk size to make sure you don't run out of tokens
-      //   kIncrement: 2, // How much to increase K by each time. It'll fetch N results, then N + kIncrement, then N + kIncrement * 2, etc.
-      // });
-      
-      // const result = await retriever.getRelevantDocuments(
-      //   "What are buildings made out of?"
-      // );
-      
-      // console.log(result);
- 
-// load chain
+
       const chain = new RetrievalQAChain({
         // combineDocumentsChain: loadQAStuffChain(llm, { prompt }),
         combineDocumentsChain: loadQAMapReduceChain(llm, { verbose : true } ),
         retriever: loadedVectorStore.asRetriever(),
       });
-
-      // const chain = RetrievalQAChain.fromLLM(
-      //   llm, 
-      //   loadedVectorStore.asRetriever(),
-      //   {
-      //     prompt : prompt,
-      //     verbose: true
-      //     // returnSourceDocuments: true, // Can also be passed into the constructor
-      //   }
-      // );
-      
 
       const res = await chain.call({
         query: q,
@@ -108,6 +77,28 @@ module.exports = () => {
       }
     }
   };
+
+    // Define scrapeWebsite Schema
+    const readDocsSchema = z.object({
+      q: z.string()
+    });
+    
+    // // Define tool
+    // class ScrapeWebsiteTool extends DynamicStructuredTool {
+    //     constructor() {
+    //         super({
+    //             name: "scrape_website",
+    //             description: `Useful when you need to get data from a website url. The input for this tool contain 2 argument (url, objective) - The "objective" is the targeted questions you want to know - DO NOT make up any "url", the "url" should only be the link to the website from the search tool results. The output will be a json string.`,
+    //             func: async ({url, objective}) => {
+    //                 console.log("url:", url)
+    //                 console.log("objective:", objective)
+    //                 const args = {url, objective}
+    //                 return execute({args});
+    //             },
+    //             schema: readDocsSchema,
+    //         });
+    //     }
+    // }
   
   const funcSpec = { 
     name: "ask_about_document",

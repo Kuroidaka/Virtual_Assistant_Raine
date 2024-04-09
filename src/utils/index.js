@@ -22,7 +22,6 @@ const convertDates = (dateStr) => {
     return date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate();
 }
 
-const openAIApiKey= "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"
 
 const detectLan = (lang) => {
   const data = lngDetector.detect(lang)
@@ -31,8 +30,8 @@ const detectLan = (lang) => {
   let found = data.find(([language]) => languages.includes(language));
 
   if(!found) return "en"
-  console.log(`The first matching language found: ${found ? found[0] : 'None'}`);
-  console.log(found[0][0]+found[0][1]);
+  // console.log(`The first matching language found: ${found ? found[0] : 'None'}`);
+  // console.log(found[0][0]+found[0][1]);
 
   return found[0][0]+found[0][1]
 }

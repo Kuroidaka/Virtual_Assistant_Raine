@@ -3,7 +3,7 @@ const summary = require("./summarize")
 const { DynamicStructuredTool } = require("langchain/tools");
 const { z } = require("zod")
 
-module.exports = ({currentLang, resource}) => { 
+module.exports = ({currentLang}) => { 
 
     if(!currentLang) {
         currentLang = { 
@@ -29,7 +29,7 @@ module.exports = ({currentLang, resource}) => {
                     console.log("url:", url)
                     console.log("objective:", objective)
                     const args = {url, objective}
-                    return execute({args}).content;
+                    return execute({args});
                 },
                 schema: scrapeWebsiteSchema,
             });
@@ -75,7 +75,7 @@ module.exports = ({currentLang, resource}) => {
             
             if(text !== undefined) {
                 if(text.length > 8000) {
-                text = await summary({currentLang, resource}).execute(text, objective)
+                text = await summary({currentLang}).execute(text, objective)
                 }
                 result = {
                     content: JSON.stringify(text)
@@ -87,7 +87,7 @@ module.exports = ({currentLang, resource}) => {
                 }
             }
             console.log("scrape result:", result)
-            return result;
+            return result.content;
             
         } catch (error) {
             console.log(error)

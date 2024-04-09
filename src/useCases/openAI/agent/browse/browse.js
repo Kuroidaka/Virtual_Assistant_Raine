@@ -37,7 +37,7 @@ module.exports = () => {
         if(resource === "azure") {
             model = new ChatOpenAI({ 
                 temperature: 0,
-                azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+                azureOpenAIApiKey: process.env.AZURE_OPENAI_API,
                 azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
                 azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
                 azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_API_GPT35,

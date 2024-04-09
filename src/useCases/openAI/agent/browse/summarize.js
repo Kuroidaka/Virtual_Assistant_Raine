@@ -18,7 +18,7 @@ module.exports = ({currentLang, resource}) => {
     if(resource === "azure") {
       model = new OpenAI({ 
           temperature: 0,
-          azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+          azureOpenAIApiKey: process.env.AZURE_OPENAI_API,
           azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
           azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_API_INSTANCE_NAME,
           azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_API_GPT35,

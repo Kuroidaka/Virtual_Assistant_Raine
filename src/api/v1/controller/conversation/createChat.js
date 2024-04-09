@@ -44,7 +44,7 @@ const createConDB = (dependencies) => {
             let conID = conversationId
             let resource = ''
 
-            if(process.env.AZURE_OPENAI_API_KEY) {
+            if(process.env.AZURE_OPENAI_API) {
                 resource = "azure"
             }
 

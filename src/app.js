@@ -9,9 +9,6 @@ const initDCBot = require("./discord")
 const tools = require("./tool")
 const test = require("../test")
 
-const routes = require("./api/v1/route")
-const dependencies = require("./config/dependencies")
-
 const app = express()
 
 const API_PREFIX = "/api/v1"
@@ -29,10 +26,10 @@ async function checkDatabaseConnection(DB) {
   }
 
 module.exports = {
-	start: () => {
-		// test 
-		test(dependencies)
+	start: async () => {
 
+		console.log(123)
+		
 		// Middlewares
 		app.use(express.json())
 		app.use(bodyParser.json())
@@ -40,8 +37,20 @@ module.exports = {
 		app.use(cors()) 
 		app.use(cookieParser())
 		app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"))
+		const dependencies = require("./config/dependencies")
+
+		const runList = []
+
+		// init discord bot
+		runList.push(initDCBot(dependencies))
+
+		// Run tools
+		runList.push(tools(dependencies))
+
+		await Promise.all(runList)
 
 		// Routes
+		const routes = require("./api/v1/route")
 		app.use(API_PREFIX, routes(dependencies))
 
 		app.listen(PORT, () => {
@@ -51,13 +60,5 @@ module.exports = {
 			const { DB } = dependencies
 			checkDatabaseConnection(DB)
 		})
-
-        // init discord bot
-        initDCBot(dependencies)
-
-		// Run tools
-		tools(dependencies)
-
-
 	},
 }

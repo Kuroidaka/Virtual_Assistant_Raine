@@ -65,7 +65,7 @@ const generateController = (dependencies) => {
 
 const askingAI = (dependencies) => {
     const { useCases: { 
-        openAiUseCase: { askOpenAIUseCase },
+        openAiUseCase: { askOpenAIUseCase, langchainAskUseCase },
         redisUseCase: { addToConversation, followUpConversation, popConversation }
     } } = dependencies;
 
@@ -73,20 +73,20 @@ const askingAI = (dependencies) => {
     const execute = async (data) => {
         try {
             const { 
-                prepareKey,
+                prepareKey="temp",
                 promptRedis,
                 prompt,
-                maxToken,
-                curUser,
-                haveFile,
+                maxToken=1000,
+                curUser={},
+                haveFile=false,
                 isTalking=false,
-                stream,
+                stream=false,
                 res = null
             } = data
 
         let resource = ""
         // Check if the project run on Azure
-        if(process.env.AZURE_OPENAI_API_KEY) {
+        if(process.env.AZURE_OPENAI_API) {
             resource = "azure"
         }
             

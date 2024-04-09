@@ -1,6 +1,39 @@
 const { spawn } = require('child_process');
+const { z } = require("zod")
+const { DynamicStructuredTool } = require("langchain/tools");
 require('dotenv').config()
+
 module.exports = (dependencies) => {
+    let currentLang 
+    if(!currentLang) {
+        currentLang = { 
+            "lt": "en-US", 
+            "cc": "us",
+            "lc": "en"
+        }
+    }
+
+     // Define scrapeWebsite Schema
+    const databaseChatSchema = z.object({
+        q: z.string(),
+    });
+    
+    // Define tool
+    class dataBaseInteractTool extends DynamicStructuredTool {
+        constructor() {
+            super({
+                name: "database_chat",
+                description: `Useful when you need to interact with database.`,
+                func: async ({q}) => {
+                    console.log("q:", q)
+                    const args = {q}
+                    return execute({args});
+                },
+                schema: databaseChatSchema,
+            });
+        }
+    }
+
 
     const funcSpec = {
         name: "database_chat",
@@ -92,7 +125,7 @@ module.exports = (dependencies) => {
         }
       }
 
-    return { execute, funcSpec }
+    return { execute, dataBaseInteractTool, funcSpec }
 }
 
 

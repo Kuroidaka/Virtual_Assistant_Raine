@@ -31,7 +31,7 @@ module.exports = class askOpenAIUseCase {
           model = "gpt-3.5-turbo"
         }
         else { //user gpt4 for openai
-          model = "gpt-4"
+          model = "gpt-3.5-turbo"
         }
 
         if(typeof prompt === 'string' || prompt instanceof String) {
@@ -175,20 +175,21 @@ module.exports = class askOpenAIUseCase {
               if(toolResponse?.imgList) {
                 responseData.image_list = toolResponse?.imgList
                 responseComplete = completion
-                break
+                
               }
+              break
 
-              this.promptMessageFunc.push({
-                role: "assistant",
-                content: `
-                The content below is the result of calling function ${toolName} with arguments: ${JSON.stringify(toolArgs)}\n
+              // this.promptMessageFunc.push({
+              //   role: "assistant",
+              //   content: `
+              //   The content below is the result of calling function ${toolName} with arguments: ${JSON.stringify(toolArgs)}\n
 
-                If the function is no longer called, just respond with the exact same {content} as follows (don't change anything):\n: 
-                ---------------------------
-                {content}: ${toolResponse.content}
-                ---------------------------
-                `,
-              });
+              //   If the function is no longer called, just respond with the exact same {content} as follows (don't change anything):\n: 
+              //   ---------------------------
+              //   {content}: ${toolResponse.content}
+              //   ---------------------------
+              //   `,
+              // });
 
 
               // let { conversation:secondCon, completion } = await common.requestGptCommon(this.dependencies).execute({
@@ -200,15 +201,6 @@ module.exports = class askOpenAIUseCase {
               //   resource: resource
               // })
               // this.promptMessageFunc = secondCon
-
-              // console.log(completion.choices[0])
-              // return {
-              //   status: 200,
-              //   data: completion.choices[0].message.content,
-              //   ...responseData
-              // }
-            
-  
             }
             else {
               responseComplete = completion

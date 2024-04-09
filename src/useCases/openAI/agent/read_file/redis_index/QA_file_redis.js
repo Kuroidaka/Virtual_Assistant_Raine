@@ -38,7 +38,7 @@ module.exports = (dependencies) => {
       if (resource === 'azure') {
         const azureConfig = {
           temperature: 0,
-          azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+          azureOpenAIApiKey: process.env.AZURE_OPENAI_API,
           azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
           azureOpenAIApiInstanceName:
             process.env.AZURE_OPENAI_API_INSTANCE_NAME,

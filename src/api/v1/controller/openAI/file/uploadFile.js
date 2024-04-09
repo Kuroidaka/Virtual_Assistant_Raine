@@ -48,7 +48,7 @@ module.exports = (dependencies) => {
         let resource = ""
 
         // Check if the project run on Azure
-        if(process.env.AZURE_OPENAI_API_KEY) {
+        if(process.env.AZURE_OPENAI_API) {
             resource = "azure"
         }
         

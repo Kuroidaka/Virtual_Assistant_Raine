@@ -34,7 +34,7 @@ const loadFileIntoVectorRedis = async (dependencies) => {
       if (resource === 'azure') {
         llm = new OpenAIEmbeddings({
           temperature: 0,
-          azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+          azureOpenAIApiKey: process.env.AZURE_OPENAI_API,
           azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION,
           azureOpenAIApiInstanceName:
             process.env.AZURE_OPENAI_API_INSTANCE_NAME,

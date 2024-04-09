@@ -3,6 +3,7 @@ const redisClient = require("./redis");
 const { openAi, azureOpenAi } = require("./openAi");
 const DB = require("./database");
 const { client:discordClient } = require("./discord");
+const groq = require("./llm")
 
 module.exports = {
 	useCases,
@@ -10,5 +11,6 @@ module.exports = {
 	openAi,
 	azureOpenAi,
 	discordClient,
-	DB
+	DB,
+	groq
 };
