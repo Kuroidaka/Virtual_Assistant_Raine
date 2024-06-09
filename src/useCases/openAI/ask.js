@@ -31,7 +31,7 @@ module.exports = class askOpenAIUseCase {
           model = "gpt-3.5-turbo"
         }
         else { //user gpt4 for openai
-          model = "gpt-3.5-turbo"
+          model = "gpt-4o-2024-05-13"
         }
 
         if(typeof prompt === 'string' || prompt instanceof String) {
@@ -228,6 +228,7 @@ module.exports = class askOpenAIUseCase {
 
       } catch(error) {
         console.log(error)
+        throw new Error(error);
         res.statusCode = 500;
         return res.end()
       }

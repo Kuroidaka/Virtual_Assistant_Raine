@@ -42,7 +42,7 @@ class askOpenAIUseCase {
 
         llm = new ChatOpenAI({
           modelName: "gpt-3.5-turbo-0125",
-          openAIApiKey: "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"
+          openAIApiKey: process.env.OPENAI_API_KEY
         });
     
         // get system prompt for browse agent
@@ -112,9 +112,3 @@ class askOpenAIUseCase {
   
     }
 }
-
-const test = new askOpenAIUseCase()
-
-let args = process.argv.slice(2).join(" ")
-
-test.execute({prompt: args})

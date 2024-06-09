@@ -46,7 +46,7 @@ module.exports = () => {
             })
         }
         else {
-            model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
+            model = new ChatOpenAI({ apikey:process.env.O, modelName: "gpt-3.5-turbo-16k-0613", temperature: 0 });
         }
 
         // get system prompt for browse agent

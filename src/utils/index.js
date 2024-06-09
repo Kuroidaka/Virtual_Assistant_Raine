@@ -10,7 +10,9 @@ const fileDirToUrl = require('./dirFile_into_discordUrl')
 
 //Returns the number of tokens in a text string
 const countToken = (message, model) => {
-  const encoder = encoding_for_model(model);
+  let checkModel
+  if(model.includes("4o")) checkModel = "gpt-4"
+  const encoder = encoding_for_model(checkModel);
 
   const tokens = encoder.encode(message);
   encoder.free();

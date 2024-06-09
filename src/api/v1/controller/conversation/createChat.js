@@ -68,7 +68,7 @@ const createConDB = (dependencies) => {
                 }
                 else {
                     callObj = {
-                        model: "gpt-4",
+                        model: "gpt-3.5-turbo",
                         messages: shortList,
                         temperature: 1,
                         max_tokens: 15,

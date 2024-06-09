@@ -27,8 +27,6 @@ async function checkDatabaseConnection(DB) {
 
 module.exports = {
 	start: async () => {
-
-		console.log(123)
 		
 		// Middlewares
 		app.use(express.json())
@@ -52,6 +50,16 @@ module.exports = {
 		// Routes
 		const routes = require("./api/v1/route")
 		app.use(API_PREFIX, routes(dependencies))
+
+		// Error handling middleware
+		app.use((err, req, res, next) => {
+			res.status(err.status || 500).json({
+			error: {
+				message: err.message,
+			},
+			});
+		});
+  
 
 		app.listen(PORT, () => {
 			console.log("Server :", chalk.blue(PORT), chalk.green("connected"))

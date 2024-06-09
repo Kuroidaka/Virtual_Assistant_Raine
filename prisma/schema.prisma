@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  // url      = "mysql://root:Idaka123@127.0.0.1:3306/raine_DB"
   url      = env("DATABASE_URL")
 }
 
