@@ -2,7 +2,7 @@ const OpenAIApi = require('openai');
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
 
 const openAi = new OpenAIApi({
-    apiKey: process.env.OPENAI_API,
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
 let azureOpenAi
