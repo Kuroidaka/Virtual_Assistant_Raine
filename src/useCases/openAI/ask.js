@@ -182,8 +182,9 @@ module.exports = class askOpenAIUseCase {
                 role: "assistant",
                 content: `
                 The content below is the result of calling function ${toolName} with arguments: ${JSON.stringify(toolArgs)}\n
-
-                If the function is no longer called, just respond with the exact same {content} as follows (don't change anything):\n: 
+                Consider whether if quality is meet with the user request, 
+                If the content's quality is good enough, then just respond with the exact same {content} as follows (don't change anything):\n: 
+                otherwise keep research with tools
                 ---------------------------
                 {content}: ${toolResponse.content}
                 ---------------------------
